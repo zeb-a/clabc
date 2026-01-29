@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  classabc:
+    build: .
+    container_name: classabc-app
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist PocketBase data
+      - ./pb_data:/pb/pb_data
+      # Optional: Mount custom public files
+      # - ./pb_public:/pb/pb_public
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

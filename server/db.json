@@ -1,0 +1,50 @@
+{
+  "users": [],
+  "behaviors": [
+    {
+      "id": 1,
+      "label": "Helped Friend",
+      "pts": 1,
+      "type": "wow",
+      "icon": "🤝"
+    },
+    {
+      "id": 2,
+      "label": "Great Work",
+      "pts": 2,
+      "type": "wow",
+      "icon": "🌟"
+    },
+    {
+      "id": 3,
+      "label": "On Task",
+      "pts": 1,
+      "type": "wow",
+      "icon": "📖"
+    },
+    {
+      "id": 4,
+      "label": "Kindness",
+      "pts": 1,
+      "type": "wow",
+      "icon": "❤️"
+    },
+    {
+      "id": 5,
+      "label": "Noisy",
+      "pts": -1,
+      "type": "nono",
+      "icon": "📢"
+    },
+    {
+      "id": 6,
+      "label": "Disruptive",
+      "pts": -2,
+      "type": "nono",
+      "icon": "⚠️"
+    }
+  ],
+  "classesByUser": {
+    "mictube1981@gmail.com": []
+  }
+}

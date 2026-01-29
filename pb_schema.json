@@ -1,0 +1,109 @@
+[
+  {
+    "id": "users_col",
+    "name": "users",
+    "type": "auth",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "email_field",
+        "name": "email",
+        "type": "email",
+        "required": true,
+        "unique": true
+      },
+      {
+        "system": false,
+        "id": "name_field",
+        "name": "name",
+        "type": "text"
+      },
+      {
+        "system": false,
+        "id": "avatar_field",
+        "name": "avatar",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "behaviors_col",
+    "name": "behaviors",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "label_field",
+        "name": "label",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "pts_field",
+        "name": "pts",
+        "type": "number"
+      },
+      {
+        "system": false,
+        "id": "type_field",
+        "name": "type",
+        "type": "text"
+      },
+      {
+        "system": false,
+        "id": "icon_field",
+        "name": "icon",
+        "type": "text"
+      }
+    ]
+  },
+  {
+    "id": "classes_col",
+    "name": "classes",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "name_field",
+        "name": "name",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "teacher_field",
+        "name": "teacher",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "students_field",
+        "name": "students",
+        "type": "json"
+      },
+      {
+        "system": false,
+        "id": "tasks_field",
+        "name": "tasks",
+        "type": "json"
+      },
+      {
+        "system": false,
+        "id": "submissions_field",
+        "name": "submissions",
+        "type": "json"
+      },
+      {
+        "system": false,
+        "id": "student_submissions_field",
+        "name": "student_submissions",
+        "type": "json"
+      }
+    ]
+  }
+]

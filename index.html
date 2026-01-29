@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/classabc-favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>classABC</title>
+    <!-- Twemoji for cross-device emoji support -->
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@15.0.3/dist/twemoji.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
+      img.emoji {
+        height: 1em;
+        width: 1em;
+        vertical-align: -0.125em;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Initialize Twemoji on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof twemoji !== 'undefined') {
+          twemoji.parse(document.body, {
+            folder: 'svg',
+            ext: '.svg',
+            className: 'emoji'
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

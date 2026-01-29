@@ -1,0 +1,19 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body -->
+    <ellipse cx="100" cy="120" rx="55" ry="45" fill="#1E90FF"/>
+    <!-- Head -->
+    <circle cx="65" cy="95" r="30" fill="#1E90FF"/>
+    <!-- Blowhole -->
+    <path d="M 75 75 L 73 60 L 77 60 L 75 75" fill="#87CEEB"/>
+    <!-- Eyes -->
+    <circle cx="60" cy="90" r="5" fill="#000"/>
+    <circle cx="61" cy="89" r="1.5" fill="#FFF"/>
+    <!-- Fin on back -->
+    <polygon points="100,75 95,45 105,75" fill="#87CEEB"/>
+    <!-- Tail -->
+    <path d="M 155 125 Q 175 115 180 95 Q 175 135 155 140" fill="#87CEEB"/>
+    <!-- Belly accent -->
+    <ellipse cx="100" cy="130" rx="35" ry="20" fill="#87CEEB" opacity="0.6"/>
+    <!-- Smile -->
+    <path d="M 45 105 Q 50 115 60 118" stroke="#000" stroke-width="1" fill="none" stroke-linecap="round"/>
+  </svg>
