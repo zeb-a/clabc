@@ -10,12 +10,22 @@ export default defineConfig({
     sourcemap: false,
     // Minify for production builds
     minify: 'terser',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         // Ensure consistent chunk names
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash][extname]'
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        // Manual chunk splitting for better performance
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom'],
+          'ui-vendor': ['lucide-react', 'framer-motion'],
+          'editor-vendor': ['@tiptap/react', '@tiptap/starter-kit'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
+          'utils-vendor': ['boring-avatars', 'qrcode.react', 'react-qr-code']
+        }
       }
     }
   },
