@@ -17,9 +17,8 @@ function useDarkMode() {
       return stored === 'true';
     }
 
-    // Fall back to system preference
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return prefersDark;
+    // Default to light mode
+    return false;
   });
 
   // Listen for system theme changes

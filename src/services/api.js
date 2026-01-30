@@ -4,9 +4,8 @@ const base = (() => {
   if (import.meta.env.DEV) {
     return '/api';
   }
-  // In production, use relative path - this will work with any host
-  // PocketBase is served from the same domain as the frontend
-  return '/api';
+  // In production, use Railway domain
+  return 'https://classabc.up.railway.app/api';
 })();
 
 

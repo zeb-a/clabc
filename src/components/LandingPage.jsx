@@ -985,32 +985,39 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
   // For Capacitor app: show only the modal (no landing page content)
   return (
-    <div style={{ ...modernStyles.container, alignItems: 'center', justifyContent: 'center', display: 'flex' }}>
+    <div style={{ ...modernStyles.container, alignItems: 'center', justifyContent: 'center', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       <div style={modernStyles.meshBackground}></div>
 
-      {/* --- MODAL SYSTEM --- */}
-      {modalMode && (
-        <div style={{ ...modernStyles.overlay, ...(isDark ? modernStyles.overlayDark : {}) }}>
-          <div style={{ ...modernStyles.modernModal, ...(isMobile ? modernStyles.modernModalMobile : {}), ...(isDark ? modernStyles.modernModalDark : {}) }}>
-            <div style={modernStyles.modalHeader}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {/* Language selector on top for Capacitor */}
-                <LanguageSelector />
-                <h2 style={{ margin: 0, fontWeight: 900, fontSize: '18px', ...(isDark ? { color: '#f4f4f5' } : {}) }}>
-                  {modalMode === 'role' ? t('modal.who') :
-                    modalMode === 'student-login' ? t('role.student') :
-                      modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
-                </h2>
-              </div>
-              <div onClick={() => {
-                // In Capacitor, if in teacher login/signup mode, go back to role selection
-                if (modalMode === 'login' || modalMode === 'signup') {
-                  setModalMode('role');
-                } else {
-                  setModalMode(null);
-                }
-              }} style={{ ...modernStyles.closeBtn, ...(isDark ? modernStyles.closeBtnDark : {}) }}><X size={20} /></div>
-            </div>
+      {/* --- FULLSCREEN MODAL FOR CAPACITOR (no overlay, no close button) --- */}
+      <div style={{
+        ...modernStyles.modernModal,
+        ...(isMobile ? modernStyles.modernModalMobile : {}),
+        ...(isDark ? modernStyles.modernModalDark : {}),
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        borderRadius: 0,
+        border: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center'
+      }}>
+        {/* Modal header - no close button for Capacitor */}
+        <div style={{ ...modernStyles.modalHeader, marginBottom: '30px', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+            {/* Language selector on top for Capacitor */}
+            <LanguageSelector />
+            <h2 style={{ margin: 0, fontWeight: 900, fontSize: '20px', ...(isDark ? { color: '#f4f4f5' } : {}) }}>
+              {modalMode === 'role' ? t('modal.who') :
+                modalMode === 'student-login' ? t('role.student') :
+                  modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
+            </h2>
+          </div>
+        </div>
 
             {/* 1. ROLE SELECTION */}
             {modalMode === 'role' && (
@@ -1255,17 +1262,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 <button onClick={() => { setError(''); setModalMode('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
               </div>
             )}
-          </div>
         </div>
-      )}
     </div>
   );
 }
 
 // --- MODERN 2026 STYLES ---
 const modernStyles = {
-  container: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#1A1A1A', overflowX: 'hidden' },
-  containerDark: { background: '#09090b', color: '#f4f4f5' },
+  container: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#1A1A1A', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top, 0px)' },
+  containerDark: { background: '#09090b', color: '#f4f4f5', paddingTop: 'env(safe-area-inset-top, 0px)' },
   meshBackground: { position: 'fixed', inset: 0, background: 'radial-gradient(at 0% 0%, rgba(76, 175, 80, 0.08) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.08) 0, transparent 50%)', zIndex: -1 },
   nav: { padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(252, 252, 252, 0.68)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(0,0,0,0.04)' },
   navDark: { background: 'rgba(24, 24, 27, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' },

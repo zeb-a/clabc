@@ -32,15 +32,15 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
-    allowedHosts: 'all',
+    allowedHosts: ['all', 'tnw7e12g1a-5174.cnb.run', 'tnw7e12g1a-4002.cnb.run'],
     proxy: {
       '/api/api': {
-        target: 'http://127.0.0.1:8090',
+        target: 'http://127.0.0.1:4002',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/api/, '/api')
       },
       '/api': {
-        target: 'http://127.0.0.1:8090',
+        target: 'http://127.0.0.1:4002',
         changeOrigin: true,
         rewrite: (path) => path
       }

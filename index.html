@@ -3,12 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/classabc-favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>classABC</title>
     <!-- Twemoji for cross-device emoji support -->
     <script src="https://cdn.jsdelivr.net/npm/twemoji@15.0.3/dist/twemoji.min.js"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
+
+      /* Safe Area insets for notched phones (iPhone X+, etc.) */
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top, 0px);
+        --safe-area-inset-right: env(safe-area-inset-right, 0px);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-area-inset-left: env(safe-area-inset-left, 0px);
+      }
+
+      body, html {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        overflow-x: hidden;
+      }
+
+      #root {
+        min-height: 100vh;
+      }
+
       img.emoji {
         height: 1em;
         width: 1em;

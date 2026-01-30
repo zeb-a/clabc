@@ -213,10 +213,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     name={nameValue}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                  {/* Overlay icon to indicate editability */}
-                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isTouchDevice ? 1 : 0 }} className={isTouchDevice ? '' : 'hover-show'}>
-                    <Edit3 color="white" size={24} />
-                  </div>
                 </div>
                 <button onClick={() => setShowSelector(true)} style={styles.textBtn}>Change</button>
               </div>
@@ -349,29 +345,41 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               }}
             >
               {/* Edit/Delete Icons */}
-              <div style={{
-                ...styles.hoverIcons,
-                opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
-                pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
-                transition: 'opacity 0.2s ease'
-              }}>
-                {cls.id !== 'demo-class' && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleEditClass(cls); }}
-                    style={styles.iconBtn}
-                    title="Edit class"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                )}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleEditClass(cls); }}
+                style={{
+                  ...styles.iconBtn,
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
+                  pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
+                  transition: 'opacity 0.2s ease',
+                  zIndex: 10
+                }}
+                title="Edit class"
+              >
+                <Edit2 size={18} />
+              </button>
+              {cls.id !== 'demo-class' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(cls.id); }}
-                  style={{ ...styles.iconBtn, color: '#FF6B6B' }}
+                  style={{
+                    ...styles.iconBtn,
+                    color: '#FF6B6B',
+                    position: 'absolute',
+                    top: 12,
+                    left: 12,
+                    opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
+                    pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease',
+                    zIndex: 10
+                  }}
                   title="Delete class"
                 >
                   <Trash2 size={18} />
                 </button>
-              </div>
+              )}
 
               {/* Demo Badge */}
               {cls.id === 'demo-class' && (
@@ -394,7 +402,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
               {/* Class Card Visuals */}
               <div style={styles.classIcon}>
-                <div style={{ width: '75%', height: 120, borderRadius: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '85%', height: 110, borderRadius: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <SafeAvatar
                     src={cls.avatar || boringAvatar(cls.name || 'class')}
                     name={cls.name}
@@ -525,8 +533,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 }
 
 const styles = {
-  container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box' },
-  nav: { padding: '20px 50px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd' },
+  container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box', paddingTop: 'env(safe-area-inset-top, 0px)' },
+  nav: { padding: 'calc(20px + env(safe-area-inset-top, 0px)) 50px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd' },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 12, color: '#DC2626', fontWeight: 700, transition: 'all 0.2s' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   avatarHint: { fontSize: 11, color: '#475569', marginTop: 4, fontWeight: 700, lineHeight: '12px' },
@@ -535,8 +543,7 @@ const styles = {
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }, 
 
   // Card Styles
-  classCard: { background: 'white', padding: '20px', borderRadius: '24px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', minHeight: '180px', display: 'flex', flexDirection: 'column' },
-  hoverIcons: { position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8, zIndex: 10 },
+  classCard: { background: 'white', padding: '20px', borderRadius: '24px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', minHeight: '170px', display: 'flex', flexDirection: 'column' },
   iconBtn: { background: 'white', border: '1px solid #ddd', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4CAF50', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
   classIcon: { marginBottom: 6, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' },
 

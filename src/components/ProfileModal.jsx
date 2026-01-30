@@ -34,7 +34,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
     const rect = avatarSectionRef.current.getBoundingClientRect();
     return {
       top: rect.bottom + 10,
-      left: rect.left + rect.width / 2 - 275
+      left: rect.left + rect.width / 2 - 175
     };
   }, []);
 
@@ -150,8 +150,8 @@ export default function ProfileModal({ user, onSave, onClose }) {
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
                     zIndex: 100001,
-                    padding: '16px',
-                    minWidth: '550px'
+                    padding: '12px',
+                    minWidth: '350px'
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -199,20 +199,20 @@ export default function ProfileModal({ user, onSave, onClose }) {
 
 const styles = {
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 },
-  modal: { background: '#fff', borderRadius: 16, padding: 32, minWidth: 380, position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' },
+  modal: { background: '#fff', borderRadius: 16, padding: 25, minWidth: 300, maxWidth: 320, position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.12)' },
   closeBtn: { position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#94A3B8' },
-  form: { display: 'flex', flexDirection: 'column', gap: 14, marginTop: 10 },
-  avatarSection: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 10, overflow: 'visible', position: 'relative' },
-  previewContainer: { position: 'relative', marginBottom: '12px' },
-  previewImg: { width: '100px', height: '100px', borderRadius: '50%', background: '#F8FAFC', border: '3px solid #E2E8F0' },
-  cameraBadge: { position: 'absolute', bottom: 0, right: 0, background: '#4CAF50', color: 'white', padding: '6px', borderRadius: '50%' },
-  uploadBtn: { padding: '10px 14px', borderRadius: '12px', border: 'none', background: '#4CAF50', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: 14 },
-  removeBtn: { padding: '8px 12px', borderRadius: '12px', border: '1px solid #E2E8F0', background: 'white', cursor: 'pointer', fontSize: 13 },
-  avatarGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', justifyItems: 'center', width: '100%' },
-  avatarOption: { background: 'white', border: '2px solid #e9ecef', borderRadius: '10px', padding: '8px', cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#666', fontWeight: 500, outline: 'none', width: '70px', justifySelf: 'center', position: 'relative' },
+  form: { display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 },
+  avatarSection: { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 8, overflow: 'visible', position: 'relative' },
+  previewContainer: { position: 'relative', marginBottom: '10px' },
+  previewImg: { width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFC', border: '3px solid #E2E8F0' },
+  cameraBadge: { position: 'absolute', bottom: 0, right: 0, background: '#4CAF50', color: 'white', padding: '5px', borderRadius: '50%' },
+  uploadBtn: { padding: '8px 12px', borderRadius: '10px', border: 'none', background: '#4CAF50', color: 'white', cursor: 'pointer', fontWeight: 'bold', fontSize: 13 },
+  removeBtn: { padding: '7px 10px', borderRadius: '10px', border: '1px solid #E2E8F0', background: 'white', cursor: 'pointer', fontSize: 12 },
+  avatarGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', justifyItems: 'center', width: '100%' },
+  avatarOption: { background: 'white', border: '2px solid #e9ecef', borderRadius: '8px', padding: '6px', cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', fontSize: '8px', color: '#666', fontWeight: 500, outline: 'none', width: '45px', justifySelf: 'center', position: 'relative' },
   avatarOptionSelected: { background: 'white', border: '2px solid #4CAF50', boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.1)' },
-  avatarImg: { width: '32px', height: '32px', borderRadius: '6px' },
-  avatarLabel: { fontSize: '8px', color: '#999', textTransform: 'capitalize' },
-  input: { padding: 10, borderRadius: 8, border: '1px solid #eee', fontSize: 15 },
-  saveBtn: { background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 8, padding: '12px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }
+  avatarImg: { width: '26px', height: '26px', borderRadius: '5px' },
+  avatarLabel: { fontSize: '7px', color: '#999', textTransform: 'capitalize' },
+  input: { padding: 9, borderRadius: 7, border: '1px solid #eee', fontSize: 14 },
+  saveBtn: { background: '#4CAF50', color: '#fff', border: 'none', borderRadius: 7, padding: '10px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }
 };

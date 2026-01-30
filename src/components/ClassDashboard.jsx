@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-dupe-keys */
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Dices, Trophy, Settings, Home, UserPlus, Camera, SmilePlus,
   ChevronLeft, ChevronRight, Sliders, ChevronDown, ArrowUpDown,
-  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical
+  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical, X
 } from 'lucide-react';
 
 import ReportsPage from './ReportsPage';
@@ -25,19 +26,74 @@ import AccessCodesPage from './AccessCodesPage'; // Add this line
 import SettingsPage from './SettingsPage';
 import InlineHelpButton from './InlineHelpButton';
 
+// Helper function for documentation of clamp usage in inline styles
+const clamp = (min, val, max) => val;
+
 // Helper component for Sidebar Icons
 const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataNavbarIcon }) => {
   const [hovered, setHovered] = React.useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   const handleClick = (e) => {
     onClick(e);
   };
 
+  // Desktop: icon + text inline, Mobile: icon only with tooltip
+  if (isMobile) {
+    return (
+      <div
+        style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%', padding: '6px 0', boxSizing: 'border-box' }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <div
+          onClick={handleClick}
+          data-navbar-icon={dataNavbarIcon}
+          role="button"
+          tabIndex={0}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: 10,
+            background: hovered ? '#F8FAFC' : 'transparent',
+            boxShadow: hovered ? '0 8px 20px rgba(2,6,23,0.08)' : 'none',
+            transform: hovered ? 'translateY(-3px) scale(1.03)' : 'translateY(0) scale(1)',
+            transition: 'all 180ms ease',
+            cursor: 'pointer'
+          }}
+        >
+          <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72' }} />
+        </div>
+        {badge}
+        {hovered && (
+          <div style={{
+            position: 'absolute',
+            left: '72px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: '#2D3436',
+            color: 'white',
+            padding: '6px 12px',
+            borderRadius: '8px',
+            zIndex: 2000,
+            whiteSpace: 'nowrap',
+            fontSize: '14px',
+            pointerEvents: 'none',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }}>
+          {label}
+        </div>
+      )}
+    </div>
+  );
+} else {
+  // Desktop: icon + text inline
   return (
     <div
-      style={{ position: 'relative', display: 'flex', justifyContent: 'center', width: '100%', padding: '6px 0', boxSizing: 'border-box' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', padding: '6px 12px', boxSizing: 'border-box' }}
     >
       <div
         onClick={handleClick}
@@ -47,41 +103,44 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: 40,
-          height: 40,
+          gap: '12px',
+          width: '100%',
+          padding: '10px 14px',
           borderRadius: 10,
-          background: hovered ? '#F8FAFC' : 'transparent',
-          boxShadow: hovered ? '0 8px 20px rgba(2,6,23,0.08)' : 'none',
-          transform: hovered ? 'translateY(-3px) scale(1.03)' : 'translateY(0) scale(1)',
+          background: isActive ? '#E8F5E9' : (hovered ? '#F8FAFC' : 'transparent'),
+          boxShadow: hovered ? '0 4px 12px rgba(2,6,23,0.06)' : 'none',
           transition: 'all 180ms ease',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          border: isActive ? '1px solid #4CAF50' : 'none'
         }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
-        <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72' }} />
-      </div>
-      {badge}
-      {hovered && (
-        <div style={{
-          position: 'absolute',
-          left: '72px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          background: '#2D3436',
-          color: 'white',
-          padding: '6px 12px',
-          borderRadius: '8px',
-          zIndex: 2000,
+        <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72', flexShrink: 0 }} />
+        <span style={{
+          fontSize: '13px',
+          fontWeight: 500,
+          color: isActive ? '#2E7D32' : '#374151',
           whiteSpace: 'nowrap',
-          fontSize: '14px',
-          pointerEvents: 'none',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
         }}>
           {label}
+        </span>
+      </div>
+      {badge && (
+        <div style={{
+          position: 'absolute',
+          right: '8px',
+          top: '50%',
+          transform: 'translateY(-50%)'
+        }}>
+          {badge}
         </div>
       )}
     </div>
   );
+}
 };
 
   // Reusable icon button with hover tooltip (for header controls)
@@ -195,11 +254,22 @@ export default function ClassDashboard({
   const [hoveredEditChar, setHoveredEditChar] = useState(null);
   const [deleteConfirmStudentId, setDeleteConfirmStudentId] = useState(null);
   const editFileInputRef = useRef(null);
+  const editAvatarSectionRef = useRef(null);
+
+  const getEditDropdownPosition = useCallback(() => {
+    if (!editAvatarSectionRef.current) return { top: 0, left: 0 };
+
+    const rect = editAvatarSectionRef.current.getBoundingClientRect();
+    return {
+      top: rect.top - 200,
+      left: rect.left + rect.width / 2 - 275
+    };
+  }, []);
   // TEMPORARY: default to visible so we can verify the aside and chevron are rendered.
   // Change this back to `false` after verifying in the browser.
-  const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
-  const [displaySize, setDisplaySize] = useState(typeof window !== 'undefined' && window.innerWidth <= 768 ? 'compact' : 'spacious');
+  const [sidebarVisible, setSidebarVisible] = useState(isMobile ? false : true);
+  const [displaySize, setDisplaySize] = useState(isMobile ? 'compact' : 'spacious');
   const [selectedStudents, setSelectedStudents] = useState(new Set());
   const [showClassBehaviorModal, setShowClassBehaviorModal] = useState(false);
   // Animations for awarded students: id -> { type }
@@ -696,6 +766,7 @@ export default function ClassDashboard({
         <nav
           ref={sidebarRef}
           style={(() => {
+            const safeAreaTop = 'env(safe-area-inset-top, 0px)';
             if (isMobile) {
               // On mobile: render a narrow left aside with tighter spacing so bottom icons remain visible
               return {
@@ -710,7 +781,7 @@ export default function ClassDashboard({
                 justifyContent: 'flex-start',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '10px 6px',
+                padding: `calc(10px + ${safeAreaTop}) 6px`,
                 background: '#EEF2FF',
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.25s ease',
@@ -719,9 +790,16 @@ export default function ClassDashboard({
                 borderRight: '1px solid rgba(0,0,0,0.04)'
               };
             }
-            // Default (desktop): keep as left aside
+            // Default (desktop): wider sidebar with icon + text
             return {
-              ...styles.sidebar,
+              width: '210px',
+              background: '#EEF2FF',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              gap: '4px',
+              padding: 'calc(16px + env(safe-area-inset-top, 0px)) 8px',
+              borderRight: '1px solid rgba(0,0,0,0.06)',
               position: 'fixed',
               left: 0,
               top: 0,
@@ -730,7 +808,9 @@ export default function ClassDashboard({
               transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
               transition: 'transform 0.3s ease',
               boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
-              outline: '3px solid rgba(99,102,241,0.08)'
+              outline: '3px solid rgba(99,102,241,0.08)',
+              overflowY: 'auto',
+              boxSizing: 'border-box'
             };
           })()}
         >
@@ -739,25 +819,25 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={Home}
-            label="Back to Dashboard (Return to main dashboard)"
-            onClick={() => { onBack(); setViewMode('dashboard'); setSidebarVisible(false); }}
+            label="Back to Classes"
+            onClick={() => { onBack(); setViewMode('dashboard'); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
 
           <SidebarIcon
             icon={ClipboardList}
-            label="Open Assignments"
-            onClick={() => { setViewMode('assignments'); setSidebarVisible(false); }}
+            label="Assignments"
+            onClick={() => { setViewMode('assignments'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'assignments'}
           />
 
           <SidebarIcon
             icon={MessageSquare}
-            label="Messages & Grading (Inbox)"
+            label="Inbox & Grading"
             onClick={() => {
               setViewMode('messages');
               fetchFreshSubmissions();
-              setSidebarVisible(false);
+              if (isMobile) setSidebarVisible(false);
             }}
             isActive={viewMode === 'messages'}
             style={styles.icon}
@@ -774,8 +854,8 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={Dices}
-            label="Open Lucky Draw"
-            onClick={() => { setViewMode('dashboard'); setIsLuckyDrawOpen(true); setSidebarVisible(false); }}
+            label="Lucky Draw"
+            onClick={() => { setViewMode('dashboard'); setIsLuckyDrawOpen(true); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="lucky-draw"
           />
@@ -783,14 +863,14 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Trophy}
             label="Progress Road"
-            onClick={() => { onOpenEggRoad(); setSidebarVisible(false); }}
+            onClick={() => { onOpenEggRoad(); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="egg-road"
           />
 
           <SidebarIcon
             icon={CheckSquare}
-            label="Toggle Attendance Mode"
+            label="Attendance Mode"
             onClick={() => {
               if (!isAttendanceMode) {
                 setViewMode('dashboard');
@@ -798,7 +878,7 @@ export default function ClassDashboard({
               } else {
                 setIsAttendanceMode(false);
               }
-              setSidebarVisible(false);
+              if (isMobile) setSidebarVisible(false);
             }}
             isActive={isAttendanceMode}
             style={styles.icon}
@@ -809,11 +889,11 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={QrCode}
-            label="Manage Access Codes"
+            label="Access Codes"
             onClick={() => {
               ensureCodesAndOpen();
               setViewMode('codes');
-              setSidebarVisible(false);
+              if (isMobile) setSidebarVisible(false);
             }}
             isActive={viewMode === 'codes'}
             style={styles.icon}
@@ -821,38 +901,38 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={BarChart2}
-            label="View Reports"
+            label="Reports"
             onClick={() => {
               setViewMode('reports');
               updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, isViewingReports: true } : c));
-              setSidebarVisible(false);
+              if (isMobile) setSidebarVisible(false);
             }}
             isActive={viewMode === 'reports'}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Clock}
-            label="Open Class Timer"
-            onClick={() => { setViewMode('timer'); setSidebarVisible(false); }}
+            label="Class Timer"
+            onClick={() => { setViewMode('timer'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'timer'}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Siren}
-            label="Start Attention Buzzer"
-            onClick={() => { startBuzzerSequence(); setSidebarVisible(false); }}
+            label="Attention Buzzer"
+            onClick={() => { startBuzzerSequence(); if (isMobile) setSidebarVisible(false); }}
             style={{ ...styles.icon, color: buzzerState !== 'idle' ? '#FF5252' : '#636E72' }}
           />
           <SidebarIcon
             icon={Presentation}
-            label="Open Whiteboard"
-            onClick={() => { setShowWhiteboard(true); setSidebarVisible(false); }}
+            label="Whiteboard"
+            onClick={() => { setShowWhiteboard(true); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Settings}
-            label="Open Settings"
-            onClick={() => { setViewMode('settings'); setSidebarVisible(false); }}
+            label="Settings"
+            onClick={() => { setViewMode('settings'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'settings'}
             style={styles.icon}
             dataNavbarIcon="settings"
@@ -893,7 +973,7 @@ export default function ClassDashboard({
                 return {
                   position: 'fixed',
                   left: sidebarVisible ? '82px' : '0',
-                  top: 53,
+                  top: `calc(53px + env(safe-area-inset-top, 0px))`,
                   zIndex: 11010,
                   background: 'white',
                   border: '2px solid rgba(99,102,241,0.12)',
@@ -913,7 +993,7 @@ export default function ClassDashboard({
               }
               return {
                 position: 'fixed',
-                left: sidebarVisible ? '88px' : '8px',
+                left: sidebarVisible ? '218px' : '8px',
                 top: 53,
                 zIndex: 11010,
                 background: 'white',
@@ -997,8 +1077,9 @@ export default function ClassDashboard({
         )}
         <main style={{
           ...styles.content,
-          marginLeft: sidebarVisible ? (isMobile ? '72px' : '80px') : '0',
+          marginLeft: sidebarVisible ? (isMobile ? '72px' : '210px') : '0',
           transition: 'margin-left 0.3s ease',
+          paddingTop: isMobile ? `calc(${styles.content.paddingTop || '0px'} + env(safe-area-inset-top, 0px))` : undefined,
           paddingBottom: isMobile ? '32px' : undefined,
           overflowX: 'hidden',
           maxWidth: '100%',
@@ -1105,7 +1186,7 @@ export default function ClassDashboard({
                       ...styles.header,
                       // Use full width of the `main` container; `main` already offsets for the sidebar.
                       width: '100%',
-                      padding: isMobile ? '8px 12px' : styles.header.padding,
+                      padding: isMobile ? `calc(8px + env(safe-area-inset-top, 0px)) 12px 8px 12px` : styles.header.padding,
                       marginLeft: 0,
                       paddingRight: isMobile ? '12px' : '20px',
                       boxSizing: 'border-box',
@@ -1444,103 +1525,129 @@ export default function ClassDashboard({
                   <div className="student-cards-container" style={{
                     display: 'grid',
                     gridTemplateColumns: displaySize === 'compact'
-                      ? 'repeat(auto-fill, minmax(140px, 1fr))'
+                      ? 'repeat(auto-fill, minmax(120px, 1fr))'
                       : displaySize === 'regular'
-                        ? 'repeat(auto-fill, minmax(200px, 1fr))'
-                        : 'repeat(auto-fill, minmax(280px, 1fr))',
+                        ? 'repeat(auto-fill, minmax(180px, 1fr))'
+                        : 'repeat(auto-fill, minmax(240px, 1fr))',
                     gap: displaySize === 'compact' ? '16px' : displaySize === 'regular' ? '20px' : '28px',
-                    padding: '16px',
+                    padding: displaySize === 'compact' ? '16px' : displaySize === 'regular' ? '20px' : '28px',
                     width: '100%',
-                    alignContent: 'start', // Keeps rows tight at the top
-                    justifyContent: 'start'
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
+                    overflowX: 'hidden'
                   }}>
-                    <div style={{
-                      position: 'relative',
-                      minWidth: 0,
-                      aspectRatio: '1 / 1',
-                      display: 'flex',
-                      ...(displaySize === 'compact' ? { borderRadius: '50%', overflow: 'hidden' } : {})
-                    }}>
-                          <div onClick={() => setShowClassBehaviorModal(true)}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                              e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(99, 102, 241, 0.5)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                              e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(99, 102, 241, 0.4)';
-                            }} style={{
-                              ...styles.actionBtn,
-                              ...(displaySize === 'compact' ? { borderRadius: '50%' } : {})
-                            }}>
-                            <div style={{ position: 'relative', minWidth: 0, aspectRatio: '1 / 1', display: 'flex' }}>
-                              <div onClick={() => setShowClassBehaviorModal(true)}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-                                  e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(99, 102, 241, 0.5)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                                  e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(99, 102, 241, 0.4)';
-                                }}
-                                style={{
-                                  ...styles.actionBtn,
-                                  ...(displaySize === 'compact' ? { borderRadius: '50%' } : {})
-                                }}>
+                    {/* Whole Class Card - Same structure as StudentCard */}
+                    <div
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.7) 0%, rgba(168, 85, 247, 0.7) 100%)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: displaySize === 'compact' ? '12px' : '24px',
+                        padding: displaySize === 'compact' ? '6px' : '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 10px 20px -5px rgba(99, 102, 241, 0.4)',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        position: 'relative',
+                        aspectRatio: '1 / 1',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        border: '1px solid rgba(255, 255, 255, 0.3)'
+                      }}
+                      onClick={() => setShowClassBehaviorModal(true)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 15px 25px -5px rgba(99, 102, 241, 0.5)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 10px 20px -5px rgba(99, 102, 241, 0.4)';
+                      }}
+                    >
+                      {displaySize === 'compact' ? (
+                        <>
+                          {/* ⚡ WHOLE CLASS TEXT (TOP - ARCHED DOWNWARD) ⚡ */}
+                          <svg viewBox="0 0 150 35" style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            width: '90%',
+                            height: '40px',
+                            pointerEvents: 'none',
+                            zIndex: 10
+                          }}>
+                            <defs>
+                              <path id="wholeClassPathInner" d="M 5,32 Q 75,10 145,32" />
+                            </defs>
+                            <text fill="#FFFFFF" fontSize="18" fontWeight="900" letterSpacing="1" textAnchor="middle">
+                              <textPath href="#wholeClassPathInner" startOffset="50%">Whole Class</textPath>
+                            </text>
+                          </svg>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                                  {displaySize === 'compact' ? (
-                                    <>
-                                      <SmilePlus size={28} />
-                                      {/* ⚡ TOTAL CLASS POINTS DISPLAY ⚡ */}
-                                      <div style={{
-                                        marginTop: '6px',
-                                        padding: '2px 8px',
-                                        background: 'rgba(0, 0, 0, 0.3)',
-                                        borderRadius: '12px',
-                                        fontSize: '14px',
-                                        fontWeight: '800',
-                                        color: '#FFFFFF',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '6px',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                                        backdropFilter: 'blur(12px)'
-                                      }}>
-                                        <Trophy size={12} color="#FFD700" fill="#FFD700" />
-                                        {totalClassPoints.toLocaleString()}
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <SmilePlus size={40} />
-                                      <div style={{ marginTop: 10, fontWeight: '900', fontSize: '1rem' }}>Whole Class</div>
-
-                                      {/* ⚡ TOTAL CLASS POINTS DISPLAY ⚡ */}
-                                      <div style={{
-                                        marginTop: '10px',
-                                        padding: '4px 12px',
-                                        background: 'rgba(0, 0, 0, 0.2)',
-                                        borderRadius: '16px',
-                                        fontSize: '18px',
-                                        fontWeight: '800',
-                                        color: '#FFFFFF',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)',
-                                        backdropFilter: 'blur(12px)'
-                                      }}>
-                                        <Trophy size={16} color="#FFD700" fill="#FFD700" />
-                                        {totalClassPoints.toLocaleString()} Pts
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
+                          {/* ⚡ EMOJI (CENTER) ⚡ */}
+                          <div style={{
+                            flex: 1,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            marginTop: '10px'
+                          }}>
+                            <SmilePlus size={28} />
                           </div>
+
+                          {/* ⚡ TOTAL CLASS POINTS DISPLAY (BOTTOM - CENTERED) ⚡ */}
+                          <div style={{
+                            padding: '3px 10px',
+                            background: 'rgba(0, 0, 0, 0.4)',
+                            borderRadius: '12px',
+                            fontSize: '14px',
+                            fontWeight: '800',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            backdropFilter: 'blur(12px)',
+                            whiteSpace: 'nowrap',
+                            position: 'absolute',
+                            bottom: '3px',
+                            left: '50%',
+                            transform: 'translateX(-50%)'
+                          }}>
+                            <Trophy size={12} color="#FFD700" fill="#FFD700" />
+                            {totalClassPoints.toLocaleString()}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <SmilePlus size={40} />
+                          <div style={{ marginTop: 10, fontWeight: '900', fontSize: '1rem', color: 'white' }}>Whole Class</div>
+
+                          {/* ⚡ TOTAL CLASS POINTS DISPLAY ⚡ */}
+                          <div style={{
+                            marginTop: '10px',
+                            padding: '4px 12px',
+                            background: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: '16px',
+                            fontSize: '18px',
+                            fontWeight: '800',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            backdropFilter: 'blur(12px)'
+                          }}>
+                            <Trophy size={16} color="#FFD700" fill="#FFD700" />
+                            {totalClassPoints.toLocaleString()} Pts
+                          </div>
+                        </>
+                      )}
                     </div>
                     {sortedStudents.map((s) => {
                       const today = new Date().toISOString().split('T')[0];
@@ -1612,40 +1719,43 @@ export default function ClassDashboard({
                         </div>
                       );
                     })}
-                    <div style={{
-                      position: 'relative',
-                      minWidth: 0,
-                      aspectRatio: '1 / 1',
-                      display: 'flex',
-                      ...(displaySize === 'compact' ? { borderRadius: '50%', overflow: 'hidden' } : {})
-                    }}>
-                      <div
-                        onClick={(e) => { e.stopPropagation(); setIsAddStudentOpen(true); }}
-                        className="add-student-button"
-                        style={{
-                          background: 'white',
-                          border: '2px dashed #ddd',
-                          borderRadius: displaySize === 'compact' ? '50%' : 16,
-                          padding: displaySize === 'compact' ? 8 : 12,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '90%',
-                          height: '90%',
-                          transition: 'transform 0.2s'
-                        }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                          <UserPlus size={displaySize === 'compact' ? 28 : 40} />
-                          <div style={{
-                            marginTop: displaySize === 'compact' ? '6px' : '8px',
-                            fontWeight: '700',
-                            fontSize: displaySize === 'compact' ? '12px' : 'inherit'
-                          }}>Add Student</div>
-
-                        </div>
-
-                      </div>
+                    {/* Add Student Button - Same structure as StudentCard */}
+                    <div
+                      style={{
+                        backgroundColor: 'white',
+                        borderRadius: displaySize === 'compact' ? '12px' : '24px',
+                        padding: displaySize === 'compact' ? '6px' : '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s',
+                        position: 'relative',
+                        aspectRatio: '1 / 1',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        border: '2px dashed #ddd'
+                      }}
+                      onClick={(e) => { e.stopPropagation(); setIsAddStudentOpen(true); }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.borderColor = '#6366F1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.borderColor = '#ddd';
+                      }}
+                    >
+                      <UserPlus size={displaySize === 'compact' ? 40 : 56} style={{ color: '#6366F1' }} />
+                      <div style={{
+                        marginTop: displaySize === 'compact' ? '8px' : '12px',
+                        fontWeight: '700',
+                        fontSize: displaySize === 'compact' ? '12px' : '1rem',
+                        color: '#6366F1',
+                        textAlign: 'center'
+                      }}>Add Student</div>
                     </div>
 
                   </div>
@@ -1699,45 +1809,121 @@ export default function ClassDashboard({
         {editingStudentId && (
           <div style={styles.overlay}>
             <div style={styles.modal}>
-              <h3 style={{ marginBottom: 16 }}>Edit Student</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 16 }}>
-                <SafeAvatar src={editStudentAvatar || (editSelectedSeed ? avatarByCharacter(editSelectedSeed) : boringAvatar(editStudentName || 'anon', 'boy'))} name={editStudentName} alt={editStudentName} style={{ width: 100, height: 100, borderRadius: 50, objectFit: 'cover', background: '#F8FAFC' }} />
-                <div style={{ marginTop: 10 }}><Camera size={14} /></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Edit Student</h3>
+                <button style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#64748b', padding: 8, borderRadius: 8, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }} onMouseEnter={(e) => e.target.style.transform = 'rotate(90deg) scale(1.1)'} onMouseLeave={(e) => e.target.style.transform = 'rotate(0deg) scale(1)'}><X /></button>
+              </div>
 
-                {/* Styled upload button (matches AddStudentModal style) */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20, overflow: 'visible', position: 'relative' }} ref={editAvatarSectionRef}>
+                <div
+                  style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#F8FAFC', border: '3px solid #E2E8F0', position: 'relative', cursor: 'pointer' }}
+                  onClick={() => setShowEditAvatarPicker(!showEditAvatarPicker)}
+                >
+                  <SafeAvatar src={editStudentAvatar || (editSelectedSeed ? avatarByCharacter(editSelectedSeed) : boringAvatar(editStudentName || 'anon', 'boy'))} name={editStudentName} alt={editStudentName} style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = boringAvatar(editStudentName); }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#4CAF50', color: 'white', padding: '6px', borderRadius: '50%' }}><Camera size={14} /></div>
+                </div>
+                <div style={{ marginTop: 8, textAlign: 'center', fontSize: 13, color: '#64748B', fontWeight: 500, cursor: 'pointer' }} onClick={() => setShowEditAvatarPicker(!showEditAvatarPicker)}>
+                  Change avatar
+                </div>
+
+                {/* Upload button */}
+                <input ref={editFileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files && e.target.files[0]; if (!f) return; if (f.size > 1024 * 1024) { alert('Image is too large. Please choose a smaller image (under 1MB).'); return; } const reader = new FileReader(); reader.onload = () => { setEditStudentAvatar(reader.result); setEditSelectedSeed(null); }; reader.readAsDataURL(f); }} />
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
-                  <input ref={editFileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files && e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = () => { setEditStudentAvatar(reader.result); setEditSelectedSeed(null); }; reader.readAsDataURL(f); }} />
-                  <button onClick={() => editFileInputRef.current && editFileInputRef.current.click()} style={{ padding: '10px 14px', borderRadius: '12px', border: 'none', background: '#4CAF50', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>
+                  <button onClick={() => editFileInputRef.current && editFileInputRef.current.click()} style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'all 0.2s ease' }}>
                     {editStudentAvatar ? 'Change Photo' : 'Upload Photo'}
                   </button>
                   {editStudentAvatar && (
-                    <button onClick={() => setEditStudentAvatar(null)} style={{ padding: '8px 12px', borderRadius: '12px', border: '1px solid #E2E8F0', background: 'white', cursor: 'pointer' }}>Remove</button>
+                    <button onClick={() => setEditStudentAvatar(null)} style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: 500, fontSize: 13, color: '#64748b', transition: 'all 0.2s ease' }}>Remove</button>
                   )}
                 </div>
+              </div>
 
-                <div style={{ marginTop: 12, position: 'relative' }}>
-                  <button onClick={() => setShowEditAvatarPicker(!showEditAvatarPicker)} style={{ width: '100%', padding: '12px 16px', border: '1px solid #E2E8F0', borderRadius: '12px', background: '#F8FAFC', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 500, color: '#475569', transition: 'all 0.2s' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>{editSelectedSeed ? (<><img src={avatarByCharacter(editSelectedSeed)} alt={editSelectedSeed} style={{ width: 24, height: 24, borderRadius: 4 }} /><span style={{ textTransform: 'capitalize' }}>{editSelectedSeed}</span></>) : ('Choose character...')}</span>
-                    <ChevronDown size={18} style={{ transform: showEditAvatarPicker ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
-                  </button>
-                  {showEditAvatarPicker && (
-                    <div style={{ position: 'absolute', bottom: '100%', left: '-110%', right: '-110%', marginBottom: '8px', background: 'white', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', zIndex: 1001, padding: '16px', minWidth: '550px' }}>
+              {/* AVATAR PICKER DROPDOWN - Rendered via portal to escape modal */}
+              {showEditAvatarPicker && editAvatarSectionRef.current && (
+                <>
+                  {createPortal(
+                    <div
+                      style={{
+                        position: 'fixed',
+                        ...getEditDropdownPosition(),
+                        background: 'white',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                        zIndex: 100001,
+                        padding: '16px',
+                        minWidth: '550px'
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', justifyItems: 'center', width: '100%' }}>
                         {AVATAR_OPTIONS.map((char) => (
-                          <button key={char.name} onClick={() => { setEditSelectedSeed(char.name); setEditStudentAvatar(null); setShowEditAvatarPicker(false); }} onMouseEnter={() => setHoveredEditChar(char.name)} onMouseLeave={() => setHoveredEditChar(null)} style={{ background: 'white', border: editSelectedSeed === char.name ? '2px solid #4CAF50' : '2px solid #e9ecef', borderRadius: 10, padding: 8, cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, fontSize: 9, color: '#666', fontWeight: 500, outline: 'none', width: '70px', justifySelf: 'center', ...(hoveredEditChar === char.name ? { transform: 'scale(1.15)', zIndex: 10, boxShadow: '0 8px 16px rgba(0,0,0,0.15)' } : {}), ...(editSelectedSeed === char.name ? { boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.1)' } : {}) }} title={char.label}>
-                            <img src={avatarByCharacter(char.name)} alt={char.label} style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', ...(hoveredEditChar === char.name ? { transform: 'scale(5)', position: 'absolute', bottom: 'calc(100% - 80px)', left: '50%', marginLeft: '-20px', zIndex: 20 } : {}) }} />
+                          <button
+                            key={char.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditSelectedSeed(char.name);
+                              setEditStudentAvatar(null);
+                              setShowEditAvatarPicker(false);
+                            }}
+                            onMouseEnter={() => setHoveredEditChar(char.name)}
+                            onMouseLeave={() => setHoveredEditChar(null)}
+                            style={{
+                              background: 'white',
+                              border: '2px solid #e9ecef',
+                              borderRadius: 10,
+                              padding: 8,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: 4,
+                              fontSize: 9,
+                              color: '#666',
+                              fontWeight: 500,
+                              outline: 'none',
+                              width: '70px',
+                              justifySelf: 'center',
+                              ...(editSelectedSeed === char.name ? styles.avatarOptionSelected : {}),
+                              ...(hoveredEditChar === char.name ? { transform: 'scale(1.15)', zIndex: 10, boxShadow: '0 8px 16px rgba(0,0,0,0.15)' } : {})
+                            }}
+                            title={char.label}
+                          >
+                            <img src={avatarByCharacter(char.name)} alt={char.label} style={{ width: 32, height: 32, borderRadius: 6, ...(hoveredEditChar === char.name ? { transform: 'scale(5)', position: 'absolute', bottom: 'calc(100% - 80px)', left: '50%', marginLeft: '-20px', zIndex: 20 } : {}) }} />
                             <span style={{ fontSize: 8, color: '#999', textTransform: 'capitalize' }}>{char.name}</span>
                           </button>
                         ))}
                       </div>
-                    </div>
+                    </div>,
+                    document.body
                   )}
-                </div>
-              </div>
-              <input autoFocus placeholder="Student name" value={editStudentName} onChange={(e) => setEditStudentName(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #E2E8F0', marginBottom: 12 }} onKeyDown={(e) => e.key === 'Enter' && handleSaveStudentEdit()} />
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); }} style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #E2E8F0', background: 'white', cursor: 'pointer' }}>Cancel</button>
-                <button data-enter-submit onClick={handleSaveStudentEdit} style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: '#4CAF50', color: 'white' }}>Save</button>
+                </>
+              )}
+
+              <input autoFocus placeholder="Student Name" value={editStudentName} onChange={(e) => setEditStudentName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: 16, outline: 'none', fontSize: 14, color: '#334155', transition: 'border-color 0.2s ease, box-shadow 0.2s ease' }} onFocus={(e) => { e.target.style.borderColor = '#4CAF50'; e.target.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
+
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                {/* CANCEL BUTTON */}
+                <button style={{ padding: '14px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 600, fontSize: 14, cursor: 'pointer', flex: 1, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }}>Cancel</button>
+                <button
+                  data-save-student-btn
+                  style={{
+                    padding: '14px 20px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    flex: 1,
+                    opacity: editStudentName.trim() ? 1 : 0.5,
+                    cursor: editStudentName.trim() ? 'pointer' : 'not-allowed',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onClick={handleSaveStudentEdit}
+                  disabled={!editStudentName.trim()}
+                >Save Changes</button>
               </div>
             </div>
           </div>
@@ -1769,13 +1955,14 @@ const styles = {
   layout: { display: 'flex', height: '100vh', background: '#F4F1EA', position: 'relative', overflow: 'hidden' },
   icon: { cursor: 'pointer', transition: 'color 0.2s', position: 'relative' },
   content: { flex: 1, display: 'flex', flexDirection: 'column', transition: 'margin-left 0.3s ease', height: '100vh', overflowY: 'auto' },
+  avatarOptionSelected: { background: 'white', border: '2px solid #4CAF50', boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.1)' },
   // header: { maxWidth: '1200px',padding: '0 20px', background: 'linear-gradient(90deg,#fff,#F8FFF8)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', boxShadow: '0 6px 18px rgba(16,24,40,0.06)', borderBottomLeftRadius: 12, borderBottomRightRadius: 12 },
   addBtn: { background: '#4CAF50', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' },
   // actionBtn: { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' },
   // gridMenu: { position: 'absolute', top: '50px', right: 0, background: 'white', borderRadius: '12px', padding: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, minWidth: '220px' },
   // gridOption: { display: 'block', width: '100%', textAlign: 'left', padding: '10px', marginBottom: 6, borderRadius: 8, cursor: 'pointer', border: '1px solid #ddd' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 },
-  modal: { background: 'white', padding: '24px', borderRadius: '16px', width: '500px' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 },
+  modal: { background: 'white', padding: '24px', borderRadius: '20px', width: '360px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', zIndex: 10000, position: 'relative' },
   badge: { position: 'absolute', top: '-5px', right: '-5px', background: '#FF5252', color: 'white', width: '18px', height: '18px', borderRadius: '50%', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' },
   // REPLACE THESE KEYS IN YOUR styles OBJECT:
   // SURGICAL STYLE UPDATES
@@ -1815,7 +2002,7 @@ const styles = {
     , justifyContent: 'center',
   },
 
-  sidebar: { width: '80px', background: '#EEF2FF', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '8px 0', borderRight: '1px solid rgba(0,0,0,0.06)' },
+  sidebar: { width: '80px', background: '#EEF2FF', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: 'calc(8px + env(safe-area-inset-top, 0px)) 0', borderRight: '1px solid rgba(0,0,0,0.06)', paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))' },
 
   gridMenu: {
     position: 'absolute',
