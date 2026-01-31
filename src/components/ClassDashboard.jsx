@@ -781,7 +781,6 @@ export default function ClassDashboard({
         <nav
           ref={sidebarRef}
           style={(() => {
-            const safeAreaTop = 'env(safe-area-inset-top, 0px)';
             if (isMobile) {
               // On mobile: render a narrow left aside with tighter spacing so bottom icons remain visible
               return {
@@ -796,7 +795,7 @@ export default function ClassDashboard({
                 justifyContent: 'flex-start',
                 alignItems: 'center',
                 gap: '6px',
-                padding: `calc(6px + ${safeAreaTop}) 6px`,
+                padding: '6px',
                 background: '#EEF2FF',
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.25s ease',
@@ -806,27 +805,27 @@ export default function ClassDashboard({
               };
             }
             // Default (desktop): wider sidebar with icon + text
-            return {
-              width: '210px',
-              background: '#EEF2FF',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'stretch',
-              gap: '4px',
-              padding: 'calc(16px + env(safe-area-inset-top, 0px)) 8px',
-              borderRight: '1px solid rgba(0,0,0,0.06)',
-              position: 'fixed',
-              left: 0,
-              top: 0,
-              height: '100vh',
-              zIndex: 1000,
-              transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
-              transition: 'transform 0.3s ease',
-              boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
-              outline: '3px solid rgba(99,102,241,0.08)',
-              overflowY: 'auto',
-              boxSizing: 'border-box'
-            };
+              return {
+                width: '210px',
+                background: '#EEF2FF',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: '4px',
+                borderRight: '1px solid rgba(0,0,0,0.06)',
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                height: '100vh',
+                zIndex: 1000,
+                transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 0.3s ease',
+                boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
+                outline: '3px solid rgba(99,102,241,0.08)',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+                marginTop: '7px'
+              };
           })()}
         >
           {/* User Initial Circle */}
@@ -988,7 +987,7 @@ export default function ClassDashboard({
                 return {
                   position: 'fixed',
                   left: sidebarVisible ? '82px' : '0',
-                  top: `calc(53px + env(safe-area-inset-top, 0px))`,
+                  top: '50px',
                   zIndex: 11010,
                   background: 'white',
                   border: '2px solid rgba(99,102,241,0.12)',
@@ -1094,8 +1093,7 @@ export default function ClassDashboard({
           ...styles.content,
           marginLeft: sidebarVisible ? (isMobile ? '72px' : '210px') : '0',
           transition: 'margin-left 0.3s ease',
-          paddingTop: isMobile ? '8px' : undefined,
-          paddingBottom: isMobile ? '80px' : undefined,
+          paddingTop: (viewMode === 'messages' || viewMode === 'codes' || viewMode === 'settings' || viewMode === 'assignments' || viewMode === 'timer' || viewMode === 'reports') ? 0 : (isMobile ? '60px' : '80px'),
           overflowX: 'hidden',
           maxWidth: '100%',
           boxSizing: 'border-box'
@@ -1215,7 +1213,12 @@ export default function ClassDashboard({
                       boxSizing: 'border-box',
                       flexDirection: 'row',
                       alignItems: 'flex-start',
-                      justifyContent: 'space-between'
+                      justifyContent: 'space-between',
+                      position: 'fixed',
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      zIndex: 999
                     }}
                   >
                     {/* Left side: Empty or back button */}
@@ -2026,7 +2029,6 @@ const styles = {
     , justifyContent: 'center',
   },
 
-  sidebar: { width: '80px', background: '#EEF2FF', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: 'calc(8px + env(safe-area-inset-top, 0px)) 0', borderRight: '1px solid rgba(0,0,0,0.06)', paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))' },
 
   gridMenu: {
     position: 'absolute',

@@ -139,14 +139,15 @@ async getStudentByParentCode(code) {
       throw err;
     }
   },
-  async register({ email, password, name }) {
+  async register({ email, password, name, title }) {
     const user = await pbRequest(`/collections/${AUTH_COLL}/records`, {
       method: 'POST',
       body: JSON.stringify({
         email,
         password,
         passwordConfirm: password,
-        name: name || email
+        name: name || email,
+        title: title || ''
       })
     });
 

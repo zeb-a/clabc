@@ -6,6 +6,7 @@ import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
 import { Camera, X } from 'lucide-react';
 
 export default function ProfileModal({ user, onSave, onClose }) {
+  const [title, setTitle] = useState(user.title || '');
   const [name, setName] = useState(user.name || '');
   const [avatar, setAvatar] = useState(user.avatar || boringAvatar(user.name || user.email));
   // If avatar is a character avatar, try to match to a preset name
@@ -72,7 +73,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
         avatarToSave = uploadedAvatar;
       }
       // Pass user id explicitly so API knows who to update
-      await onSave({ id: user.id, name, avatar: avatarToSave, password, oldPassword });
+      await onSave({ id: user.id, title, name, avatar: avatarToSave, password, oldPassword });
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to update profile.');
@@ -186,7 +187,22 @@ export default function ProfileModal({ user, onSave, onClose }) {
             </>
           )}
 
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" style={styles.input} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <select
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              style={{ ...styles.input, width: '80px', padding: '8px' }}
+            >
+              <option value="">--</option>
+              <option value="Mr.">Mr.</option>
+              <option value="Mrs.">Mrs.</option>
+              <option value="Miss">Miss</option>
+              <option value="Ms.">Ms.</option>
+              <option value="Dr.">Dr.</option>
+              <option value="Prof.">Prof.</option>
+            </select>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" style={{ ...styles.input, flex: 1 }} />
+          </div>
           <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder="Current Password (to change password)" style={styles.input} />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="New Password" style={styles.input} />
           <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Confirm New Password" style={styles.input} />

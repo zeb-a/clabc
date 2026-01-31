@@ -160,6 +160,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   // Student/Parent Access State
@@ -326,7 +327,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     e.preventDefault();
     if (password !== confirmPassword) return setError('Passwords do not match. Please check again New Teacher.');
     try {
-      await api.register({ email, password, name });
+      await api.register({ email, password, name, title });
       setModalMode('verify-email-info');
       setError('');
     } catch (err) { setError(err.message); }
@@ -832,7 +833,43 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
-                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setName(e.target.value)} required />}
+                {modalMode === 'signup' && (
+                  <div style={{ display: 'flex', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
+                    <select
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      style={{
+                        ...modernStyles.modernInput,
+                        ...(isMobile ? modernStyles.modernInputMobile : {}),
+                        ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}),
+                        width: '90px',
+                        minWidth: '90px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="">--</option>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Miss">Miss</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Dr.">Dr.</option>
+                      <option value="Prof.">Prof.</option>
+                    </select>
+                    <input
+                      placeholder={t('auth.fullname')}
+                      style={{
+                        ...modernStyles.modernInput,
+                        ...(isMobile ? modernStyles.modernInputMobile : {}),
+                        ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}),
+                        flex: 1,
+                        minWidth: 0,
+                        boxSizing: 'border-box'
+                      }}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
                 <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setEmail(e.target.value)} required />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                   <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: isMobile ? '1' : 1, minWidth: '100%', boxSizing: 'border-box' }} onChange={e => setPassword(e.target.value)} required />
@@ -1150,7 +1187,43 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
-                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setName(e.target.value)} required />}
+                {modalMode === 'signup' && (
+                  <div style={{ display: 'flex', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
+                    <select
+                      value={title}
+                      onChange={e => setTitle(e.target.value)}
+                      style={{
+                        ...modernStyles.modernInput,
+                        ...(isMobile ? modernStyles.modernInputMobile : {}),
+                        ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}),
+                        width: '90px',
+                        minWidth: '90px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="">--</option>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Miss">Miss</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Dr.">Dr.</option>
+                      <option value="Prof.">Prof.</option>
+                    </select>
+                    <input
+                      placeholder={t('auth.fullname')}
+                      style={{
+                        ...modernStyles.modernInput,
+                        ...(isMobile ? modernStyles.modernInputMobile : {}),
+                        ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}),
+                        flex: 1,
+                        minWidth: 0,
+                        boxSizing: 'border-box'
+                      }}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
                 <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setEmail(e.target.value)} required />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                   <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: isMobile ? '1' : 1, minWidth: '100%', boxSizing: 'border-box' }} onChange={e => setPassword(e.target.value)} required />
@@ -1333,8 +1406,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
 // --- MODERN 2026 STYLES ---
 const modernStyles = {
-  container: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#1A1A1A', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top, 0px)' },
-  containerDark: { background: '#09090b', color: '#f4f4f5', paddingTop: 'env(safe-area-inset-top, 0px)' },
+  container: { background: '#fff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#1A1A1A', overflowX: 'hidden', paddingTop: 0 },
+  containerDark: { background: '#09090b', color: '#f4f4f5', paddingTop: 0 },
   meshBackground: { position: 'fixed', inset: 0, background: 'radial-gradient(at 0% 0%, rgba(76, 175, 80, 0.08) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.08) 0, transparent 50%)', zIndex: -1 },
   nav: { padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(252, 252, 252, 0.68)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(0,0,0,0.04)' },
   navDark: { background: 'rgba(24, 24, 27, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' },

@@ -56,7 +56,7 @@ export default function EggRoad({ classData, onBack }) {
       {/* HEADER */}
       <div style={{
         ...styles.header,
-        paddingTop: `calc(20px + env(safe-area-inset-top, 0px))`
+        paddingTop: 0
       }}>
         <button onClick={onBack} aria-label="Close map" title="Close" style={styles.backBtn}><X size={18} /></button>
         <div style={styles.classStatus}>

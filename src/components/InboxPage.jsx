@@ -32,9 +32,7 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
         .inbox-page .workHeader { padding: 12px !important; }
         .inbox-page .badge { font-size: 11px !important; padding: 6px 10px !important; }
         @media (max-width: 768px) {
-          .inbox-page { padding: 12px !important; }
           .inbox-page .sidebar { display: none !important; }
-          .inbox-page .main { padding: 12px !important; }
           .inbox-page .workstation { padding: 16px !important; }
           .inbox-page .closeBtn button { width: 40px; height: 40px; }
         }
@@ -43,7 +41,7 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
       {/* MAIN GRADING AREA */}
       <div style={pageStyles.main}>
         {/* Header with X and ? top right, and nav toggle */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px 0 0', minHeight: 48 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px 0 0', minHeight: 48 }}>
           <div />
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {/* Nav toggle button: show tooltip on desktop, text label on mobile */}
@@ -203,7 +201,7 @@ const pageStyles = {
   contentBody: { flex: 1, overflowY: 'auto', paddingRight: '10px' },
   answerBox: { background: '#FFF', padding: '20px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #EEE' },
   qNum: { fontSize: '12px', fontWeight: 800, color: '#4A90E2', marginBottom: '10px', textTransform: 'uppercase' },
-  gradingBar: { background: '#FFF', padding: '20px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 -10px 30px rgba(0,0,0,0.05)', marginTop: '20px' },
+  gradingBar: { background: '#FFF', padding: '20px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 -10px 30px rgba(0,0,0,0.05)', marginTop: '20px', marginBottom: 0 },
   gradeInput: { border: 'none', fontSize: '18px', fontWeight: 700, width: '150px', outline: 'none' },
   submitBtn: { background: '#000', color: '#FFF', padding: '12px 24px', borderRadius: '14px', border: 'none', fontWeight: 700, cursor: 'pointer' },
   emptyState: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }

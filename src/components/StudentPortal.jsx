@@ -292,9 +292,9 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
   }
 
   return (
-    <div className="student-portal" style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: "'Inter', sans-serif", paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="student-portal" style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <style>{`
-        .student-portal .topBar { padding: calc(12px + env(safe-area-inset-top, 0px)) 16px !important; }
+        .student-portal .topBar { padding: 12px 16px !important; }
         .student-portal h2 { font-size: 18px !important; }
         .student-portal .StatCard { padding: 12px !important; }
         @media (max-width: 768px) {

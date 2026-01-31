@@ -224,13 +224,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
         </div>
       )}
       <header style={styles.header}>
-        <input
-          style={styles.titleInput}
-          placeholder="Type Worksheet title..."
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
           <select
             value={assignMenu}
             onChange={e => {
@@ -252,7 +246,6 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
               fontSize: 15,
               background: '#fff',
               color: '#4F46E5',
-              marginLeft: 12,
               minWidth: 90,
               boxShadow: '0 2px 8px rgba(79,70,229,0.06)',
               appearance: 'none',
@@ -265,10 +258,10 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
               <option key={student.id} value={student.id}>{student.name}</option>
             ))}
           </select>
-          <button onClick={handlePublish} style={styles.publishBtn} title="Publish to Class">
-            <Send size={18} /> Publish to Class
+          <button onClick={handlePublish} style={styles.publishBtn} title="Publish">
+            <Send size={18} /> Publish
           </button>
-          <button onClick={onBack} style={styles.backBtn}><X size={18} /></button>
+          <button onClick={onBack} style={styles.backBtn}><X size={16} /></button>
         </div>
       </header>
 
@@ -280,6 +273,20 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
           ...styles.canvas,
           width: isMobile ? '100vw' : '100%'
         }}>
+          <div style={{ width: '100%', marginBottom: '24px' }}>
+            <input
+              style={{
+                ...styles.titleInput,
+                width: isMobile ? '90%' : '600px',
+                borderColor: title ? '#4F46E5' : '#E2E8F0'
+              }}
+              placeholder="Type Worksheet title..."
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              onFocus={(e) => e.target.style.borderColor = '#4F46E5'}
+              onBlur={(e) => e.target.style.borderColor = title ? '#4F46E5' : '#E2E8F0'}
+            />
+          </div>
           {/* Only show student selection list if not assigning to all and no student is selected from dropdown */}
           {!assignToAll && selectedStudents.length === 0 && (
             <div style={{ width: '100%', maxWidth: '800px', marginBottom: '20px' }}>
@@ -818,10 +825,10 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     width: window.innerWidth < 768 ? '100vw' : '100vw',
-    paddingBottom: window.innerWidth < 768 ? '70px' : '40px'
+    paddingBottom: window.innerWidth < 768 ? '0px' : '40px'
   },
   header: {
-    padding: '16px 16px',
+    padding: '0 16px',
     background: '#fff',
     borderBottom: '1px solid #E2E8F0',
     display: 'flex',
@@ -833,9 +840,9 @@ const styles = {
     height: 'auto',    // ⚡ ENSURES HEADER GROWS IF ITEMS WRAP
     width: '98%'
   }, 
-  titleInput: { fontSize: '20px', fontWeight: '800', border: 'none', outline: 'none', marginLeft:'48px', width: '400px', color: '#1E293B' },
-  backBtn: { background: '#F8FAFC', border: '2px solid #e2656dff', padding: '8px', borderRadius: '10px', cursor: 'pointer' },
-  publishBtn: { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#4F46E5', color: '#fff', borderRadius: '10px', border: 'none', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)' },
+  titleInput: { fontSize: '24px', fontWeight: '700', border: '2px solid #E2E8F0', outline: 'none', width: '400px', color: '#1E293B', padding: '16px 20px', borderRadius: '12px', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
+  backBtn: { background: '#F8FAFC', border: '2px solid #e2656dff', padding: '6px', borderRadius: '8px', cursor: 'pointer' },
+  publishBtn: { display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: '#4F46E5', color: '#fff', borderRadius: '10px', border: 'none', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)', fontSize: '14px' },
   workspace: {
     flex: 1,
     display: 'flex',

@@ -13,6 +13,22 @@ const internalCSS = `
     70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
     100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
   }
+  @media (max-width: 480px) {
+    .class-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 8px !important;
+    }
+  }
+  @media (min-width: 481px) and (max-width: 640px) {
+    .class-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+  @media (min-width: 641px) and (max-width: 768px) {
+    .class-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+    }
+  }
   .class-card-hover:hover {
     transform: translateY(-5px);
     border-color: #4CAF50 !important;
@@ -290,43 +306,47 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       <nav style={{ ...styles.nav }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} aria-label="Edit profile" style={styles.navAvatarBtn}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} title="Edit Profile" style={styles.navAvatarBtn}>
                 <SafeAvatar
                   src={user.avatar}
                   name={user.name || user.email}
-                  style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }}
+                  style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }}
                 />
               </button>
-              <div style={{ fontWeight: 600, fontSize: '13px' }}>{user.name || user.email}</div>
+              <div style={{ fontWeight: 700, fontSize: '16px' }}>
+                {user.title ? `${user.title} ` : ''}{user.name || user.email}
+              </div>
             </div>
           )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <InlineHelpButton pageId="teacher-portal" />
-          <button onClick={() => setLogoutConfirm(true)} style={styles.logoutBtn}>
+          <button onClick={() => setLogoutConfirm(true)} title="Logout" style={styles.logoutBtn}>
             <LogOut size={14} />
             <span style={{ marginLeft: 4, fontWeight: 600 }}>Logout</span>
           </button>
         </div>
       </nav>
 
-      <main style={{ ...styles.main }}>
+      <main style={{ ...styles.main, paddingTop: isMobile ? '60px' : '80px' }}>
         <div style={{ ...styles.header }}>
           <h2 style={{ margin: 0, fontSize: '18px' }}>My Classes</h2>
         </div>
 
-        <div style={{
+        <div className="class-grid" style={{
           ...styles.grid,
-          gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(140px, 1fr))' : styles.grid.gridTemplateColumns,
-          gap: isMobile ? '12px' : styles.grid.gap
+          ...styles.grid,
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : styles.grid.gridTemplateColumns,
+          gap: isMobile ? '8px' : styles.grid.gap
         }}>
           {/* --- EXISTING CLASSES --- */}
           {(classes || []).map((cls) => (
             <div
               key={cls.id}
               className="class-card-hover"
+              title={`Click to open ${cls.name} (${cls.students.length} students)`}
               onClick={() => {
                 if (!hoveredClassId && !isMobile) return;
                 onSelectClass(cls.id);
@@ -415,6 +435,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           {/* --- ADD CLASS CARD --- */}
           <div
             className="add-card-hover"
+            title="Add a new class"
             onClick={() => setShowAddModal(true)}
             style={{
               ...styles.classCard,
@@ -530,17 +551,16 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 }
 
 const styles = {
-  container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box', paddingTop: 'env(safe-area-inset-top, 0px)' },
-  nav: { padding: 'calc(8px + env(safe-area-inset-top, 0px)) 16px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px' },
+  container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box' },
+  nav: { padding: '8px 16px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   avatarHint: { display: 'none' },
-  main: { padding: '12px 16px', maxWidth: '100%', boxSizing: 'border-box' },
-  header: { display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }, 
+  header: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center', marginTop: 0 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: '14px', maxWidth: '100%', padding: '8px 16px 16px' }, 
 
   // Card Styles
-  classCard: { background: 'white', padding: '20px', borderRadius: '24px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', minHeight: '170px', display: 'flex', flexDirection: 'column' },
+  classCard: { background: 'white', padding: '23px', borderRadius: '24px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', minHeight: '195px', display: 'flex', flexDirection: 'column' },
   iconBtn: { background: 'white', border: '1px solid #ddd', borderRadius: 8, padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4CAF50', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
   classIcon: { marginBottom: 6, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' },
 

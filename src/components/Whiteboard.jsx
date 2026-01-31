@@ -597,7 +597,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: '70px',
-    paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))',
     paddingBottom: '8px',
     paddingLeft: '24px',
     paddingRight: '24px',

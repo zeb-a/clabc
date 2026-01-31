@@ -18,8 +18,8 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           flex-direction: row;
           align-items: center;
           justify-content: space-between;
-          padding: 18px 24px 0 24px;
-          min-height: 56px;
+          padding: 0 24px 0 24px;
+          min-height: 44px;
           background: #fff;
           border-bottom: 1px solid #E2E8F0;
           position: sticky;
@@ -28,8 +28,8 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
         }
         @media (max-width:768px) {
           .codes-header {
-            padding: 14px 8px 0 8px;
-            min-height: 48px;
+            padding: 0 8px 0 8px;
+            min-height: 40px;
           }
         }
         .codes-header-title {
@@ -194,7 +194,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
         }
         @media (max-width:768px) {
           .codes-header {
-            padding: 14px 8px 0 8px;
+            padding: 0 8px 0 8px;
           }
           .codes-list {
             max-width: 100%;

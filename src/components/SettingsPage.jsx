@@ -153,7 +153,7 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
   React.useEffect(() => {
     const style = document.createElement('style');
     style.id = 'settings-mobile-styles';
-    style.innerHTML = `@media (max-width:720px){ .settings-page-root header { padding: 12px 16px !important; } .settings-page-root main { padding: 16px !important; } .settings-page-root aside { display: none !important; } .settings-page-root .sidebar-collapsed { display: flex !important; width: 64px !important; } }
+    style.innerHTML = `@media (max-width:720px){ .settings-page-root header { padding: 0 16px !important; } .settings-page-root main { padding: 16px !important; } .settings-page-root aside { display: none !important; } .settings-page-root .sidebar-collapsed { display: flex !important; width: 64px !important; } }
     .settings-header-actions [data-tooltip]:hover::after {
       content: attr(data-tooltip);
       position: absolute;
@@ -513,7 +513,7 @@ const handleBackClick = () => {
 
 const styles = {
   pageContainer: { height: '100vh', display: 'flex', flexDirection: 'column',overflowY: 'auto', background: '#F8FAFC', position: 'relative' },
-  header: { padding: '15px 30px', background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  header: { padding: '0 30px', background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   headerActions: {
     display: 'flex',
     gap: 8,
