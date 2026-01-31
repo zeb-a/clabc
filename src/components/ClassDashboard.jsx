@@ -279,7 +279,22 @@ export default function ClassDashboard({
 
   // Keep track of viewport width to switch sidebar to a compact tab bar on small screens
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    const onResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width <= 768);
+      // Automatically adjust display size based on viewport
+      if (width <= 374) {
+        setDisplaySize('compact');
+      } else if (width <= 480) {
+        setDisplaySize('regular');
+      } else if (width <= 768) {
+        setDisplaySize('regular');
+      } else if (width <= 1024) {
+        setDisplaySize('regular');
+      } else {
+        setDisplaySize('spacious');
+      }
+    };
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -1774,7 +1789,7 @@ export default function ClassDashboard({
         {selectedStudent && <BehaviorModal student={selectedStudent} behaviors={activeClass.behaviors || behaviors} onClose={() => setSelectedStudent(null)} onGivePoint={handleGivePoint} />}
         {showClassBehaviorModal && (
           <BehaviorModal
-            student={{ name: `${selectedStudents.size} Selected Students` }}
+            student={{ name: '', hideName: true }}
             behaviors={activeClass.behaviors || behaviors}
             onClose={() => setShowClassBehaviorModal(false)}
             onGivePoint={handleGivePointsToClass}

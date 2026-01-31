@@ -146,9 +146,9 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
           <p style={{ color: '#64748B', fontSize: '18px', marginBottom: '40px', lineHeight: 1.5 }}>
             Your worksheet "<strong>{worksheet.title}</strong>" has been submitted to your teacher.
           </p>
-          <button 
+          <button
             onClick={onClose}
-            style={{ width: '100%', background: '#1A1A1A', color: '#fff', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: 800, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+            style={{ width: '100%', background: '#2D2D30', color: '#fff', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: 800, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
           >
             Back to Dashboard <ArrowRight size={20} />
           </button>

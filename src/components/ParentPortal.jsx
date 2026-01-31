@@ -132,7 +132,7 @@ const styles = {
     fontWeight: '900', 
     outline: 'none' 
   },
-  submitBtn: { width: '100%', background: '#1A1A1A', color: '#fff', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '17px' },
+  submitBtn: { width: '100%', background: '#2D2D30', color: '#fff', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '17px' },
   cancelBtn: { width: '100%', background: 'none', border: 'none', color: '#64748B', marginTop: '20px', cursor: 'pointer', fontWeight: '700' },
   bigLogoutBtn: {
     display: 'flex',

@@ -735,34 +735,41 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 1. ROLE SELECTION */}
             {modalMode === 'role' && (
-                <div style={modernStyles.roleGrid}>
-                <div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div style={modernStyles.roleGrid} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}>
+                <motion.div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(22, 163, 74, 0.2)' : '#E8F5E9' }}><GraduationCap color="#4CAF50" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.teacher')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.teacher.desc')}</p>
                   </div>
-                </div>
-                <div onClick={() => setPortalView('parent')} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                </motion.div>
+                <motion.div onClick={() => setPortalView('parent')} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FFF1F2' }}><Heart color="#FF5252" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.parent')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.parent.desc')}</p>
                   </div>
-                </div>
-                <div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                </motion.div>
+                <motion.div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(20, 184, 166, 0.2)' : '#E0F2F1' }}><BookOpen color="#009688" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.student')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.student.desc')}</p>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             )}
 
             {/* 2. STUDENT LOGIN FORM */}
             {modalMode === 'student-login' && (
-              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
+              <motion.form
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                onSubmit={handleStudentLogin}
+                style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}
+              >
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -775,7 +782,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {error}
                 </motion.div>}
                 <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '10px', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('student.instructions')}</p>
-                <input
+                <motion.input
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
                   type="text"
                   maxLength={5}
                   placeholder="0 0 0 0 0"
@@ -794,11 +804,18 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   }}
                   autoFocus
                 />
-                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCtaPrimary, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}) }}>
                   {loading ? t('student.verifying') : t('student.enter')}
                 </MotionButton>
-                <p onClick={() => { setError(''); setModalMode('role'); }} style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('nav.back')}</p>
-              </form>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => { setError(''); setModalMode('role'); }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}
+                >{t('nav.back')}</motion.p>
+              </motion.form>
             )}
 
             {/* 3. TEACHER AUTH FORMS */}
@@ -823,7 +840,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%', flex: '1' } : {}), padding: modalMode === 'login' ? '16px 24px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
+                  <MotionButton className="lp-cta" type="submit" style={{
+                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
+                    ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
+                  }}>
                     {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
                   </MotionButton>
                   {modalMode === 'login' && (
@@ -854,7 +874,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
-                      background: isDark ? '#fafafa' : '#1A1A1A',
+                      background: isDark ? '#fafafa' : '#2D2D30',
                       color: isDark ? '#09090b' : '#fff',
                       border: 'none',
                       padding: '8px 16px',
@@ -899,7 +919,12 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 </motion.div>}
 
                 {resetSuccess ? (
-                  <div style={{ padding: 32, textAlign: 'center' }}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                    style={{ padding: 32, textAlign: 'center' }}
+                  >
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 11.08V12a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v-2a10 10 0 1 1 20 0v2a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v-2a10 10 0 0 1 20 0v2a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v2z" />
@@ -914,11 +939,11 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <MotionButton
                       type="button"
                       onClick={() => { setResetSuccess(false); setResetEmail(''); setModalMode('login'); }}
-                      style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}
+                      style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
                     >
-                      Back to Login
+                      Login
                     </MotionButton>
-                  </div>
+                  </motion.div>
                 ) : (
                   <>
                     <p style={{ fontSize: '14px', color: '#64748B', marginBottom: 20, ...(isDark ? { color: '#a1a1aa' } : {}) }}>
@@ -933,35 +958,30 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       required
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
-                      <MotionButton
-                        className="lp-cta"
+                      <motion.button
                         type="submit"
-                        style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), padding: '14px 24px', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}) }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        style={{ ...modernStyles.mainCtaAccent, ...(isDark ? modernStyles.mainCtaAccentDark : {}), width: 'auto', minWidth: '140px' }}
                       >
                         {loading ? 'Sending...' : 'Send Reset Link'}
-                      </MotionButton>
+                      </motion.button>
                       <motion.button
                         type="button"
                         onClick={() => { setError(''); setResetEmail(''); setModalMode('login'); }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         style={{
-                          background: isDark ? '#fafafa' : '#1A1A1A',
-                          color: isDark ? '#09090b' : '#fff',
-                          border: 'none',
-                          padding: '14px 20px',
-                          borderRadius: '16px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                          transition: 'all 0.2s ease'
+                          ...modernStyles.mainCtaGhost,
+                          ...(isDark ? modernStyles.mainCtaGhostDark : {}),
+                          padding: '10px 16px',
+                          borderRadius: '12px',
+                          fontSize: '13px',
+                          gap: '4px',
+                          boxShadow: 'none'
                         }}
                       >
-                        <ArrowLeft size={14} /> Back to Login
+                        <ArrowLeft size={12} /> Login
                       </motion.button>
                     </div>
                   </>
@@ -1024,34 +1044,41 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 1. ROLE SELECTION */}
             {modalMode === 'role' && (
-                <div style={modernStyles.roleGrid}>
-                <div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div style={modernStyles.roleGrid} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}>
+                <motion.div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(22, 163, 74, 0.2)' : '#E8F5E9' }}><GraduationCap color="#4CAF50" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.teacher')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.teacher.desc')}</p>
                   </div>
-                </div>
-                <div onClick={() => setPortalView('parent')} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                </motion.div>
+                <motion.div onClick={() => setPortalView('parent')} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FFF1F2' }}><Heart color="#FF5252" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.parent')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.parent.desc')}</p>
                   </div>
-                </div>
-                <div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                </motion.div>
+                <motion.div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(20, 184, 166, 0.2)' : '#E0F2F1' }}><BookOpen color="#009688" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.student')}</h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.student.desc')}</p>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             )}
 
             {/* 2. STUDENT LOGIN FORM */}
             {modalMode === 'student-login' && (
-              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
+              <motion.form
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                onSubmit={handleStudentLogin}
+                style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}
+              >
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -1064,7 +1091,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {error}
                 </motion.div>}
                 <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '10px', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('student.instructions')}</p>
-                <input
+                <motion.input
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
                   type="text"
                   maxLength={5}
                   placeholder="0 0 0 0 0"
@@ -1083,11 +1113,18 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   }}
                   autoFocus
                 />
-                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCtaPrimary, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}) }}>
                   {loading ? t('student.verifying') : t('student.enter')}
                 </MotionButton>
-                <p onClick={() => { setError(''); setModalMode('role'); }} style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('nav.back')}</p>
-              </form>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => { setError(''); setModalMode('role'); }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}
+                >{t('nav.back')}</motion.p>
+              </motion.form>
             )}
 
             {/* 3. TEACHER AUTH FORMS */}
@@ -1112,7 +1149,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%', flex: '1' } : {}), padding: modalMode === 'login' ? '16px 24px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
+                  <MotionButton className="lp-cta" type="submit" style={{
+                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
+                    ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
+                  }}>
                     {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
                   </MotionButton>
                   {modalMode === 'login' && (
@@ -1143,7 +1183,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
-                      background: isDark ? '#fafafa' : '#1A1A1A',
+                      background: isDark ? '#fafafa' : '#2D2D30',
                       color: isDark ? '#09090b' : '#fff',
                       border: 'none',
                       padding: '8px 16px',
@@ -1188,7 +1228,12 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 </motion.div>}
 
                 {resetSuccess ? (
-                  <div style={{ padding: 32, textAlign: 'center' }}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+                    style={{ padding: 32, textAlign: 'center' }}
+                  >
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M22 11.08V12a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v-2a10 10 0 1 1 20 0v2a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v-2a10 10 0 0 1 20 0v2a10 10 0 1 0-20 0v-2a10 10 0 0 1 20 0v2z" />
@@ -1203,11 +1248,11 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <MotionButton
                       type="button"
                       onClick={() => { setResetSuccess(false); setResetEmail(''); setModalMode('login'); }}
-                      style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}
+                      style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
                     >
-                      Back to Login
+                      Login
                     </MotionButton>
-                  </div>
+                  </motion.div>
                 ) : (
                   <>
                     <p style={{ fontSize: '14px', color: '#64748B', marginBottom: 20, ...(isDark ? { color: '#a1a1aa' } : {}) }}>
@@ -1222,35 +1267,30 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       required
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
-                      <MotionButton
-                        className="lp-cta"
+                      <motion.button
                         type="submit"
-                        style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), padding: '14px 24px', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}) }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        style={{ ...modernStyles.mainCtaAccent, ...(isDark ? modernStyles.mainCtaAccentDark : {}), width: 'auto', minWidth: '140px' }}
                       >
                         {loading ? 'Sending...' : 'Send Reset Link'}
-                      </MotionButton>
+                      </motion.button>
                       <motion.button
                         type="button"
                         onClick={() => { setError(''); setResetEmail(''); setModalMode('login'); }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         style={{
-                          background: isDark ? '#fafafa' : '#1A1A1A',
-                          color: isDark ? '#09090b' : '#fff',
-                          border: 'none',
-                          padding: '14px 20px',
-                          borderRadius: '16px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-                          transition: 'all 0.2s ease'
+                          ...modernStyles.mainCtaGhost,
+                          ...(isDark ? modernStyles.mainCtaGhostDark : {}),
+                          padding: '10px 16px',
+                          borderRadius: '12px',
+                          fontSize: '13px',
+                          gap: '4px',
+                          boxShadow: 'none'
                         }}
                       >
-                        <ArrowLeft size={14} /> Back to Login
+                        <ArrowLeft size={12} /> Login
                       </motion.button>
                     </div>
                   </>
@@ -1287,7 +1327,7 @@ const modernStyles = {
   themeToggleDark: { background: 'rgba(255,255,255,0.1)', color: '#f4f4f5' },
   loginLink: { background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '14px', padding: '8px 12px', borderRadius: '8px' },
   loginLinkDark: { color: '#f4f4f5' },
-  signupBtn: { background: '#1A1A1A', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' },
+  signupBtn: { background: '#2D2D30', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' },
   signupBtnDark: { background: '#fafafa', color: '#09090b' },
   heroSection: { display: 'flex', alignItems: 'center', gap: '60px', padding: '38px 60px', maxWidth: '1400px', margin: '0 auto', minHeight: '520px' },
   heroContent: { flex: 1 },
@@ -1325,7 +1365,7 @@ const modernStyles = {
   appName: { fontSize: '12px', fontWeight: 700 },
   appNameDark: { color: '#f4f4f5' },
   appScore: { background: '#DCFCE7', color: '#15803D', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '10px' },
-  appFab: { position: 'absolute', bottom: '20px', right: '20px', width: '50px', height: '50px', background: '#1A1A1A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' },
+  appFab: { position: 'absolute', bottom: '20px', right: '20px', width: '50px', height: '50px', background: '#2D2D30', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 10px 20px rgba(0,0,0,0.2)' },
   appFabDark: { background: '#fafafa', color: '#09090b' },
   blob1: { position: 'absolute', top: '-50px', right: '-50px', width: '300px', height: '300px', background: 'radial-gradient(circle, #BBF7D0 0%, transparent 70%)', borderRadius: '50%', zIndex: 0, opacity: 0.6 },
   blob2: { position: 'absolute', bottom: '-50px', left: '0px', width: '250px', height: '250px', background: 'radial-gradient(circle, #BFDBFE 0%, transparent 70%)', borderRadius: '50%', zIndex: 0, opacity: 0.6 },
@@ -1348,8 +1388,17 @@ const modernStyles = {
   bentoText: { fontSize: '15px', fontWeight: 600, color: '#64748B', lineHeight: 1.6, marginTop: '10px' },
   ctaSection: { textAlign: 'center', padding: '0 20px 100px' },
   ctaSectionDark: { color: '#f4f4f5' },
-  mainCta: { width: '100%', background: '#1A1A1A', color: '#fff', border: 'none', padding: '18px 36px', borderRadius: '16px', fontSize: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center',justifyContent: 'center', gap: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' },
+  mainCta: { width: '100%', background: '#2D2D30', color: '#fff', border: 'none', padding: '18px 36px', borderRadius: '16px', fontSize: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center',justifyContent: 'center', gap: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' },
   mainCtaDark: { background: '#fafafa', color: '#09090b' },
+  // Different button styles for 2026 design
+  mainCtaPrimary: { width: '100%', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' },
+  mainCtaPrimaryDark: { background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)' },
+  mainCtaSecondary: { background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)' },
+  mainCtaSecondaryDark: { background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)' },
+  mainCtaAccent: { background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)' },
+  mainCtaAccentDark: { background: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)' },
+  mainCtaGhost: { background: 'transparent', border: '2px solid #2D2D30', color: '#2D2D30', padding: '12px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.2s' },
+  mainCtaGhostDark: { border: '2px solid #fafafa', color: '#fafafa' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(15px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   overlayDark: { background: 'rgba(0,0,0,0.7)' },
   modernModal: { width: '480px', background: '#fff', borderRadius: '32px', padding: '40px', boxShadow: '0 40px 100px rgba(0,0,0,0.1)', border: '1px solid #E2E8F0' },

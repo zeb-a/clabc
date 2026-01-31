@@ -13,21 +13,21 @@ export default function LanguageSelector() {
         <button
           onClick={() => setIsOpen(!isOpen)}
           style={{
-            padding: '18px 30px',
-            borderRadius: '12px',
+            padding: '9px 15px',
+            borderRadius: '8px',
             border: 'none',
             cursor: 'pointer',
             background: '#F1F5F9',
             color: '#64748B',
             fontWeight: '600',
-            fontSize: '24px',
+            fontSize: '12px',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '6px'
           }}
         >
           {lang === 'en' ? 'EN' : '中文'}
-          <span style={{ fontSize: '14px', opacity: 0.6 }}>▼</span>
+          <span style={{ fontSize: '10px', opacity: 0.6 }}>▼</span>
         </button>
         {isOpen && (
           <>
@@ -88,16 +88,16 @@ export default function LanguageSelector() {
       <button
         onClick={() => setLang('en')}
         style={{
-          padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
-          background: lang === 'en' ? '#EEF2FF' : 'transparent', color: lang === 'en' ? '#4F46E5' : '#64748B', fontWeight: 700
+          padding: '3px 4px', borderRadius: 4, border: 'none', cursor: 'pointer',
+          background: lang === 'en' ? '#EEF2FF' : 'transparent', color: lang === 'en' ? '#4F46E5' : '#64748B', fontWeight: 700, fontSize: '11px'
         }}
         title="English"
       >EN</button>
       <button
         onClick={() => setLang('zh')}
         style={{
-          padding: '6px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
-          background: lang === 'zh' ? '#FEF3F2' : 'transparent', color: lang === 'zh' ? '#B91C1C' : '#64748B', fontWeight: 700
+          padding: '3px 4px', borderRadius: 4, border: 'none', cursor: 'pointer',
+          background: lang === 'zh' ? '#FEF3F2' : 'transparent', color: lang === 'zh' ? '#B91C1C' : '#64748B', fontWeight: 700, fontSize: '11px'
         }}
         title="中文"
       >中文</button>
