@@ -188,4 +188,24 @@ html, body {
 }
 
 /* Safe area support for notched devices */
-/* REMOVED - safe area only for APKs, not mobile web */
+/* Apply safe area insets to prevent content being hidden by notch/home indicator */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+}
+
+/* Add safe area padding to main layout */
+body {
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Fixed positioned elements need safe area handling */
+header, nav, .fixed-positioned {
+  padding-top: var(--safe-area-inset-top);
+  padding-bottom: var(--safe-area-inset-bottom);
+}
