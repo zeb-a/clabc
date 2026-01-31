@@ -143,12 +143,14 @@ function App() {
           }
         }
 
-        if (mounted && Array.isArray(remote) && remote.length > 0) {
-          setClasses(remote);
-        } else if (mounted && user && !localStorage.getItem('classABC_demo_shown')) {
-          // New user with no classes - show demo class
-          setClasses([MOCK_CLASS]);
-          localStorage.setItem('classABC_demo_shown', 'true');
+        if (mounted && Array.isArray(remote)) {
+          if (remote.length > 0) {
+            setClasses(remote);
+          } else if (user && !localStorage.getItem('classABC_demo_shown')) {
+            // New user with no classes - show demo class
+            setClasses([MOCK_CLASS]);
+            localStorage.setItem('classABC_demo_shown', 'true');
+          }
         }
       } catch {
             // backend not available — load from localStorage fallback
