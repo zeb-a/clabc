@@ -288,36 +288,33 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- NAV --- */}
       <nav style={{ ...styles.nav }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} aria-label="Edit profile" style={styles.navAvatarBtn}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <SafeAvatar
-                    src={user.avatar}
-                    name={user.name || user.email}
-                    style={{ width: isMobile ? 32 : 36, height: isMobile ? 32 : 36, borderRadius: 10, objectFit: 'cover' }}
-                  />
-                  {!isMobile && <div style={styles.avatarHint}>Edit profile</div>}
-                </div>
+                <SafeAvatar
+                  src={user.avatar}
+                  name={user.name || user.email}
+                  style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }}
+                />
               </button>
-              <div style={{ fontWeight: 700, fontSize: isMobile ? '14px' : '16px' }}>{user.name || user.email}</div>
+              <div style={{ fontWeight: 600, fontSize: '13px' }}>{user.name || user.email}</div>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <InlineHelpButton pageId="teacher-portal" />
-          <button onClick={() => setLogoutConfirm(true)} style={{ ...styles.logoutBtn, padding: isMobile ? '8px 12px' : '10px 16px' }}>
-            <LogOut size={isMobile ? 16 : 18} />
-            <span style={{ marginLeft: 6, fontWeight: 700, fontSize: isMobile ? '13px' : '14px' }}>Logout</span>
+          <button onClick={() => setLogoutConfirm(true)} style={styles.logoutBtn}>
+            <LogOut size={14} />
+            <span style={{ marginLeft: 4, fontWeight: 600 }}>Logout</span>
           </button>
         </div>
       </nav>
 
       <main style={{ ...styles.main }}>
         <div style={{ ...styles.header }}>
-          <h2 style={{ margin: 0, fontSize: isMobile ? '20px' : '24px' }}>My Classes</h2>
+          <h2 style={{ margin: 0, fontSize: '18px' }}>My Classes</h2>
         </div>
 
         <div style={{
@@ -534,13 +531,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
 const styles = {
   container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box', paddingTop: 'env(safe-area-inset-top, 0px)' },
-  nav: { padding: 'calc(16px + env(safe-area-inset-top, 0px)) 20px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box' },
-  logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: 12, color: '#DC2626', fontWeight: 700, transition: 'all 0.2s' },
+  nav: { padding: 'calc(8px + env(safe-area-inset-top, 0px)) 16px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px' },
+  logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  avatarHint: { fontSize: 11, color: '#475569', marginTop: 4, fontWeight: 700, lineHeight: '12px' },
-  main: { padding: '20px', maxWidth: '100%', boxSizing: 'border-box' },
-  header: { display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }, 
+  avatarHint: { display: 'none' },
+  main: { padding: '12px 16px', maxWidth: '100%', boxSizing: 'border-box' },
+  header: { display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }, 
 
   // Card Styles
   classCard: { background: 'white', padding: '20px', borderRadius: '24px', textAlign: 'center', cursor: 'pointer', boxShadow: '0 6px 16px rgba(0,0,0,0.06)', minHeight: '170px', display: 'flex', flexDirection: 'column' },

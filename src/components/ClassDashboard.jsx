@@ -795,8 +795,8 @@ export default function ClassDashboard({
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
                 alignItems: 'center',
-                gap: '8px',
-                padding: `calc(12px + ${safeAreaTop}) 6px`,
+                gap: '6px',
+                padding: `calc(6px + ${safeAreaTop}) 6px`,
                 background: '#EEF2FF',
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.25s ease',
@@ -1094,7 +1094,7 @@ export default function ClassDashboard({
           ...styles.content,
           marginLeft: sidebarVisible ? (isMobile ? '72px' : '210px') : '0',
           transition: 'margin-left 0.3s ease',
-          paddingTop: isMobile ? '16px' : undefined,
+          paddingTop: isMobile ? '8px' : undefined,
           paddingBottom: isMobile ? '80px' : undefined,
           overflowX: 'hidden',
           maxWidth: '100%',
@@ -1209,9 +1209,9 @@ export default function ClassDashboard({
                       ...styles.header,
                       // Use full width of the `main` container; `main` already offsets for the sidebar.
                       width: '100%',
-                      padding: isMobile ? `calc(8px + env(safe-area-inset-top, 0px)) 16px 8px 16px` : styles.header.padding,
+                      padding: isMobile ? '6px 12px' : styles.header.padding,
                       marginLeft: 0,
-                      paddingRight: isMobile ? '16px' : '20px',
+                      paddingRight: isMobile ? '12px' : '20px',
                       boxSizing: 'border-box',
                       flexDirection: 'row',
                       alignItems: 'flex-start',
@@ -1223,7 +1223,7 @@ export default function ClassDashboard({
 
                     {/* Center: Class name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
+                      <h2 style={{ fontSize: isMobile ? '18px' : '1.5rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                         {activeClass.name}
                       </h2>
                       {activeClass.id === 'demo-class' && (
