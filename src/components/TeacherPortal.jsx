@@ -442,8 +442,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- ADD CLASS MODAL --- */}
       {showAddModal && (
-        <div style={styles.overlay}>
-          <div style={styles.standardModal}>
+        <div style={styles.overlay} className="modal-overlay-in">
+          <div style={styles.standardModal} className="animated-modal-content modal-animate-center">
             <div style={styles.modalTitleAbs}>Create New Class</div>
             <button onClick={resetAddModal} style={styles.modalCloseAbs}>
               <X size={20} />
@@ -462,8 +462,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- EDIT CLASS MODAL --- */}
       {editingClassId && classToEdit && (
-        <div style={styles.editOverlay} onClick={() => setEditingClassId(null)}>
-          <div style={styles.standardModal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.editOverlay} onClick={() => setEditingClassId(null)} className="modal-overlay-in">
+          <div style={styles.standardModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
             <div style={styles.modalTitleAbs}>Edit Class</div>
             <button onClick={() => setEditingClassId(null)} style={styles.modalCloseAbs}>
               <X size={20} />
@@ -482,15 +482,15 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- DELETE CONFIRM MODAL --- */}
       {deleteConfirmId && classToDelete && (
-        <div style={styles.editOverlay} onClick={() => setDeleteConfirmId(null)}>
-          <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.editOverlay} onClick={() => setDeleteConfirmId(null)} className="modal-overlay-in">
+          <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
             <div style={styles.deleteModalTitle}>Delete Class?</div>
             <button onClick={() => setDeleteConfirmId(null)} style={styles.modalCloseAbs}>
               <X size={20} />
             </button>
             <div style={{ marginTop: 40, textAlign: 'center' }}>
               <div style={{ width: 64, height: 64, margin: '0 auto 16px', borderRadius: 16, overflow: 'hidden' }}>
-                <SafeAvatar src={classToDelete.avatar} name={classToDelete.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <SafeAvatar src={classToDelete.avatar || boringAvatar(classToDelete.name || 'class')} name={classToDelete.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <p style={{ marginBottom: 20, color: '#4B5563', fontSize: '1rem', lineHeight: 1.5 }}>
                 Are you sure you want to delete <b>{classToDelete.name}</b>?<br />

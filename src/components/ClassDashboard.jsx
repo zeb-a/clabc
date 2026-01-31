@@ -1088,15 +1088,17 @@ export default function ClassDashboard({
 
           {/* 1. MESSAGES VIEW */}
           {viewMode === 'messages' ? (
-            <InboxPage
-              activeClass={activeClass}
-              submissions={submissions}
-              onGradeSubmit={handleGradeSubmit} // Uses the grading logic in Dashboard
-              onBack={() => setViewMode('dashboard')} // Closes the window
-            />
+            <div key="messages" className="page-animate-in" style={{ height: '100%' }}>
+              <InboxPage
+                activeClass={activeClass}
+                submissions={submissions}
+                onGradeSubmit={handleGradeSubmit} // Uses the grading logic in Dashboard
+                onBack={() => setViewMode('dashboard')} // Closes the window
+              />
+            </div>
           ) /* 2. ⚡ WIDER TIMER VIEW ⚡ */
             : viewMode === 'timer' ? (
-              <div style={{
+              <div key="timer" className="page-animate-in" style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -1139,36 +1141,41 @@ export default function ClassDashboard({
               </div>
             ) :  /* 3. REPORTS VIEW */
               viewMode === 'reports' ? (
-                <ReportsPage
-                  activeClass={activeClass}
-                  onBack={() => setViewMode('dashboard')}
-                />
+                <div key="reports" className="page-animate-in" style={{ height: '100%' }}>
+                  <ReportsPage
+                    activeClass={activeClass}
+                    onBack={() => setViewMode('dashboard')}
+                  />
+                </div>
               ) : viewMode === 'assignments' ? (
-                <AssignmentsPage
-                  activeClass={activeClass}
-                  onBack={() => setViewMode('dashboard')}
-                  onPublish={(data) => {
-                    // This logic replaces the "missing" onOpenAssignments
-                    updateClasses(prev => prev.map(c =>
-                      c.id === activeClass.id
-                        ? { ...c, assignments: [...(c.assignments || []), data] }
-                        : c
-                    ));
-                    // Go back after publishing
-                    setViewMode('dashboard');
-                  }}
-                />
+                <div key="assignments" className="page-animate-in" style={{ height: '100%' }}>
+                  <AssignmentsPage
+                    activeClass={activeClass}
+                    onBack={() => setViewMode('dashboard')}
+                    onPublish={(data) => {
+                      // This logic replaces the "missing" onOpenAssignments
+                      updateClasses(prev => prev.map(c =>
+                        c.id === activeClass.id
+                          ? { ...c, assignments: [...(c.assignments || []), data] }
+                          : c
+                      ));
+                      // Go back after publishing
+                      setViewMode('dashboard');
+                    }}
+                  />
+                </div>
               ) : viewMode === 'codes' ? ( // Add this block
                 <AccessCodesPage
                   activeClass={activeClass}
                   onBack={() => setViewMode('dashboard')}
                 />
               ) : viewMode === 'settings' ? (
-                <SettingsPage
-                  activeClass={activeClass}
+                <div key="settings" className="page-animate-in" style={{ height: '100%' }}>
+                  <SettingsPage
+                    activeClass={activeClass}
 
-                  behaviors={activeClass.behaviors || behaviors}
-                  onBack={() => setViewMode('dashboard')}
+                    behaviors={activeClass.behaviors || behaviors}
+                    onBack={() => setViewMode('dashboard')}
                   onUpdateBehaviors={(newBehaviorsList) => {
                     // ⚡ FIX: Safely update the class with the new array of cards
                     updateClasses(prevClasses => prevClasses.map(c =>
@@ -1177,7 +1184,8 @@ export default function ClassDashboard({
                         : c
                     ));
                   }}
-                />) : (
+                />
+                </div>) : (
                 /* 3. STANDARD DASHBOARD VIEW (Default) */
 
                 <>
@@ -1522,7 +1530,7 @@ export default function ClassDashboard({
 
                   </header>
 
-                  <div className="student-cards-container" style={{
+                  <div className="student-cards-container page-animate-in" style={{
                     display: 'grid',
                     gridTemplateColumns: displaySize === 'compact'
                       ? 'repeat(auto-fill, minmax(120px, 1fr))'
@@ -1807,8 +1815,8 @@ export default function ClassDashboard({
 
         {/* EDIT STUDENT MODAL */}
         {editingStudentId && (
-          <div style={styles.overlay}>
-            <div style={styles.modal}>
+          <div style={styles.overlay} className="modal-overlay-in">
+            <div style={styles.modal} className="animated-modal-content modal-animate-center">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Edit Student</h3>
                 <button style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#64748b', padding: 8, borderRadius: 8, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }} onMouseEnter={(e) => e.target.style.transform = 'rotate(90deg) scale(1.1)'} onMouseLeave={(e) => e.target.style.transform = 'rotate(0deg) scale(1)'}><X /></button>
@@ -1855,6 +1863,7 @@ export default function ClassDashboard({
                         minWidth: '550px'
                       }}
                       onClick={(e) => e.stopPropagation()}
+                      className="animated-modal-content modal-animate-scale"
                     >
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', justifyItems: 'center', width: '100%' }}>
                         {AVATAR_OPTIONS.map((char) => (

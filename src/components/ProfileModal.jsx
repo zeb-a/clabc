@@ -107,8 +107,8 @@ export default function ProfileModal({ user, onSave, onClose }) {
   const currentAvatar = uploadedAvatar || (selectedCharacter ? avatarByCharacter(selectedCharacter) : (name ? boringAvatar(name) : fallbackInitialsDataUrl('U')));
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
+    <div style={styles.overlay} className="modal-overlay-in">
+      <div style={styles.modal} className="animated-modal-content modal-animate-center">
         <h2>Edit Profile</h2>
         <button onClick={onClose} style={styles.closeBtn}><X /></button>
         <form onSubmit={handleSave} style={styles.form}>
@@ -154,6 +154,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
                     minWidth: '350px'
                   }}
                   onClick={(e) => e.stopPropagation()}
+                  className="animated-modal-content modal-animate-scale"
                 >
                   <div style={styles.avatarGrid}>
                     {AVATAR_OPTIONS.map(char => (

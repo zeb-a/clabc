@@ -13,21 +13,21 @@ export default function LanguageSelector() {
         <button
           onClick={() => setIsOpen(!isOpen)}
           style={{
-            padding: '6px 10px',
-            borderRadius: '8px',
+            padding: '18px 30px',
+            borderRadius: '12px',
             border: 'none',
             cursor: 'pointer',
             background: '#F1F5F9',
             color: '#64748B',
             fontWeight: '600',
-            fontSize: '14px',
+            fontSize: '24px',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '8px'
           }}
         >
           {lang === 'en' ? 'EN' : '中文'}
-          <span style={{ fontSize: '10px', opacity: 0.6 }}>▼</span>
+          <span style={{ fontSize: '14px', opacity: 0.6 }}>▼</span>
         </button>
         {isOpen && (
           <>
@@ -36,25 +36,25 @@ export default function LanguageSelector() {
               position: 'absolute',
               top: '100%',
               right: 0,
-              marginTop: '4px',
+              marginTop: '8px',
               background: '#fff',
-              borderRadius: '8px',
+              borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               zIndex: 100,
               overflow: 'hidden',
-              minWidth: '80px'
+              minWidth: '140px'
             }}>
               <button
                 onClick={() => { setLang('en'); setIsOpen(false); }}
                 style={{
                   width: '100%',
-                  padding: '8px 12px',
+                  padding: '16px 20px',
                   border: 'none',
                   background: lang === 'en' ? '#EEF2FF' : 'transparent',
                   color: lang === 'en' ? '#4F46E5' : '#64748B',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '20px',
                   textAlign: 'left'
                 }}
               >
@@ -64,13 +64,13 @@ export default function LanguageSelector() {
                 onClick={() => { setLang('zh'); setIsOpen(false); }}
                 style={{
                   width: '100%',
-                  padding: '8px 12px',
+                  padding: '16px 20px',
                   border: 'none',
                   background: lang === 'zh' ? '#FEF3F2' : 'transparent',
                   color: lang === 'zh' ? '#B91C1C' : '#64748B',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  fontSize: '14px',
+                  fontSize: '20px',
                   textAlign: 'left'
                 }}
               >

@@ -20,8 +20,8 @@ export default function InlineHelpModal({ pageId, onClose }) {
   useModalKeyboard(null, onClose, true);
 
   const node = (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div style={styles.overlay} onClick={onClose} className="modal-overlay-in">
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
         <div style={styles.header}>
           <div>
             <div style={styles.badge}>Help</div>

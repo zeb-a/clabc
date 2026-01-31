@@ -66,9 +66,9 @@ export default function LuckyDrawModal({ students, onClose, onWinner, onRequestA
 
 
   return (
-    <div style={modalStyles.overlay}>
+    <div style={modalStyles.overlay} className="modal-overlay-in">
       {step === 'count_selection' ? (
-        <div style={modalStyles.glassCard}>
+        <div style={modalStyles.glassCard} className="animated-modal-content modal-animate-center">
           <X onClick={onClose} style={modalStyles.closeIcon} />
           <div style={modalStyles.headerIcon}><Users size={32} color="#fff" /></div>
           <h2 style={modalStyles.title}>Draw Group</h2>
@@ -90,7 +90,7 @@ export default function LuckyDrawModal({ students, onClose, onWinner, onRequestA
           </div>
         </div>
       ) : step === 'needs_students' ? (
-        <div style={modalStyles.glassCard}>
+        <div style={modalStyles.glassCard} className="animated-modal-content modal-animate-center">
           <X onClick={onClose} style={modalStyles.closeIcon} />
           <div style={modalStyles.headerIcon}><Users size={32} color="#fff" /></div>
           <h2 style={modalStyles.title}>Not enough students</h2>
@@ -101,7 +101,7 @@ export default function LuckyDrawModal({ students, onClose, onWinner, onRequestA
           </div>
         </div>
       ) : step === 'too_many_selected' ? (
-        <div style={modalStyles.glassCard}>
+        <div style={modalStyles.glassCard} className="animated-modal-content modal-animate-center">
           <X onClick={onClose} style={modalStyles.closeIcon} />
           <div style={modalStyles.headerIcon}><Users size={32} color="#fff" /></div>
           <h2 style={modalStyles.title}>Not enough students</h2>

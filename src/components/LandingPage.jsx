@@ -433,7 +433,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   if (portalView === 'student') {
     return (
       <StudentPortal
-        onBack={() => setPortalView(null)}
+        onBack={() => { setPortalView(null); setModalMode('student-login'); }}
         classes={classes}
         setClasses={setClasses}
         refreshClasses={refreshClasses}
@@ -720,8 +720,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
       {/* --- MODAL SYSTEM --- */}
       {modalMode && (
-        <div style={{ ...modernStyles.overlay, ...(isDark ? modernStyles.overlayDark : {}) }}>
-          <div style={{ ...modernStyles.modernModal, ...(isMobile ? modernStyles.modernModalMobile : {}), ...(isDark ? modernStyles.modernModalDark : {}) }}>
+        <div style={{ ...modernStyles.overlay, ...(isDark ? modernStyles.overlayDark : {}) }} className="modal-overlay-in">
+          <div style={{ ...modernStyles.modernModal, ...(isMobile ? modernStyles.modernModalMobile : {}), ...(isDark ? modernStyles.modernModalDark : {}) }} className="animated-modal-content modal-animate-center">
             <div style={modernStyles.modalHeader}>
               <div>
                 <h2 style={{ margin: 0, fontWeight: 900, fontSize: '24px' }}>
@@ -762,7 +762,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 2. STUDENT LOGIN FORM */}
             {modalMode === 'student-login' && (
-              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm }}>
+              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -788,11 +788,13 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     textAlign: 'center',
                     fontSize: isMobile ? '20px' : '24px',
                     letterSpacing: isMobile ? '3px' : '5px',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    width: '100%',
+                    boxSizing: 'border-box'
                   }}
                   autoFocus
                 />
-                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
                   {loading ? t('student.verifying') : t('student.enter')}
                 </MotionButton>
                 <p onClick={() => { setError(''); setModalMode('role'); }} style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('nav.back')}</p>
@@ -801,7 +803,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 3. TEACHER AUTH FORMS */}
             {(modalMode === 'signup' || modalMode === 'login') && (
-              <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={modernStyles.authForm}>
+              <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -813,15 +815,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
-                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setName(e.target.value)} required />}
-                <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setEmail(e.target.value)} required />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between' }}>
-                  <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: 1 }} onChange={e => setPassword(e.target.value)} required />
+                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setName(e.target.value)} required />}
+                <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setEmail(e.target.value)} required />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                  <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: isMobile ? '1' : 1, minWidth: '100%', boxSizing: 'border-box' }} onChange={e => setPassword(e.target.value)} required />
                 </div>
-                {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setConfirmPassword(e.target.value)} required />}
+                {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), padding: modalMode === 'login' ? '16px 96px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%', flex: '1' } : {}), padding: modalMode === 'login' ? '16px 24px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
                     {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
                   </MotionButton>
                   {modalMode === 'login' && (
@@ -835,7 +837,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         border: 'none',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        ...(isDark ? { color: '#a1a1aa' } : {})
+                        ...(isDark ? { color: '#a1a1aa' } : {}),
+                        marginTop: isMobile ? '8px' : '0'
                       }}
                     >
                       {t('auth.forgot')}
@@ -882,7 +885,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 4. FORGOT PASSWORD FORM */}
             {modalMode === 'forgot-password' && (
-              <form onSubmit={handleForgotPassword} style={modernStyles.authForm}>
+              <form onSubmit={handleForgotPassword} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -926,7 +929,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       placeholder={t('auth.email')}
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }}
+                      style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }}
                       required
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
@@ -1009,8 +1012,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         {/* Modal header - no close button for Capacitor */}
         <div style={{ ...modernStyles.modalHeader, marginBottom: '30px', justifyContent: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-            {/* Language selector on top for Capacitor */}
-            <LanguageSelector />
+            {/* Language selector only on role selection */}
+            {modalMode === 'role' && <LanguageSelector />}
             <h2 style={{ margin: 0, fontWeight: 900, fontSize: '20px', ...(isDark ? { color: '#f4f4f5' } : {}) }}>
               {modalMode === 'role' ? t('modal.who') :
                 modalMode === 'student-login' ? t('role.student') :
@@ -1048,7 +1051,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 2. STUDENT LOGIN FORM */}
             {modalMode === 'student-login' && (
-              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm }}>
+              <form onSubmit={handleStudentLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -1074,11 +1077,13 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     textAlign: 'center',
                     fontSize: isMobile ? '20px' : '24px',
                     letterSpacing: isMobile ? '3px' : '5px',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    width: '100%',
+                    boxSizing: 'border-box'
                   }}
                   autoFocus
                 />
-                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+                <MotionButton className="lp-cta" type="submit" disabled={loading} style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%' } : {}), ...(isDark ? modernStyles.mainCtaDark : {}) }}>
                   {loading ? t('student.verifying') : t('student.enter')}
                 </MotionButton>
                 <p onClick={() => { setError(''); setModalMode('role'); }} style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('nav.back')}</p>
@@ -1087,7 +1092,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 3. TEACHER AUTH FORMS */}
             {(modalMode === 'signup' || modalMode === 'login') && (
-              <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={modernStyles.authForm}>
+              <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -1099,15 +1104,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
-                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setName(e.target.value)} required />}
-                <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setEmail(e.target.value)} required />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between' }}>
-                  <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: 1 }} onChange={e => setPassword(e.target.value)} required />
+                {modalMode === 'signup' && <input placeholder={t('auth.fullname')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setName(e.target.value)} required />}
+                <input type="email" placeholder={t('auth.email')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setEmail(e.target.value)} required />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                  <input type="password" placeholder={t('auth.password')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), flex: isMobile ? '1' : 1, minWidth: '100%', boxSizing: 'border-box' }} onChange={e => setPassword(e.target.value)} required />
                 </div>
-                {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }} onChange={e => setConfirmPassword(e.target.value)} required />}
+                {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? modernStyles.mainCtaMobile : {}), padding: modalMode === 'login' ? '16px 96px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
+                  <MotionButton className="lp-cta" type="submit" style={{ ...modernStyles.mainCta, ...(isMobile ? { ...modernStyles.mainCtaMobile, width: '100%', flex: '1' } : {}), padding: modalMode === 'login' ? '16px 24px' : '18px 36px', width: modalMode === 'login' ? 'auto' : '100%', justifyContent: 'center', ...(isDark ? modernStyles.mainCtaDark : {}), textAlign: 'center' }}>
                     {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
                   </MotionButton>
                   {modalMode === 'login' && (
@@ -1121,7 +1126,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         border: 'none',
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        ...(isDark ? { color: '#a1a1aa' } : {})
+                        ...(isDark ? { color: '#a1a1aa' } : {}),
+                        marginTop: isMobile ? '8px' : '0'
                       }}
                     >
                       {t('auth.forgot')}
@@ -1168,7 +1174,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
             {/* 4. FORGOT PASSWORD FORM */}
             {modalMode === 'forgot-password' && (
-              <form onSubmit={handleForgotPassword} style={modernStyles.authForm}>
+              <form onSubmit={handleForgotPassword} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
                   key={error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -1212,7 +1218,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       placeholder={t('auth.email')}
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}) }}
+                      style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }}
                       required
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between' }}>
@@ -1358,7 +1364,6 @@ const modernStyles = {
   authForm: { display: 'flex', flexDirection: 'column', gap: '15px' },
   modernInput: { padding: '16px', borderRadius: '14px', border: '1px solid #E2E8F0', background: '#F8FAFC', fontSize: '15px', outline: 'none', color: '#1A1A1A' },
   modernInputDark: { background: '#27272a', border: '1px solid rgba(255,255,255,0.1)', color: '#f4f4f5' },
-  modernInputMobile: { padding: '12px', borderRadius: '12px', fontSize: '14px' },
   errorBanner: {
     background: 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)',
     color: '#DC2626',
@@ -1383,6 +1388,20 @@ const modernStyles = {
   appGridMobile: { gridTemplateColumns: 'repeat(2, 1fr)' },
   bentoGridMobile: { gridTemplateColumns: 'repeat(1, 1fr)' },
   bentoCardMobile: { padding: '20px', borderRadius: '18px' },
-  modernModalMobile: { width: 'calc(100% - 40px)', padding: '18px' },
+  modernModalMobile: {
+    width: 'calc(100% - 32px)',
+    maxWidth: '400px',
+    padding: '24px 20px',
+    margin: '0 auto',
+    boxSizing: 'border-box'
+  },
+  authFormMobile: { maxWidth: '100%', width: '100%', boxSizing: 'border-box' },
+  modernInputMobile: {
+    padding: '14px 12px',
+    borderRadius: '12px',
+    fontSize: '15px',
+    width: '100%',
+    boxSizing: 'border-box'
+  },
   mainCtaMobile: { padding: '12px 18px', fontSize: '14px' },
 };

@@ -92,9 +92,9 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
     fetchSource();
     return () => { mounted = false; };
   }, [selectedClassId, activeTab, normalizedBehaviors]);
-  return (
-    <div style={styles.overlay} onClick={onClose}>
-      <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
+    return (
+    <div style={styles.overlay} onClick={onClose} className="modal-overlay-in animated-modal-overlay">
+      <div style={styles.modalCard} onClick={e => e.stopPropagation()} className="modal-animate-center animated-modal-content">
         <div style={styles.header}>
           <button
             style={styles.closeBtn}
@@ -239,6 +239,8 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
 const styles = {
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5000 },
   modalCard: { background: '#FFFFFF', width: '90%', maxWidth: '650px', borderRadius: '40px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '85vh', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' },
+  modalAnimateIn: 'modal-animate-center',
+  modalAnimateOut: 'modal-exit-center',
   header: { padding: '18px 24px', position: 'relative', borderBottom: '1px solid #F0F0F0' },
   closeBtn: { position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#999', zIndex: 12000, padding: 8, borderRadius: 8, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   studentInfo: { display: 'flex', flexDirection: 'column', alignItems: 'center' },

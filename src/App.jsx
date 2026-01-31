@@ -17,6 +17,7 @@ import ConfirmAccountPage from './components/ConfirmAccountPage';
 import SearchableGuide from './components/SearchableGuide';
 import AssignmentsPage from "./components/AssignmentsPage";
 import ErrorBoundary from './components/ErrorBoundary';
+import './components/ModalAnimations.css';
 // --- INITIAL DATA ---
 
 import { fallbackInitialsDataUrl } from './utils/avatar';

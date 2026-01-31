@@ -65,8 +65,8 @@ export default function AddStudentModal({ onClose, onSave }) {
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
+    <div style={styles.overlay} className="modal-overlay-in">
+      <div style={styles.modal} className="animated-modal-content modal-animate-center">
         <div style={styles.modalHeader}>
           <h3>Enrol New Student</h3>
           <button style={styles.closeBtn} onClick={onClose}><X /></button>
@@ -138,6 +138,7 @@ export default function AddStudentModal({ onClose, onSave }) {
                   minWidth: '550px'
                 }}
                 onClick={(e) => e.stopPropagation()}
+                className="animated-modal-content modal-animate-scale"
               >
                 <div style={styles.avatarGrid}>
                   {AVATAR_OPTIONS.map(char => (

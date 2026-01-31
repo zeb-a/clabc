@@ -323,8 +323,8 @@ const handleBackClick = () => {
                 setEditingCard({ label: newCard.label, pts: newCard.pts, icon: newCard.icon, type: newCard.type });
               }}
             >
-              <Plus size={28} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={styles.headerIconLabel}>Add Card</span>
+              <Plus size={22} style={{ marginRight: 8 }} />
+              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Add Card</span>
             </button>
             </Tooltip>
             <Tooltip text="Reset all behavior cards to default">
@@ -354,8 +354,8 @@ const handleBackClick = () => {
                 setEditingCardId(null);
               }}
             >
-              <RefreshCw size={28} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={styles.headerIconLabel}>Reset</span>
+              <RefreshCw size={22} style={{ marginRight: 8 }} />
+              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Reset</span>
             </button>
             </Tooltip>
             <Tooltip text="Done and close settings">
@@ -364,7 +364,7 @@ const handleBackClick = () => {
               style={styles.headerIconBtn}
               onClick={handleBackClick}
             >
-              <X size={28} />
+              <X size={22} />
             </button>
             </Tooltip>
           </div>
@@ -418,8 +418,8 @@ const handleBackClick = () => {
                         </button>
                         </Tooltip>
                         {openEmojiFor === card.id && (
-                          <div style={styles.centerEmojiModal} onClick={e => e.stopPropagation()}>
-                            <div style={styles.centerStickerGrid}>
+                          <div style={styles.centerEmojiModal} onClick={e => e.stopPropagation()} className="modal-overlay-in">
+                            <div style={styles.centerStickerGrid} className="animated-modal-content modal-animate-scale">
                               {STICKER_OPTIONS.map(sticker => (
                                 <Tooltip key={sticker.id} text={sticker.name}>
                                 <button onClick={() => {
