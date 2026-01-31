@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Edit2, Plus, X, RefreshCw, Trash2, Save } from 'lucide-react';
 import api from '../services/api';
 import InlineHelpButton from './InlineHelpButton';
+import { useTranslation } from '../i18n';
 
 // Modern, fun stickers for kids - using high-quality SVG graphics from reliable CDN
 // These are styled as modern flat illustrations with bold colors
@@ -114,6 +115,7 @@ const STICKER_OPTIONS = [
 ];
 
 export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateBehaviors }) {
+  const { t } = useTranslation();
   const [activeTab] = useState('cards'); // 'cards' | 'students' | 'general'
   const [cards, setCards] = useState(Array.isArray(behaviors) ? behaviors : []);
   const [, setSidebarCollapsed] = useState(false);
@@ -306,17 +308,17 @@ const handleBackClick = () => {
         </div>
         {/* Centered header text for large screens only */}
         <div className="edit-point-cards-header-text hide-on-mobile" style={styles.headerCenterText}>
-          <span className="edit-point-cards-header-label" style={{ display: 'inline-block', width: '100%' }}>Edit point cards</span>
+          <span className="edit-point-cards-header-label" style={{ display: 'inline-block', width: '100%' }}>{t('settings.edit_cards')}</span>
         </div>
         
         <div className="settings-header-actions" style={{ ...styles.headerActions, flexDirection: 'row' }}>
           <div className="header-action-group" style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-          <InlineHelpButton pageId="settings-cards" />            <Tooltip text="Add a new behavior card">
+          <InlineHelpButton pageId="settings-cards" />            <Tooltip text={t('settings.tooltip_add_card')}>
             <button
               aria-label="Add card"
               style={styles.headerIconBtn}
               onClick={() => {
-                const newCard = { id: Date.now(), label: 'New Card', pts: 1, type: 'wow', icon: '⭐' };
+                const newCard = { id: Date.now(), label: t('settings.new_card'), pts: 1, type: 'wow', icon: '⭐' };
                 const updated = [newCard, ...cards];
                 setCards(updated);
                 setEditingCardId(newCard.id);
@@ -324,10 +326,10 @@ const handleBackClick = () => {
               }}
             >
               <Plus size={22} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Add Card</span>
+              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>{t('settings.add_card')}</span>
             </button>
             </Tooltip>
-            <Tooltip text="Reset all behavior cards to default">
+            <Tooltip text={t('settings.tooltip_reset_cards')}>
             <button
               aria-label="Reset behaviors"
               style={styles.headerIconBtn}
@@ -355,10 +357,10 @@ const handleBackClick = () => {
               }}
             >
               <RefreshCw size={22} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Reset</span>
+              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>{t('settings.reset')}</span>
             </button>
             </Tooltip>
-            <Tooltip text="Done and close settings">
+            <Tooltip text={t('settings.tooltip_done')}>
             <button
               aria-label="Done"
               style={styles.headerIconBtn}
@@ -404,7 +406,7 @@ const handleBackClick = () => {
                     <div style={styles.itemInfo}>
                       <div style={{ position: 'relative' }}>
                         {/* Only allow opening emoji picker when editing this card */}
-                        <Tooltip text="Change/choose avatar sticker">
+                        <Tooltip text={t('settings.tooltip_change_sticker')}>
                         <button
                           onClick={() => {
                             if (editingCardId === card.id) {
@@ -446,22 +448,22 @@ const handleBackClick = () => {
                               <input
                                 value={editingCard.label}
                                 onChange={(e) => setEditingCard(prev => ({ ...prev, label: e.target.value }))}
-                                placeholder="Card label"
+                                placeholder={t('settings.card_label_placeholder')}
                                 style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #E6EEF8', fontSize: 15, flex: '1 1 140px', minWidth: 120 }}
-                                title="Edit card label"
+                                title={t('settings.tooltip_edit_label')}
                               />
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <Tooltip text="Decrease points">
+                                  <Tooltip text={t('settings.tooltip_decrease_points')}>
                                     <button onClick={() => { const pts = Number(editingCard.pts) - 1; setEditingCard(prev => ({ ...prev, pts, type: pts > 0 ? 'wow' : 'nono' })); }} style={styles.smallIconBtn} aria-label="Decrease points">-</button>
                                   </Tooltip>
                                   <div style={{ minWidth: 36, textAlign: 'center', fontWeight: 800 }}>{editingCard.pts}</div>
-                                  <Tooltip text="Increase points">
+                                  <Tooltip text={t('settings.tooltip_increase_points')}>
                                     <button onClick={() => { const pts = Number(editingCard.pts) + 1; setEditingCard(prev => ({ ...prev, pts, type: pts > 0 ? 'wow' : 'nono' })); }} style={styles.smallIconBtn} aria-label="Increase points">+</button>
                                   </Tooltip>
                                 </div>
                                 <div style={{ color: editingCard.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '14px', fontWeight: 700, marginTop: 2 }}>
-                                  {editingCard.pts > 0 ? 'WOW' : 'NO NO'}
+                                  {editingCard.pts > 0 ? t('dashboard.wow_card') : t('dashboard.nono_card')}
                                 </div>
                               </div>
                             </div>
@@ -470,7 +472,7 @@ const handleBackClick = () => {
                           <div>
                             <div style={styles.itemLabel}>{card.label}</div>
                             <div style={{ color: card.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                              {card.pts > 0 ? 'WOW' : 'NO NO'}
+                              {card.pts > 0 ? t('dashboard.wow_card') : t('dashboard.nono_card')}
                             </div>
                             <div style={{ color: card.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '24px', fontWeight: '900', marginTop: '4px' }}>
                               {card.pts > 0 ? `+${card.pts}` : card.pts}
@@ -482,19 +484,19 @@ const handleBackClick = () => {
                     <div style={styles.itemActions}>
                       {editingCardId === card.id ? (
                         <div style={styles.verticalActionStack}>
-                          <Tooltip text="Save changes">
+                          <Tooltip text={t('settings.tooltip_save')}>
                           <button onClick={() => handleSaveCard(card.id)} style={styles.saveIconBtn} aria-label="Save"><Save size={22} /></button>
                           </Tooltip>
-                          <Tooltip text="Cancel editing">
+                          <Tooltip text={t('settings.tooltip_cancel_edit')}>
                           <button onClick={() => setEditingCardId(null)} style={styles.cancelIconBtn} aria-label="Cancel"><X size={22} /></button>
                           </Tooltip>
                         </div>
                       ) : (
                         <>
-                          <Tooltip text="Edit card">
+                          <Tooltip text={t('settings.tooltip_edit_card')}>
                           <button onClick={() => { setEditingCardId(card.id); setEditingCard({ label: card.label, pts: card.pts, icon: card.icon, type: card.type }); }} style={styles.iconOnlyBtn} aria-label="Edit"><Edit2 size={20} /></button>
                           </Tooltip>
-                          <Tooltip text="Delete card">
+                          <Tooltip text={t('settings.tooltip_delete_card')}>
                           <button onClick={() => handleDeleteCard(card.id)} style={styles.iconOnlyBtn} aria-label="Delete"><Trash2 size={20} /></button>
                           </Tooltip>
                         </>

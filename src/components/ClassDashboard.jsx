@@ -25,6 +25,7 @@ import AssignmentsPage from './AssignmentsPage'; // Add this line at the top
 import AccessCodesPage from './AccessCodesPage'; // Add this line
 import SettingsPage from './SettingsPage';
 import InlineHelpButton from './InlineHelpButton';
+import { useTranslation } from '../i18n';
 
 // Helper function for documentation of clamp usage in inline styles
 const clamp = (min, val, max) => val;
@@ -225,6 +226,7 @@ export default function ClassDashboard({
   updateClasses,
   onOpenAssignments
 }) {
+  const { t } = useTranslation();
   // Handler to merge imported behaviors from another class into the active class.
   // Listens for the custom event dispatched by BehaviorModal when the user requests an import.
   useEffect(() => {
@@ -701,7 +703,7 @@ export default function ClassDashboard({
   const handleGivePointsToClass = (behavior) => {
     const presentStudents = activeClass.students.filter(s => !absentStudents.has(s.id));
 
-    setShowPoint({ visible: true, student: { name: 'Whole Class', students: presentStudents }, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
+    setShowPoint({ visible: true, student: { name: t('dashboard.whole_class'), students: presentStudents }, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
     setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
     updateClasses((prev) =>
       prev.map((c) =>
@@ -762,8 +764,8 @@ export default function ClassDashboard({
     try { triggerAnimationForIds(studentsArray.map(w => w.id), points); } catch (e) { console.warn('triggerAnimationForIds failed', e); }
   };
 
-  if (!activeClass) return <div style={{ ...styles.layout, overflowX: 'hidden' }}>No class selected</div>;
-  // Sum up all points from all students safely
+    if (!activeClass) return <div style={{ ...styles.layout, overflowX: 'hidden' }}>{t('dashboard.no_students')}</div>;
+    // Sum up all points from all students safely
   const totalClassPoints = activeClass?.students?.reduce((acc, s) => acc + (Number(s.score) || 0), 0) || 0;
   // --- CONDITIONAL RENDERS FOR SUB-PAGES ---
 
@@ -833,21 +835,21 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={Home}
-            label="Back to Classes"
+            label={t('nav.back')}
             onClick={() => { onBack(); setViewMode('dashboard'); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
 
           <SidebarIcon
             icon={ClipboardList}
-            label="Assignments"
+            label={t('dashboard.assignments')}
             onClick={() => { setViewMode('assignments'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'assignments'}
           />
 
           <SidebarIcon
             icon={MessageSquare}
-            label="Inbox & Grading"
+            label={t('dashboard.inbox_grading')}
             onClick={() => {
               setViewMode('messages');
               fetchFreshSubmissions();
@@ -868,7 +870,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={Dices}
-            label="Lucky Draw"
+            label={t('dashboard.lucky_draw')}
             onClick={() => { setViewMode('dashboard'); setIsLuckyDrawOpen(true); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="lucky-draw"
@@ -876,7 +878,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={Trophy}
-            label="Progress Road"
+            label={t('dashboard.road')}
             onClick={() => { onOpenEggRoad(); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="egg-road"
@@ -884,7 +886,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={CheckSquare}
-            label="Attendance Mode"
+            label={t('dashboard.attendance_mode')}
             onClick={() => {
               if (!isAttendanceMode) {
                 setViewMode('dashboard');
@@ -903,7 +905,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={QrCode}
-            label="Access Codes"
+            label={t('dashboard.access_codes')}
             onClick={() => {
               ensureCodesAndOpen();
               setViewMode('codes');
@@ -915,7 +917,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={BarChart2}
-            label="Reports"
+            label={t('dashboard.reports')}
             onClick={() => {
               setViewMode('reports');
               updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, isViewingReports: true } : c));
@@ -926,26 +928,26 @@ export default function ClassDashboard({
           />
           <SidebarIcon
             icon={Clock}
-            label="Class Timer"
+            label={t('dashboard.class_timer')}
             onClick={() => { setViewMode('timer'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'timer'}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Siren}
-            label="Attention Buzzer"
+            label={t('dashboard.attention_buzzer')}
             onClick={() => { startBuzzerSequence(); if (isMobile) setSidebarVisible(false); }}
             style={{ ...styles.icon, color: buzzerState !== 'idle' ? '#FF5252' : '#636E72' }}
           />
           <SidebarIcon
             icon={Presentation}
-            label="Whiteboard"
+            label={t('dashboard.whiteboard')}
             onClick={() => { setShowWhiteboard(true); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Settings}
-            label="Settings"
+            label={t('dashboard.settings')}
             onClick={() => { setViewMode('settings'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'settings'}
             style={styles.icon}
@@ -1093,7 +1095,7 @@ export default function ClassDashboard({
           ...styles.content,
           marginLeft: sidebarVisible ? (isMobile ? '72px' : '210px') : '0',
           transition: 'margin-left 0.3s ease',
-          paddingTop: (viewMode === 'messages' || viewMode === 'codes' || viewMode === 'settings' || viewMode === 'assignments' || viewMode === 'timer' || viewMode === 'reports' || viewMode === 'eggRoad' || viewMode === 'kidTimer') ? 0 : `calc(${isMobile ? '60px' : '80px'} + var(--safe-top, 0px))`,
+          paddingTop: (viewMode === 'messages' || viewMode === 'codes' || viewMode === 'settings' || viewMode === 'assignments' || viewMode === 'timer' || viewMode === 'reports' || viewMode === 'luckyDraw' || viewMode === 'eggroad' ) ? 0 : `calc(${isMobile ? '60px' : '80px'} + var(--safe-top, 0px))`,
           overflowX: 'hidden',
           maxWidth: '100%',
           boxSizing: 'border-box'
@@ -1245,7 +1247,7 @@ export default function ClassDashboard({
                       <InlineHelpButton pageId="class-dashboard" />
                       {isAttendanceMode && (
                         <div style={{ background: '#FEF3C7', color: '#92400E', padding: '8px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, display: 'flex', gap: 10, alignItems: 'center' }}>
-                          <span style={{ fontWeight: 700, fontSize: '13px' }}>Attendance: Tap students to toggle. Tap icon to save & exit.</span>
+                          <span style={{ fontWeight: 700, fontSize: '13px' }}>{t('dashboard.attendance_tip')}</span>
                         </div>
                       )}
                     </div>
@@ -1257,7 +1259,7 @@ export default function ClassDashboard({
                         <div style={{ position: 'relative' }}>
                           <IconButton
                             ref={headerMenuBtnRef}
-                            title="Menu"
+                            title={t('dashboard.menu')}
                             onClick={() => setShowHeaderMenu(prev => !prev)}
                           >
                             <MoreVertical size={22} />
@@ -1292,7 +1294,7 @@ export default function ClassDashboard({
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                     <ArrowUpDown size={18} />
-                                    <span>Sort Students</span>
+                                    <span>{t('dashboard.sort_students')}</span>
                                   </div>
                                   <ChevronDown size={14} />
                                 </button>
@@ -1313,7 +1315,7 @@ export default function ClassDashboard({
                                       zIndex: 100000
                                     }}
                                   >
-                                    <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By</div>
+                                    <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('dashboard.sort_by')}</div>
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -1327,7 +1329,7 @@ export default function ClassDashboard({
                                         color: sortBy === 'name' ? '#6366F1' : '#475569'
                                       }}
                                     >
-                                      <span style={{ flex: 1, textAlign: 'left' }}>Name (A-Z)</span>
+                                      <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.name_az')}</span>
                                       {sortBy === 'name' && <CheckCircle size={14} />}
                                     </button>
                                     <button
@@ -1343,7 +1345,7 @@ export default function ClassDashboard({
                                         color: sortBy === 'score' ? '#6366F1' : '#475569'
                                       }}
                                     >
-                                      <span style={{ flex: 1, textAlign: 'left' }}>Highest Points</span>
+                                      <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.highest_points')}</span>
                                       {sortBy === 'score' && <CheckCircle size={14} />}
                                     </button>
                                   </div>
@@ -1367,7 +1369,7 @@ export default function ClassDashboard({
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                     <Sliders size={18} />
-                                    <span>Display Size</span>
+                                    <span>{t('dashboard.display_size')}</span>
                                   </div>
                                   <ChevronDown size={14} />
                                 </button>
@@ -1388,11 +1390,11 @@ export default function ClassDashboard({
                                       zIndex: 100000
                                     }}
                                   >
-                                    <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>Display Size</div>
+                                    <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('dashboard.display_size')}</div>
                                     {[
-                                      { key: 'compact', label: 'Compact' },
-                                      { key: 'regular', label: 'Regular' },
-                                      { key: 'spacious', label: 'Spacious' }
+                                      { key: 'compact', label: t('dashboard.compact') },
+                                      { key: 'regular', label: t('dashboard.regular') },
+                                      { key: 'spacious', label: t('dashboard.spacious') }
                                     ].map(({ key, label }) => (
                                       <button
                                         key={key}
@@ -1438,7 +1440,7 @@ export default function ClassDashboard({
                         <div style={{ position: 'relative' }}>
                           <IconButton
                             ref={sortBtnRef}
-                            title="Sort Students"
+                            title={t('dashboard.sort_students')}
                             onClick={() => setShowSortMenu(prev => { const next = !prev; if (next) setShowGridMenu(false); return next; })}
                           >
                             <ArrowUpDown size={22} />
@@ -1455,7 +1457,7 @@ export default function ClassDashboard({
                               }}
                               ref={sortMenuRef}
                             >
-                              <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By</div>
+                              <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('dashboard.sort_by')}</div>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1468,7 +1470,7 @@ export default function ClassDashboard({
                                   color: sortBy === 'name' ? '#6366F1' : '#475569'
                                 }}
                               >
-                                <span>Name (A-Z)</span>
+                                <span>{t('dashboard.name_az')}</span>
                                 {sortBy === 'name' && <CheckCircle size={16} />}
                               </button>
                               <button
@@ -1483,7 +1485,7 @@ export default function ClassDashboard({
                                   color: sortBy === 'score' ? '#6366F1' : '#475569'
                                 }}
                               >
-                                <span>Highest Points</span>
+                                <span>{t('dashboard.highest_points')}</span>
                                 {sortBy === 'score' && <CheckCircle size={16} />}
                               </button>
                             </div>
@@ -1493,7 +1495,7 @@ export default function ClassDashboard({
                         <div style={{ position: 'relative' }}>
                           <IconButton
                             ref={gridBtnRef}
-                            title="Change Display Size"
+                            title={t('dashboard.display_size')}
                             onClick={() => setShowGridMenu(prev => { const next = !prev; if (next) setShowSortMenu(false); return next; })}
                           >
                             <Sliders size={22} />
@@ -1510,11 +1512,11 @@ export default function ClassDashboard({
                               }}
                               ref={gridMenuRef}
                             >
-                              <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>Display Size</div>
+                              <div style={{ padding: '6px 12px', fontSize: '11px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('dashboard.display_size')}</div>
                               {[
-                                { key: 'compact', label: 'Compact' },
-                                { key: 'regular', label: 'Regular' },
-                                { key: 'spacious', label: 'Spacious' }
+                                { key: 'compact', label: t('dashboard.compact') },
+                                { key: 'regular', label: t('dashboard.regular') },
+                                { key: 'spacious', label: t('dashboard.spacious') }
                               ].map(({ key, label }) => (
                                 <button
                                   key={key}
@@ -1538,7 +1540,7 @@ export default function ClassDashboard({
                         </div>
 
                         <IconButton
-                          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                          title={isFullscreen ? t('dashboard.exit_fullscreen') : t('dashboard.enter_fullscreen')}
                           onClick={toggleFullscreen}
                         >
                           {isFullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
@@ -1609,7 +1611,7 @@ export default function ClassDashboard({
                               <path id="wholeClassPathInner" d="M 5,32 Q 75,10 145,32" />
                             </defs>
                             <text fill="#FFFFFF" fontSize="18" fontWeight="900" letterSpacing="1" textAnchor="middle">
-                              <textPath href="#wholeClassPathInner" startOffset="50%">Whole Class</textPath>
+                              <textPath href="#wholeClassPathInner" startOffset="50%">{t('dashboard.whole_class')}</textPath>
                             </text>
                           </svg>
 
@@ -1652,7 +1654,7 @@ export default function ClassDashboard({
                       ) : (
                         <>
                           <SmilePlus size={40} />
-                          <div style={{ marginTop: 10, fontWeight: '900', fontSize: '1rem', color: 'white' }}>Whole Class</div>
+                          <div style={{ marginTop: 10, fontWeight: '900', fontSize: '1rem', color: 'white' }}>{t('dashboard.whole_class')}</div>
 
                           {/* ⚡ TOTAL CLASS POINTS DISPLAY ⚡ */}
                           <div style={{
@@ -1670,7 +1672,7 @@ export default function ClassDashboard({
                             backdropFilter: 'blur(12px)'
                           }}>
                             <Trophy size={16} color="#FFD700" fill="#FFD700" />
-                            {totalClassPoints.toLocaleString()} Pts
+                            {totalClassPoints.toLocaleString()} {t('dashboard.pts')}
                           </div>
                         </>
                       )}
@@ -1781,7 +1783,7 @@ export default function ClassDashboard({
                         fontSize: displaySize === 'compact' ? '12px' : '1rem',
                         color: '#6366F1',
                         textAlign: 'center'
-                      }}>Add Student</div>
+                      }}>{t('dashboard.add_student')}</div>
                     </div>
 
                   </div>
@@ -1836,7 +1838,7 @@ export default function ClassDashboard({
           <div style={styles.overlay} className="modal-overlay-in">
             <div style={styles.modal} className="animated-modal-content modal-animate-center">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1e293b' }}>Edit Student</h3>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#1e293b' }}>{t('edit_student.title')}</h3>
                 <button style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#64748b', padding: 8, borderRadius: 8, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }} onMouseEnter={(e) => e.target.style.transform = 'rotate(90deg) scale(1.1)'} onMouseLeave={(e) => e.target.style.transform = 'rotate(0deg) scale(1)'}><X /></button>
               </div>
 
@@ -1849,17 +1851,17 @@ export default function ClassDashboard({
                   <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#4CAF50', color: 'white', padding: '6px', borderRadius: '50%' }}><Camera size={14} /></div>
                 </div>
                 <div style={{ marginTop: 8, textAlign: 'center', fontSize: 13, color: '#64748B', fontWeight: 500, cursor: 'pointer' }} onClick={() => setShowEditAvatarPicker(!showEditAvatarPicker)}>
-                  Change avatar
+                  {t('edit_student.change_avatar')}
                 </div>
 
                 {/* Upload button */}
-                <input ref={editFileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files && e.target.files[0]; if (!f) return; if (f.size > 1024 * 1024) { alert('Image is too large. Please choose a smaller image (under 1MB).'); return; } const reader = new FileReader(); reader.onload = () => { setEditStudentAvatar(reader.result); setEditSelectedSeed(null); }; reader.readAsDataURL(f); }} />
+                <input ref={editFileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files && e.target.files[0]; if (!f) return; if (f.size > 1024 * 1024) { alert(t('profile.image_too_large')); return; } const reader = new FileReader(); reader.onload = () => { setEditStudentAvatar(reader.result); setEditSelectedSeed(null); }; reader.readAsDataURL(f); }} />
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
                   <button onClick={() => editFileInputRef.current && editFileInputRef.current.click()} style={{ padding: '10px 16px', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)', color: 'white', cursor: 'pointer', fontWeight: 600, fontSize: 13, transition: 'all 0.2s ease' }}>
-                    {editStudentAvatar ? 'Change Photo' : 'Upload Photo'}
+                    {editStudentAvatar ? t('profile.change_photo') : t('profile.upload_photo')}
                   </button>
                   {editStudentAvatar && (
-                    <button onClick={() => setEditStudentAvatar(null)} style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: 500, fontSize: 13, color: '#64748b', transition: 'all 0.2s ease' }}>Remove</button>
+                    <button onClick={() => setEditStudentAvatar(null)} style={{ padding: '8px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontWeight: 500, fontSize: 13, color: '#64748b', transition: 'all 0.2s ease' }}>{t('profile.remove')}</button>
                   )}
                 </div>
               </div>
@@ -1928,11 +1930,11 @@ export default function ClassDashboard({
                 </>
               )}
 
-              <input autoFocus placeholder="Student Name" value={editStudentName} onChange={(e) => setEditStudentName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: 16, outline: 'none', fontSize: 14, color: '#334155', transition: 'border-color 0.2s ease, box-shadow 0.2s ease' }} onFocus={(e) => { e.target.style.borderColor = '#4CAF50'; e.target.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
+              <input autoFocus placeholder={t('edit_student.student_name')} value={editStudentName} onChange={(e) => setEditStudentName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: 16, outline: 'none', fontSize: 14, color: '#334155', transition: 'border-color 0.2s ease, box-shadow 0.2s ease' }} onFocus={(e) => { e.target.style.borderColor = '#4CAF50'; e.target.style.boxShadow = '0 0 0 3px rgba(76, 175, 80, 0.1)'; }} onBlur={(e) => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
 
               <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                 {/* CANCEL BUTTON */}
-                <button style={{ padding: '14px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 600, fontSize: 14, cursor: 'pointer', flex: 1, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }}>Cancel</button>
+                <button style={{ padding: '14px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 600, fontSize: 14, cursor: 'pointer', flex: 1, transition: 'all 0.2s ease' }} onClick={() => { setEditingStudentId(null); setEditStudentName(''); setEditStudentAvatar(null); setEditSelectedSeed(null); setHoveredEditChar(null); }}>{t('edit_student.cancel')}</button>
                 <button
                   data-save-student-btn
                   style={{
@@ -1950,7 +1952,7 @@ export default function ClassDashboard({
                   }}
                   onClick={handleSaveStudentEdit}
                   disabled={!editStudentName.trim()}
-                >Save Changes</button>
+                >{t('edit_student.save_changes')}</button>
               </div>
             </div>
           </div>
@@ -1959,11 +1961,11 @@ export default function ClassDashboard({
         {deleteConfirmStudentId && (
           <div style={styles.overlay}>
             <div style={{ ...styles.modal, width: 360 }}>
-              <h3 style={{ marginBottom: 12 }}>Delete Student?</h3>
-              <p style={{ color: '#666' }}>Are you sure you want to delete <strong>'{activeClass.students.find((s) => s.id === deleteConfirmStudentId)?.name}'</strong>?</p>
+              <h3 style={{ marginBottom: 12 }}>{t('edit_student.delete_confirm')}</h3>
+              <p style={{ color: '#666' }}>{t('edit_student.delete_sure')} <strong>'{activeClass.students.find((s) => s.id === deleteConfirmStudentId)?.name}'</strong>?</p>
               <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={() => setDeleteConfirmStudentId(null)} style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #E2E8F0', background: 'white' }}>Cancel</button>
-                <button onClick={() => handleDeleteStudent(activeClass.students.find((s) => s.id === deleteConfirmStudentId))} style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: '#FF6B6B', color: 'white' }}>Delete</button>
+                <button onClick={() => setDeleteConfirmStudentId(null)} style={{ flex: 1, padding: 10, borderRadius: 8, border: '1px solid #E2E8F0', background: 'white' }}>{t('edit_student.cancel')}</button>
+                <button onClick={() => handleDeleteStudent(activeClass.students.find((s) => s.id === deleteConfirmStudentId))} style={{ flex: 1, padding: 10, borderRadius: 8, border: 'none', background: '#FF6B6B', color: 'white' }}>{t('edit_student.delete')}</button>
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
+import { useTranslation } from '../i18n';
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -93,6 +94,7 @@ const internalCSS = `
 `;
 
 export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses }) {
+  const { t } = useTranslation();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -173,7 +175,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     onSave,
     currentClassId
   ) => {
-    const activeAvatar = avatarValue || boringAvatar(nameValue || (mode === 'add' ? 'New Class' : 'Class'));
+    const { t } = useTranslation();
+    const activeAvatar = avatarValue || boringAvatar(nameValue || (mode === 'add' ? t('teacher_portal.add_new_class') : t('teacher_portal.class_name')));
 
     return (
       <div style={{ marginTop: 45, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -181,7 +184,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           // --- AVATAR SELECTION GRID (Visual Only) ---
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
             <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', color: '#4B5563', textAlign: 'center' }}>
-              Pick an icon
+              {t('teacher_portal.change')}
             </h4>
             <div className="avatar-grid-scroll" style={styles.themeGrid}>
               {avatarSeeds.map(seed => (
@@ -203,7 +206,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               className="btn-secondary"
               style={{ ...styles.cancelBtn, marginTop: 16 }}
             >
-              Cancel
+              {t('general.cancel')}
             </button>
           </div>
         ) : (
@@ -230,15 +233,15 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>
-                <button onClick={() => setShowSelector(true)} style={styles.textBtn}>Change</button>
+                <button onClick={() => setShowSelector(true)} style={styles.textBtn}>{t('teacher_portal.change')}</button>
               </div>
 
               {/* Class Name Input */}
               <div style={{ flex: 1, paddingTop: 4 }}>
-                <label style={styles.label}>Class Name</label>
+                <label style={styles.label}>{t('teacher_portal.class_name')}</label>
                 <input
                   style={styles.largeInput}
-                  placeholder={mode === 'add' ? "e.g. 5th Grade Science" : ""}
+                  placeholder={mode === 'add' ? t('teacher_portal.name_placeholder') : ""}
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   autoFocus={mode === 'add'}
@@ -248,7 +251,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
             {/* Middle Section: Large Dropzone to fill whitespace */}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginBottom: 20 }}>
-               <label style={styles.label}>Or upload your own photo</label>
+               <label style={styles.label}>{t('teacher_portal.upload_photo')}</label>
                <label
                   htmlFor={`upload-${mode}-${currentClassId || 'new'}`}
                   style={styles.largeDropzone}
@@ -256,8 +259,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   <div style={{ background: '#F3F4F6', padding: 12, borderRadius: '50%', marginBottom: 8 }}>
                     <Upload size={20} color="#6B7280" />
                   </div>
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563' }}>Click to upload image</span>
-                  <span style={{ fontSize: '12px', color: '#9CA3AF' }}>SVG, PNG, JPG</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563' }}>{t('teacher_portal.click_upload')}</span>
+                  <span style={{ fontSize: '12px', color: '#9CA3AF' }}>{t('teacher_portal.file_types')}</span>
                </label>
                <input
                   id={`upload-${mode}-${currentClassId || 'new'}`}
@@ -286,7 +289,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               }}
               disabled={!nameValue.trim()}
             >
-              {mode === 'add' ? 'Create Class' : 'Save Changes'}
+              {mode === 'add' ? t('teacher_portal.create') : t('teacher_portal.save')}
             </button>
             </div>
           </div>
@@ -307,7 +310,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} title="Edit Profile" style={styles.navAvatarBtn}>
+              <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} title={t('teacher_portal.edit_profile')} style={styles.navAvatarBtn}>
                 <SafeAvatar
                   src={user.avatar}
                   name={user.name || user.email}
@@ -323,16 +326,16 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <InlineHelpButton pageId="teacher-portal" />
-          <button onClick={() => setLogoutConfirm(true)} title="Logout" style={styles.logoutBtn}>
+          <button onClick={() => setLogoutConfirm(true)} title={t('teacher_portal.logout')} style={styles.logoutBtn}>
             <LogOut size={14} />
-            <span style={{ marginLeft: 4, fontWeight: 600 }}>Logout</span>
+            <span style={{ marginLeft: 4, fontWeight: 600 }}>{t('teacher_portal.logout')}</span>
           </button>
         </div>
       </nav>
 
       <main style={{ ...styles.main, paddingTop: isMobile ? '100px' : '120px' }}>
         <div style={{ ...styles.header }}>
-          <h2 style={{ margin: 0, fontSize: '18px' }}>My Classes</h2>
+          <h2 style={{ margin: 0, fontSize: '18px' }}>{t('teacher_portal.my_classes')}</h2>
         </div>
 
         <div className="class-grid" style={{
@@ -346,7 +349,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             <div
               key={cls.id}
               className="class-card-hover"
-              title={`Click to open ${cls.name} (${cls.students.length} students)`}
+              title={t('teacher_portal.click_open').replace('{name}', cls.name).replace('{count}', cls.students.length)}
               onClick={() => {
                 if (!hoveredClassId && !isMobile) return;
                 onSelectClass(cls.id);
@@ -374,7 +377,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   transition: 'opacity 0.2s ease',
                   zIndex: 10
                 }}
-                title="Edit class"
+                title={t('teacher_portal.edit')}
               >
                 <Edit2 size={18} />
               </button>
@@ -428,14 +431,14 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 </div>
               </div>
               <h3 style={{ margin: '10px 0 5px' }}>{cls.name}</h3>
-              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{cls.students.length} Students</p>
+              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>{t('teacher_portal.students_count').replace('{count}', cls.students.length)}</p>
             </div>
           ))}
 
           {/* --- ADD CLASS CARD --- */}
           <div
             className="add-card-hover"
-            title="Add a new class"
+            title={t('teacher_portal.add_new_class')}
             onClick={() => setShowAddModal(true)}
             style={{
               ...styles.classCard,
@@ -453,7 +456,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             <div style={{ background: 'white', padding: 12, borderRadius: '50%', marginBottom: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
               <Plus size={32} />
             </div>
-            <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Add New Class</span>
+            <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{t('teacher_portal.add_new_class')}</span>
           </div>
         </div>
       </main>
@@ -462,7 +465,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {showAddModal && (
         <div style={styles.overlay} className="modal-overlay-in">
           <div style={styles.standardModal} className="animated-modal-content modal-animate-center">
-            <div style={styles.modalTitleAbs}>Create New Class</div>
+            <div style={styles.modalTitleAbs}>{t('teacher_portal.create_new_class')}</div>
             <button onClick={resetAddModal} style={styles.modalCloseAbs}>
               <X size={20} />
             </button>
@@ -482,7 +485,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {editingClassId && classToEdit && (
         <div style={styles.editOverlay} onClick={() => setEditingClassId(null)} className="modal-overlay-in">
           <div style={styles.standardModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
-            <div style={styles.modalTitleAbs}>Edit Class</div>
+            <div style={styles.modalTitleAbs}>{t('teacher_portal.edit_class')}</div>
             <button onClick={() => setEditingClassId(null)} style={styles.modalCloseAbs}>
               <X size={20} />
             </button>
@@ -502,7 +505,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {deleteConfirmId && classToDelete && (
         <div style={styles.editOverlay} onClick={() => setDeleteConfirmId(null)} className="modal-overlay-in">
           <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
-            <div style={styles.deleteModalTitle}>Delete Class?</div>
+            <div style={styles.deleteModalTitle}>{t('teacher_portal.delete_class')}</div>
             <button onClick={() => setDeleteConfirmId(null)} style={styles.modalCloseAbs}>
               <X size={20} />
             </button>
@@ -511,12 +514,12 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 <SafeAvatar src={classToDelete.avatar || boringAvatar(classToDelete.name || 'class')} name={classToDelete.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <p style={{ marginBottom: 20, color: '#4B5563', fontSize: '1rem', lineHeight: 1.5 }}>
-                Are you sure you want to delete <b>{classToDelete.name}</b>?<br />
-                <span style={{ fontSize: '0.85rem', color: '#EF4444' }}>This cannot be undone.</span>
+                {t('teacher_portal.delete_confirm').replace('{name}', classToDelete.name)}<br />
+                <span style={{ fontSize: '0.85rem', color: '#EF4444' }}>{t('teacher_portal.cannot_undo')}</span>
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => handleDeleteClass(deleteConfirmId)} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '12px 16px' }}>Delete</button>
-                <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '12px 16px' }}>Cancel</button>
+                <button onClick={() => handleDeleteClass(deleteConfirmId)} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '12px 16px' }}>{t('teacher_portal.delete')}</button>
+                <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '12px 16px' }}>{t('general.cancel')}</button>
               </div>
             </div>
           </div>
@@ -527,7 +530,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {logoutConfirm && (
         <div style={styles.editOverlay} onClick={() => setLogoutConfirm(false)}>
           <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.deleteModalTitle}>Are you sure?</div>
+            <div style={styles.deleteModalTitle}>{t('teacher_portal.sure_logout')}</div>
             <button onClick={() => setLogoutConfirm(false)} style={styles.modalCloseAbs}>
               <X size={20} />
             </button>
@@ -536,11 +539,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 <LogOut size={40} color="#DC2626" />
               </div>
               <p style={{ marginBottom: 30, color: '#4B5563', fontSize: '1.1rem', lineHeight: 1.5 }}>
-                Are you sure you want to logout?
+                {t('teacher_portal.sure_logout')}
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626' }}>Yes</button>
-                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px' }}>No</button>
+                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626' }}>{t('teacher_portal.yes')}</button>
+                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px' }}>{t('teacher_portal.no')}</button>
               </div>
             </div>
           </div>

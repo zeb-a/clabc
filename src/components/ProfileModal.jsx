@@ -4,8 +4,10 @@ import { boringAvatar, fallbackInitialsDataUrl, AVATAR_OPTIONS, avatarByCharacte
 import SafeAvatar from './SafeAvatar';
 import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
 import { Camera, X } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 export default function ProfileModal({ user, onSave, onClose }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(user.title || '');
   const [name, setName] = useState(user.name || '');
   const [avatar, setAvatar] = useState(user.avatar || boringAvatar(user.name || user.email));
@@ -42,11 +44,11 @@ export default function ProfileModal({ user, onSave, onClose }) {
   // Handle keyboard shortcuts (Enter to save, Escape to cancel)
   const handleSaveWithValidation = () => {
     if (password && password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('profile.passwords_no_match'));
       return;
     }
     if (!name.trim()) {
-      setError('Name cannot be empty.');
+      setError(t('profile.name_empty'));
       return;
     }
     handleSave({ preventDefault: () => {} });
@@ -76,7 +78,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
       await onSave({ id: user.id, title, name, avatar: avatarToSave, password, oldPassword });
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to update profile.');
+      setError(err.message || t('profile.failed_update'));
     } finally {
       setSaving(false);
     }
@@ -87,7 +89,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
     if (!file) return;
     // Warn if file is too large (avatar images should be small)
     if (file.size > 1024 * 1024) {
-      setError('Image is too large. Please choose a smaller image (under 1MB).');
+      setError(t('profile.image_too_large'));
       return;
     }
     const reader = new FileReader();
@@ -96,7 +98,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
       setUploadedAvatar(reader.result);
       setSelectedCharacter(''); // clear preset selection if uploading
     };
-    reader.onerror = () => setError('Failed to read file.');
+    reader.onerror = () => setError(t('profile.failed_read'));
     reader.readAsDataURL(file);
   };
 
@@ -110,7 +112,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
   return (
     <div style={styles.overlay} className="modal-overlay-in">
       <div style={styles.modal} className="animated-modal-content modal-animate-center">
-        <h2>Edit Profile</h2>
+        <h2>{t('profile.edit_profile')}</h2>
         <button onClick={onClose} style={styles.closeBtn}><X /></button>
         <form onSubmit={handleSave} style={styles.form}>
           {/* AVATAR SECTION */}
@@ -123,17 +125,17 @@ export default function ProfileModal({ user, onSave, onClose }) {
               <div style={styles.cameraBadge}><Camera size={14} /></div>
             </div>
             <div style={{ marginTop: 8, textAlign: 'center', fontSize: 13, color: '#64748B', fontWeight: 500, cursor: 'pointer' }} onClick={handleAvatarClick}>
-              Change avatar
+              {t('profile.change_avatar')}
             </div>
 
             {/* Upload button */}
             <input ref={fileInputRef} id="profile-avatar-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
               <button type="button" onClick={() => fileInputRef.current && fileInputRef.current.click()} style={styles.uploadBtn}>
-                {uploadedAvatar ? 'Change Photo' : 'Upload Photo'}
+                {uploadedAvatar ? t('profile.change_photo') : t('profile.upload_photo')}
               </button>
               {uploadedAvatar && (
-                <button type="button" onClick={() => { setUploadedAvatar(null); setSelectedCharacter(''); }} style={styles.removeBtn}>Remove</button>
+                <button type="button" onClick={() => { setUploadedAvatar(null); setSelectedCharacter(''); }} style={styles.removeBtn}>{t('profile.remove')}</button>
               )}
             </div>
           </div>
@@ -201,13 +203,13 @@ export default function ProfileModal({ user, onSave, onClose }) {
               <option value="Dr.">Dr.</option>
               <option value="Prof.">Prof.</option>
             </select>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" style={{ ...styles.input, flex: 1 }} />
+            <input value={name} onChange={e => setName(e.target.value)} placeholder={t('profile.full_name')} style={{ ...styles.input, flex: 1 }} />
           </div>
-          <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder="Current Password (to change password)" style={styles.input} />
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="New Password" style={styles.input} />
-          <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Confirm New Password" style={styles.input} />
+          <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder={t('profile.current_password')} style={styles.input} />
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t('profile.new_password')} style={styles.input} />
+          <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder={t('profile.confirm_new_password')} style={styles.input} />
           {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
-          <button data-enter-submit type="submit" style={styles.saveBtn} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+          <button data-enter-submit type="submit" style={styles.saveBtn} disabled={saving}>{saving ? t('profile.saving') : t('profile.save_changes')}</button>
         </form>
       </div>
     </div>

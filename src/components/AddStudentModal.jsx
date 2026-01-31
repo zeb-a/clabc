@@ -5,8 +5,10 @@ import { X, Camera } from 'lucide-react';
 import SafeAvatar from './SafeAvatar';
 import { detectGender } from '../utils/gender';
 import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
+import { useTranslation } from '../i18n';
 
 export default function AddStudentModal({ onClose, onSave }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [gender, setGender] = useState('boy');
   const [uploadedAvatar, setUploadedAvatar] = useState(null);
@@ -30,7 +32,7 @@ export default function AddStudentModal({ onClose, onSave }) {
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 1024 * 1024) {
-      alert('Image is too large. Please choose a smaller image (under 1MB).');
+      alert(t('add_student.image_large'));
       return;
     }
     const reader = new FileReader();
@@ -68,7 +70,7 @@ export default function AddStudentModal({ onClose, onSave }) {
     <div style={styles.overlay} className="modal-overlay-in">
       <div style={styles.modal} className="animated-modal-content modal-animate-center">
         <div style={styles.modalHeader}>
-          <h3>Enrol New Student</h3>
+          <h3>{t('add_student.title')}</h3>
           <button style={styles.closeBtn} onClick={onClose}><X /></button>
         </div>
 
@@ -81,24 +83,24 @@ export default function AddStudentModal({ onClose, onSave }) {
             <div style={styles.cameraBadge}><Camera size={14} /></div>
           </div>
           <div style={{ marginTop: 8, textAlign: 'center', fontSize: 13, color: '#64748B', fontWeight: 500, cursor: 'pointer' }} onClick={handleAvatarClick}>
-            Change avatar
+            {t('add_student.change_avatar')}
           </div>
 
           {/* Upload button */}
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center', marginTop: 12 }}>
             <button onClick={() => fileInputRef.current && fileInputRef.current.click()} style={styles.uploadBtn}>
-              {uploadedAvatar ? 'Change Photo' : 'Upload Photo'}
+              {uploadedAvatar ? t('add_student.change_photo') : t('add_student.upload_photo')}
             </button>
             {uploadedAvatar && (
-              <button onClick={() => { setUploadedAvatar(null); }} style={styles.removeBtn}>Remove</button>
+              <button onClick={() => { setUploadedAvatar(null); }} style={styles.removeBtn}>{t('add_student.remove')}</button>
             )}
           </div>
         </div>
 
         {/* GENDER SELECTION */}
         <div style={styles.genderSection}>
-          <label style={styles.genderLabel}>Gender</label>
+          <label style={styles.genderLabel}>{t('add_student.gender')}</label>
           <div style={styles.genderButtons}>
             <button
               onClick={() => setGender('boy')}
@@ -107,7 +109,7 @@ export default function AddStudentModal({ onClose, onSave }) {
                 ...(gender === 'boy' ? styles.genderBtnActive : {})
               }}
             >
-              👦 Boy
+              👦 {t('add_student.boy')}
             </button>
             <button
               onClick={() => setGender('girl')}
@@ -116,7 +118,7 @@ export default function AddStudentModal({ onClose, onSave }) {
                 ...(gender === 'girl' ? styles.genderBtnActive : {})
               }}
             >
-              👧 Girl
+              👧 {t('add_student.girl')}
             </button>
           </div>
         </div>
@@ -173,7 +175,7 @@ export default function AddStudentModal({ onClose, onSave }) {
         {/* NAME INPUT WITH AUTO-GENDER DETECTION */}
         <input
           type="text"
-          placeholder="Student Name"
+          placeholder={t('add_student.name_placeholder')}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -193,12 +195,12 @@ export default function AddStudentModal({ onClose, onSave }) {
           style={styles.input}
         />
         {!name.trim() && (
-          <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 8 }}>Please enter a student's name.</div>
+          <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 8 }}>{t('add_student.name_required')}</div>
         )}
 
         <div style={styles.footer}>
           {/* CANCEL BUTTON */}
-          <button style={styles.cancelBtn} onClick={onClose}>Cancel (Esc)</button>
+          <button style={styles.cancelBtn} onClick={onClose}>{t('add_student.cancel')}</button>
           <button
             data-enter-submit
             data-save-student-btn
@@ -209,7 +211,7 @@ export default function AddStudentModal({ onClose, onSave }) {
             }}
             onClick={handleSave}
             disabled={!name.trim()}
-          >Add Student (Enter)</button>
+          >{t('add_student.add')}</button>
         </div>
       </div>
     </div>
