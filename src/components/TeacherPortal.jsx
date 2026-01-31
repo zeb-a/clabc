@@ -330,7 +330,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         </div>
       </nav>
 
-      <main style={{ ...styles.main, paddingTop: isMobile ? '60px' : '80px' }}>
+      <main style={{ ...styles.main, paddingTop: isMobile ? '100px' : '120px' }}>
         <div style={{ ...styles.header }}>
           <h2 style={{ margin: 0, fontSize: '18px' }}>My Classes</h2>
         </div>

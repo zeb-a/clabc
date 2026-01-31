@@ -780,6 +780,7 @@ export default function ClassDashboard({
         {/* --- SIDEBAR --- */}
         <nav
           ref={sidebarRef}
+          className="safe-area-top"
           style={(() => {
             if (isMobile) {
               // On mobile: render a narrow left aside with tighter spacing so bottom icons remain visible
@@ -1202,6 +1203,7 @@ export default function ClassDashboard({
 
                 <>
                   <header
+                    className="safe-area-top"
                     style={{
                       ...styles.header,
                       // Use full width of the `main` container; `main` already offsets for the sidebar.
