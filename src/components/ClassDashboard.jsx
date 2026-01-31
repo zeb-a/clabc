@@ -1186,9 +1186,9 @@ export default function ClassDashboard({
                       ...styles.header,
                       // Use full width of the `main` container; `main` already offsets for the sidebar.
                       width: '100%',
-                      padding: isMobile ? `calc(8px + env(safe-area-inset-top, 0px)) 12px 8px 12px` : styles.header.padding,
+                      padding: isMobile ? `calc(8px + env(safe-area-inset-top, 0px)) 16px 8px 16px` : styles.header.padding,
                       marginLeft: 0,
-                      paddingRight: isMobile ? '12px' : '20px',
+                      paddingRight: isMobile ? '16px' : '20px',
                       boxSizing: 'border-box',
                       flexDirection: 'row',
                       alignItems: 'flex-start',
@@ -1196,7 +1196,7 @@ export default function ClassDashboard({
                     }}
                   >
                     {/* Left side: Empty or back button */}
-                    <div style={{ width: '100px' }}></div>
+                    <div style={{ width: isMobile ? '40px' : '100px' }}></div>
 
                     {/* Center: Class name */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

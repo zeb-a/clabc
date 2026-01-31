@@ -54,7 +54,10 @@ export default function EggRoad({ classData, onBack }) {
     <div className="eggroad-root" style={{ ...styles.container, background: currentLevel.color }}>
       
       {/* HEADER */}
-      <div style={styles.header}>
+      <div style={{
+        ...styles.header,
+        paddingTop: `calc(20px + env(safe-area-inset-top, 0px))`
+      }}>
         <button onClick={onBack} aria-label="Close map" title="Close" style={styles.backBtn}><X size={18} /></button>
         <div style={styles.classStatus}>
           <div style={styles.levelBadge}>{currentLevel.icon} {currentLevel.name}</div>

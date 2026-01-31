@@ -89,11 +89,11 @@ const KidTimer = ({ onComplete, onClose }) => {
   // --- RENDER ---
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-      <button 
+      <button
       onClick={onClose}
       style={{
         position: 'absolute',
-        top: '20px',
+        top: mode === 'setup' ? '60px' : '20px',
         right: '20px',
         background: '#F1F5F9',
         border: 'none',

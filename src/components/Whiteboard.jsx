@@ -596,8 +596,11 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: '70px',
-    padding: '0 24px',
+    minHeight: '70px',
+    paddingTop: 'calc(8px + env(safe-area-inset-top, 0px))',
+    paddingBottom: '8px',
+    paddingLeft: '24px',
+    paddingRight: '24px',
     boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
     flexShrink: 0
   },
