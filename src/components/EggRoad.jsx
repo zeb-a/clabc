@@ -51,19 +51,16 @@ export default function EggRoad({ classData, onBack }) {
   }, []);
 
   return (
-    <div className="eggroad-root safe-area-top" style={{ ...styles.container, background: currentLevel.color, paddingTop: 'calc(var(--safe-top, 0px))' }}>
+    <div className="eggroad-root safe-area-top" style={{ ...styles.container, background: currentLevel.color }}>
       
       {/* HEADER */}
-      <div style={{
-        ...styles.header,
-        paddingTop: 0
-      }}>
-        <button onClick={onBack} aria-label="Close map" title="Close" style={styles.backBtn}><X size={18} /></button>
+      <div style={styles.header}>
+        <div style={styles.trophyIcon}><Trophy size={32} color="gold" /></div>
         <div style={styles.classStatus}>
           <div style={styles.levelBadge}>{currentLevel.icon} {currentLevel.name}</div>
           <div style={styles.totalScore}>Class Energy: {classTotal}</div>
         </div>
-        <div style={styles.trophyIcon}><Trophy size={32} color="gold" /></div>
+        <button onClick={onBack} aria-label="Close map" title="Close" style={styles.backBtn}><X size={18} /></button>
       </div>
 
       {/* THE VERTICAL JOURNEY */}
