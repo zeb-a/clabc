@@ -89,11 +89,11 @@ const KidTimer = ({ onComplete, onClose }) => {
   // --- RENDER ---
   return (
     <div className="safe-area-top" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-      <button 
+      <button
       onClick={onClose}
       style={{
         position: 'absolute',
-        top: '20px',
+        top: mode === 'setup' ? '60px' : '20px',
         right: '20px',
         background: '#F1F5F9',
         border: 'none',
@@ -107,24 +107,23 @@ const KidTimer = ({ onComplete, onClose }) => {
     </button>
       {/* MODE 1: SETUP (Choose Minutes) */}
       {mode === 'setup' && (
-        <div style={{ animation: 'fadeIn 0.5s' }}>
-          <h3 style={{ fontSize: '24px', color: '#64748B', marginBottom: '30px', fontWeight: 600 }}>
+        <div style={{ animation: 'fadeIn 0.5s', width: '100%', maxWidth: '600px', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h3 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: '#64748B', marginBottom: 'clamp(20px, 4vw, 30px)', fontWeight: 600, textAlign: 'center' }}>
             How long do we focus?
           </h3>
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 'clamp(8px, 2vw, 12px)', width: '100%', maxWidth: '500px' }}>
             {[1, 2, 3, 4, 5].map((num) => (
               <button
                 key={num}
                 onClick={() => selectTime(num)}
                 className="timer-select-btn"
                 style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '24px',
+                  aspectRatio: '1',
+                  borderRadius: 'clamp(16px, 3vw, 20px)',
                   border: 'none',
                   background: '#EEF2FF',
                   color: '#4F46E5',
-                  fontSize: '32px',
+                  fontSize: 'clamp(20px, 5vw, 32px)',
                   fontWeight: '900',
                   cursor: 'pointer',
                   boxShadow: '0 4px 0 #C7D2FE',
@@ -136,7 +135,7 @@ const KidTimer = ({ onComplete, onClose }) => {
                 }}
               >
                 {num}
-                <span style={{ fontSize: '14px', fontWeight: 600, opacity: 0.7 }}>MIN</span>
+                <span style={{ fontSize: 'clamp(9px, 2vw, 14px)', fontWeight: 600, opacity: 0.7 }}>MIN</span>
               </button>
             ))}
           </div>
@@ -150,13 +149,13 @@ const KidTimer = ({ onComplete, onClose }) => {
 
       {/* MODE 2: RUNNING (The Big Timer) */}
       {mode === 'running' && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '30px', width: '100%', animation: 'fadeIn 0.5s' }}>
-          
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(20px, 4vw, 30px)', width: '100%', maxWidth: '600px', padding: '0 20px', animation: 'fadeIn 0.5s' }}>
+
           {/* Visual Timer Ring */}
           <div style={{
             position: 'relative',
-            width: '320px', // Wider
-            height: '320px', // Bigger
+            width: 'clamp(200px, 50vw, 320px)',
+            height: 'clamp(200px, 50vw, 320px)',
             borderRadius: '50%',
             background: `conic-gradient(#10B981 ${((totalSeconds - timeLeft) / totalSeconds) * 100}%, #F3F4F6 0deg)`,
             display: 'flex',
@@ -165,8 +164,8 @@ const KidTimer = ({ onComplete, onClose }) => {
             boxShadow: '0 20px 50px -10px rgba(16, 185, 129, 0.3)'
           }}>
             <div style={{
-              width: '280px',
-              height: '280px',
+              width: 'clamp(170px, 42vw, 280px)',
+              height: 'clamp(170px, 42vw, 280px)',
               borderRadius: '50%',
               background: '#fff',
               display: 'flex',
@@ -174,26 +173,26 @@ const KidTimer = ({ onComplete, onClose }) => {
               justifyContent: 'center',
               flexDirection: 'column'
             }}>
-               <div style={{ fontSize: '80px', fontWeight: '900', color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>
+               <div style={{ fontSize: 'clamp(48px, 12vw, 80px)', fontWeight: '900', color: '#1E293B', fontVariantNumeric: 'tabular-nums' }}>
                  {formatTime(timeLeft)}
                </div>
-               <div style={{ color: '#94A3B8', fontWeight: 600, marginTop: '-10px' }}>
+               <div style={{ color: '#94A3B8', fontWeight: 600, marginTop: '-5px', fontSize: 'clamp(12px, 3vw, 16px)' }}>
                  {isRunning ? 'FOCUS TIME' : 'PAUSED'}
                </div>
             </div>
           </div>
 
           {/* Controls */}
-          <div style={{ display: 'flex', gap: '20px' }}>
+          <div style={{ display: 'flex', gap: 'clamp(10px, 2vw, 20px)', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
               onClick={() => setIsRunning(!isRunning)}
               style={{
-                padding: '16px 40px',
-                borderRadius: '20px',
+                padding: 'clamp(12px, 3vw, 16px) clamp(24px, 6vw, 40px)',
+                borderRadius: 'clamp(14px, 3vw, 20px)',
                 border: 'none',
                 background: isRunning ? '#FEF2F2' : '#ECFDF5',
                 color: isRunning ? '#EF4444' : '#10B981',
-                fontSize: '18px',
+                fontSize: 'clamp(14px, 3.5vw, 18px)',
                 fontWeight: '800',
                 cursor: 'pointer',
                 display: 'flex',
@@ -202,23 +201,24 @@ const KidTimer = ({ onComplete, onClose }) => {
                 boxShadow: '0 4px 0 rgba(0,0,0,0.05)'
               }}
             >
-              {isRunning ? <Pause /> : <Play />}
+              {isRunning ? <Pause size={20} /> : <Play size={20} />}
               {isRunning ? 'PAUSE' : 'RESUME'}
             </button>
 
             <button
               onClick={() => { setIsRunning(false); setMode('setup'); }}
               style={{
-                padding: '16px 24px',
-                borderRadius: '20px',
+                padding: 'clamp(12px, 3vw, 16px) clamp(18px, 4vw, 24px)',
+                borderRadius: 'clamp(14px, 3vw, 20px)',
                 border: 'none',
                 background: '#F1F5F9',
                 color: '#64748B',
                 cursor: 'pointer',
-                fontWeight: '700'
+                fontWeight: '700',
+                fontSize: 'clamp(14px, 3.5vw, 18px)'
               }}
             >
-              <RotateCcw />
+              <RotateCcw size={20} />
             </button>
           </div>
         </div>

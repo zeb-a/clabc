@@ -42,7 +42,7 @@ export default function EggRoad({ classData, onBack }) {
     try {
       const style = document.createElement('style');
       style.id = 'eggroad-mobile-styles';
-      style.innerHTML = `@media (max-width:768px){ .eggroad-root { padding: 12px !important; } .eggroad-root .header { padding: 12px !important; } .eggroad-root .avatarGroup { width: 95% !important; } .eggroad-root .topFiveContainer { gap: 8px; overflow-x: auto; padding: 10px; } }`;
+      style.innerHTML = `@media (max-width:768px){ .eggroad-root { padding-left: 12px !important; padding-right: 12px !important; padding-bottom: 12px !important; } .eggroad-root .header { padding: 12px !important; } .eggroad-root .avatarGroup { width: 95% !important; } .eggroad-root .topFiveContainer { gap: 8px; overflow-x: auto; padding: 10px; } }`;
       document.head.appendChild(style);
       return () => { const el = document.getElementById('eggroad-mobile-styles'); if (el) el.remove(); };
     } catch (e) {
