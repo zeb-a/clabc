@@ -1095,7 +1095,7 @@ export default function ClassDashboard({
           ...styles.content,
           marginLeft: sidebarVisible ? (isMobile ? '72px' : '210px') : '0',
           transition: 'margin-left 0.3s ease',
-          paddingTop: (viewMode === 'messages' || viewMode === 'codes' || viewMode === 'settings' || viewMode === 'assignments' || viewMode === 'timer' || viewMode === 'reports') ? 0 : (isMobile ? '60px' : '80px'),
+          paddingTop: (viewMode === 'messages' || viewMode === 'codes' || viewMode === 'settings' || viewMode === 'assignments' || viewMode === 'timer' || viewMode === 'reports') ? 0 : `calc(${isMobile ? '60px' : '80px'} + var(--safe-top, 0px))`,
           overflowX: 'hidden',
           maxWidth: '100%',
           boxSizing: 'border-box'
