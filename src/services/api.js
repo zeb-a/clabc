@@ -186,7 +186,7 @@ async getStudentByParentCode(code) {
     if (auth.token) {
       localStorage.setItem('classABC_pb_token', auth.token);
     }
-    return { user: { email: auth.record.email, name: auth.record.name, id: auth.record.id }, token: auth.token };
+    return { user: { email: auth.record.email, name: auth.record.name, id: auth.record.id, title: auth.record.title }, token: auth.token };
   },
 
   async forgotPassword(email) {

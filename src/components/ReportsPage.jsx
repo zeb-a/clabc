@@ -345,7 +345,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
 
     return (
         <div className="safe-area-top" style={{ ...styles.container, padding: isMobile ? '20px' : '40px' }}>
-            <div style={{
+            <div className="safe-area-top" style={{
                 ...styles.header,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -354,9 +354,9 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                 position: 'relative',
                 paddingBottom: isMobile ? '10px' : '20px',
             }}>
-                {/* Header Left: Title (hidden for parent view) */}
+                {/* Header Left: Title (hidden for parent view and on mobile) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {!isParentView && (
+                    {!isParentView && !isMobile && (
                         <h1 style={{ ...styles.mainTitle, fontSize: isMobile ? '18px' : '24px', margin: 0 }}>
                             {selectedStudentId && !isParentView
                                 ? `${activeClass?.students?.find(s => s.id === selectedStudentId)?.name || ''} - ${t.mainTitle(isParentView, activeClass?.name)}`
@@ -365,9 +365,9 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                     )}
                 </div>
                 {/* Header Right: Select Menus and X Button */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, position: 'relative', width: isMobile ? '100%' : 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, position: 'relative', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? 'calc(100% - 40px)' : 'auto' }}>
                     {/* Language Select */}
-                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none' }}>
+                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none', minWidth: isMobile ? 0 : 'auto' }}>
                         <select
                             value={language}
                             onChange={e => setLanguage(e.target.value)}
@@ -381,7 +381,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                 background: '#f5f5f7',
                                 color: '#333',
                                 marginRight: isMobile ? 0 : 4,
-                                zIndex: isMobile ? 10 : undefined,
+                                textAlign: 'left',
                             }}
                             aria-label="Select language"
                         >
@@ -390,7 +390,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                         </select>
                     </div>
                     {/* Period Select (week as default) */}
-                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none' }}>
+                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none', minWidth: isMobile ? 0 : 'auto' }}>
                         <select
                             value={timePeriod || 'week'}
                             onChange={e => setTimePeriod(e.target.value)}
@@ -404,7 +404,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                 background: '#f5f5f7',
                                 color: '#333',
                                 marginRight: isMobile ? 0 : 4,
-                                zIndex: isMobile ? 10 : undefined,
+                                textAlign: 'left',
                             }}
                             aria-label="Select period"
                         >
@@ -415,7 +415,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                     </div>
                     {/* Student Select (if not parent and >1 student) */}
                     {!studentId && activeClass && activeClass.students && activeClass.students.length > 1 && (
-                        <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none' }}>
+                        <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none', minWidth: isMobile ? 0 : 'auto' }}>
                             <select
                                 value={selectedStudentId}
                                 onChange={e => setSelectedStudentId(e.target.value)}
@@ -428,9 +428,9 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                     fontSize: isMobile ? '13px' : '14px',
                                     background: '#fff',
                                     color: '#333',
-                                    minWidth: '100px',
+                                    minWidth: isMobile ? 0 : '100px',
                                     marginRight: isMobile ? 0 : 4,
-                                    zIndex: isMobile ? 10 : undefined,
+                                    textAlign: 'left',
                                 }}
                                 aria-label="Select student"
                             >
@@ -492,9 +492,9 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                             <div style={styles.cardTop}>
                                 <div style={styles.studentMeta}>
                                     <div style={styles.avatarCircle}>
-                                        {student.avatar || student.character ? (
+                                        {student.avatar && student.avatar.trim() !== '' ? (
                                             <img
-                                                src={student.avatar || boringAvatar(student.gender || 'boy', student.id)}
+                                                src={student.avatar}
                                                 alt={student.name}
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                 onError={(e) => {
@@ -503,8 +503,17 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                                     e.target.parentNode.innerText = student.name.charAt(0);
                                                 }}
                                             />
+                                        ) : student.character ? (
+                                            <img
+                                                src={boringAvatar(student.gender || 'boy', student.id)}
+                                                alt={student.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.parentNode.innerText = student.name.charAt(0);
+                                                }}
+                                            />
                                         ) : (
-                                            /* This is where your charAt(0) lives now! */
                                             <span>{student.name.charAt(0).toUpperCase()}</span>
                                         )}
                                     </div>

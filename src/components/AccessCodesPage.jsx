@@ -31,6 +31,9 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
             padding: 0 8px 0 8px;
             min-height: 40px;
           }
+          .codes-header-title.hidden {
+            opacity: 0;
+          }
         }
         .codes-header-title {
           position: absolute;
@@ -42,6 +45,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           font-weight: 800;
           color: #222;
           margin: 0;
+          transition: opacity 0.2s ease;
         }
         .codes-header-inner {
           position: relative;
@@ -217,11 +221,11 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
       `}</style>
       <div className="codes-header">
         <div className="codes-header-inner">
-          <div style={{ minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 30 }}>
+          <div style={{ minWidth: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {!searchOpen ? (
               <button
                 aria-label="Search students"
-                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 onClick={() => setSearchOpen(true)}
               >
                 <Search size={22} />
@@ -236,12 +240,13 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
                 onBlur={() => { if (!searchValue) setSearchOpen(false); }}
                 style={{
                   fontSize: '1rem',
-                  padding: '4px 8px',
-                  borderRadius: '7px',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
                   border: '1px solid #E2E8F0',
                   outline: 'none',
-                  width: 140,
-                  transition: 'width 0.2s',
+                  width: '100%',
+                  maxWidth: '200px',
+                  transition: 'all 0.2s',
                   color: '#222',
                   background: '#F8FAFC',
                   marginLeft: 0
@@ -249,7 +254,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
               />
             )}
           </div>
-          <h2 className="codes-header-title"> Access Codes</h2>
+          <h2 className={`codes-header-title ${searchOpen ? 'hidden' : ''}`}>Access Codes</h2>
           <div className="codes-header-actions">
             <InlineHelpButton pageId="access-codes" />
             <button 
