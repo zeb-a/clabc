@@ -900,6 +900,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     )}
                   </motion.button>
                 </div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => { setError(''); setModalMode('role'); }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', marginTop: '12px', ...(isDark ? { color: '#a1a1aa' } : {}) }}
+                >{t('nav.back')}</motion.p>
               </form>
             )}
 
@@ -1209,6 +1218,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     )}
                   </motion.button>
                 </div>
+
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => { setError(''); setModalMode('role'); }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', marginTop: '12px', ...(isDark ? { color: '#a1a1aa' } : {}) }}
+                >{t('nav.back')}</motion.p>
               </form>
             )}
 
