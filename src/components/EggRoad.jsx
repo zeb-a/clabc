@@ -51,7 +51,7 @@ export default function EggRoad({ classData, onBack }) {
   }, []);
 
   return (
-    <div className="eggroad-root" style={{ ...styles.container, background: currentLevel.color }}>
+    <div className="eggroad-root safe-area-top" style={{ ...styles.container, background: currentLevel.color, paddingTop: 'calc(var(--safe-top, 0px))' }}>
       
       {/* HEADER */}
       <div style={{

@@ -26,7 +26,7 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
   };
 
   return (
-    <div className="inbox-page" style={pageStyles.container}>
+    <div className="inbox-page safe-area-top" style={{ ...pageStyles.container, paddingTop: 'calc(12px + var(--safe-top, 0px))' }}>
       <style>{`
         .inbox-page .sidebar { width: 160px !important; }
         .inbox-page .workHeader { padding: 12px !important; }

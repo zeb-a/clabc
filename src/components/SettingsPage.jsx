@@ -299,7 +299,7 @@ const handleBackClick = () => {
           document.head.appendChild(style);
         }
   return (
-    <div className="settings-page-root" style={styles.pageContainer}>
+    <div className="settings-page-root safe-area-top" style={{ ...styles.pageContainer, paddingTop: 'calc(var(--safe-top, 0px))' }}>
       {/* Top Navigation Bar */}
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>

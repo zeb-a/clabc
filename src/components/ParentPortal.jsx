@@ -27,7 +27,7 @@ export default function ParentPortal({ onBack, initialStudentData }) {
 
   if (studentData) {
     return (
-      <div style={{ background: '#F8FAFC', minHeight: '100vh', padding: '20px' }}>
+      <div className="safe-area-top" style={{ background: '#F8FAFC', minHeight: '100vh', padding: 'calc(20px + var(--safe-top, 0px)) 20px 20px' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div>

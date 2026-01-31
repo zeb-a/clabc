@@ -303,7 +303,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       <style>{internalCSS}</style>
 
       {/* --- NAV --- */}
-      <nav style={{ ...styles.nav }}>
+      <nav className="safe-area-top" style={{ ...styles.nav, paddingTop: 'calc(var(--safe-top, 0px) + 16px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

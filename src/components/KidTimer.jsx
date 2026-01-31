@@ -88,7 +88,7 @@ const KidTimer = ({ onComplete, onClose }) => {
 
   // --- RENDER ---
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+    <div className="safe-area-top" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', paddingTop: 'calc(var(--safe-top, 0px))' }}>
       <button
       onClick={onClose}
       style={{

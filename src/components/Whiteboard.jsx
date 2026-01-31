@@ -304,7 +304,7 @@ export default function Whiteboard({ onClose }) {
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
+      <div className="safe-area-top" style={{ ...styles.header, paddingTop: 'calc(16px + var(--safe-top, 0px))' }}>
         <div style={styles.logo}>
           <Layers size={24} color="#6366f1" />
           <span style={styles.title}>Whiteboard</span>

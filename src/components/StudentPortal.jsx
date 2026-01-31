@@ -327,7 +327,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
       )}
 
       {/* --- NAVBAR --- */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
+      <div className="safe-area-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'calc(20px + var(--safe-top, 0px)) 40px', paddingTop: 'calc(20px + var(--safe-top, 0px))', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div>
             <h2 style={{ margin: 0, fontWeight: 900, fontSize: '24px' }}>{currentStudent?.name || session.studentName}</h2>

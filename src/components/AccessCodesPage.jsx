@@ -11,7 +11,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
     ? activeClass.students.filter(s => s.name.toLowerCase().includes(searchValue.trim().toLowerCase()))
     : activeClass.students;
   return (
-    <div className="accesscodes-page" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh', padding: 0, overflowY: 'auto' }}>
+    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh', paddingTop: 'calc(var(--safe-top, 0px))', overflowY: 'auto' }}>
       <style>{`
         .codes-header {
           display: flex;
