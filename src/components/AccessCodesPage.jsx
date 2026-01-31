@@ -11,14 +11,14 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
     ? activeClass.students.filter(s => s.name.toLowerCase().includes(searchValue.trim().toLowerCase()))
     : activeClass.students;
   return (
-    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh', paddingTop: 'calc(var(--safe-top, 0px))', overflowY: 'auto' }}>
+    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh', overflowY: 'auto' }}>
       <style>{`
         .codes-header {
           display: flex;
           flex-direction: row;
           align-items: center;
           justify-content: space-between;
-          padding: 0 24px 0 24px;
+          padding: 10px 24px 10px 24px;
           min-height: 44px;
           background: #fff;
           border-bottom: 1px solid #E2E8F0;
@@ -249,7 +249,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
               />
             )}
           </div>
-          <h2 className="codes-header-title"> Login Access Codes</h2>
+          <h2 className="codes-header-title"> Access Codes</h2>
           <div className="codes-header-actions">
             <InlineHelpButton pageId="access-codes" />
             <button 

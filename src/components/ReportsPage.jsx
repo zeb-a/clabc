@@ -344,7 +344,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
     const t = translations[language];
 
     return (
-        <div className="safe-area-top" style={{ ...styles.container, padding: isMobile ? 'calc(20px + var(--safe-top, 0px))' : 'calc(40px + var(--safe-top, 0px))' }}>
+        <div className="safe-area-top" style={{ ...styles.container, padding: isMobile ? '20px' : '40px' }}>
             <div style={{
                 ...styles.header,
                 flexDirection: 'row',

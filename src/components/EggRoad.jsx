@@ -152,7 +152,7 @@ export default function EggRoad({ classData, onBack }) {
 
 const styles = {
   container: { position: 'fixed', inset: 0, zIndex: 9999, transition: 'background 1s ease', overflow: 'hidden', fontFamily: 'system-ui' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', background: 'rgba(0,0,0,0.1)' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.1)' },
   backBtn: { background: 'white', border: 'none', padding: '8px', width: '40px', height: '40px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' },
   classStatus: { textAlign: 'center' },
   levelBadge: { color: 'white', fontSize: '24px', fontWeight: '900', textShadow: '0 2px 4px rgba(0,0,0,0.3)' },

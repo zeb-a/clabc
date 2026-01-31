@@ -223,7 +223,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
           </div>
         </div>
       )}
-      <header className="safe-area-top" style={{ ...styles.header, paddingTop: 'calc(16px + var(--safe-top, 0px))' }}>
+      <header className="safe-area-top" style={{ ...styles.header }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
           <select
             value={assignMenu}
@@ -828,7 +828,6 @@ const styles = {
     paddingBottom: window.innerWidth < 768 ? '0px' : '40px'
   },
   header: {
-    padding: '0 16px',
     background: '#fff',
     borderBottom: '1px solid #E2E8F0',
     display: 'flex',

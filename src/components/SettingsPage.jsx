@@ -299,7 +299,7 @@ const handleBackClick = () => {
           document.head.appendChild(style);
         }
   return (
-    <div className="settings-page-root safe-area-top" style={{ ...styles.pageContainer, paddingTop: 'calc(var(--safe-top, 0px))' }}>
+    <div className="settings-page-root safe-area-top" style={{ ...styles.pageContainer }}>
       {/* Top Navigation Bar */}
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -513,7 +513,7 @@ const handleBackClick = () => {
 
 const styles = {
   pageContainer: { height: '100vh', display: 'flex', flexDirection: 'column',overflowY: 'auto', background: '#F8FAFC', position: 'relative' },
-  header: { padding: '0 30px', background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  header: { background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   headerActions: {
     display: 'flex',
     gap: 8,

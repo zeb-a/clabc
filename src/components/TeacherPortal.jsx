@@ -303,7 +303,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       <style>{internalCSS}</style>
 
       {/* --- NAV --- */}
-      <nav className="safe-area-top" style={{ ...styles.nav, paddingTop: 'calc(var(--safe-top, 0px) + 16px)' }}>
+      <nav className="safe-area-top" style={{ ...styles.nav }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -330,7 +330,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         </div>
       </nav>
 
-      <main style={{ ...styles.main, paddingTop: `calc(${isMobile ? '60px' : '80px'} + var(--safe-top, 0px))` }}>
+      <main style={{ ...styles.main, paddingTop: isMobile ? '60px' : '80px' }}>
         <div style={{ ...styles.header }}>
           <h2 style={{ margin: 0, fontSize: '18px' }}>My Classes</h2>
         </div>
@@ -552,7 +552,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
 const styles = {
   container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box' },
-  nav: { padding: '8px 16px', display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
+  nav: { display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   avatarHint: { display: 'none' },

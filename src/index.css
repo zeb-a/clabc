@@ -27,15 +27,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Safe area utility classes for pages that need them (excluding LandingPage) */
-.safe-area-top {
-  padding-top: calc(10px + var(--safe-top));
-}
-
-.safe-area-bottom {
-  padding-bottom: calc(10px + var(--safe-bottom));
-}
-
 /* Twemoji image styling */
 img.emoji {
   height:1em;
@@ -48,6 +39,20 @@ img.emoji {
 .layout {
   display: flex;
   height: 100vh;
+}
+
+/* Global header and nav padding - 10px top and bottom */
+header, nav {
+  padding: 15px 15px;
+}
+
+/* Safe area utility classes - ONLY for APK/iOS app, NOT for web */
+.safe-area-top {
+  padding-top: calc(10px + var(--safe-top));
+}
+
+.safe-area-bottom {
+  padding-bottom: calc(10px + var(--safe-bottom));
 }
 
 /* Utilities */

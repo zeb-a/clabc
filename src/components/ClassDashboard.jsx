@@ -780,7 +780,6 @@ export default function ClassDashboard({
         {/* --- SIDEBAR --- */}
         <nav
           ref={sidebarRef}
-          className="safe-area-top"
           style={(() => {
             if (isMobile) {
               // On mobile: render a narrow left aside with tighter spacing so bottom icons remain visible
@@ -796,7 +795,6 @@ export default function ClassDashboard({
                 justifyContent: 'flex-start',
                 alignItems: 'center',
                 gap: '6px',
-                paddingTop: 'calc(6px + var(--safe-top, 0px))',
                 background: '#EEF2FF',
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.25s ease',
@@ -823,7 +821,6 @@ export default function ClassDashboard({
                 transition: 'transform 0.3s ease',
                 boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
                 outline: '3px solid rgba(99,102,241,0.08)',
-                paddingTop: 'var(--safe-top, 0px)',
                 overflowY: 'auto',
                 boxSizing: 'border-box',
                 marginTop: '7px'
@@ -1205,12 +1202,10 @@ export default function ClassDashboard({
 
                 <>
                   <header
-                    className="safe-area-top"
                     style={{
                       ...styles.header,
                       // Use full width of the `main` container; `main` already offsets for the sidebar.
                       width: '100%',
-                      padding: isMobile ? 'calc(6px + var(--safe-top, 0px)) 12px' : `calc(${styles.header.padding} + var(--safe-top, 0px))`,
                       marginLeft: 0,
                       paddingRight: isMobile ? '12px' : '20px',
                       boxSizing: 'border-box',
@@ -1997,7 +1992,6 @@ const styles = {
   // REPLACE THESE KEYS IN YOUR styles OBJECT:
   // SURGICAL STYLE UPDATES
   header: {
-    padding: '5px 20px',
     background: 'rgba(255, 255, 255, 0.8)',
     backdropFilter: 'blur(20px)',
     display: 'flex',

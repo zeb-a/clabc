@@ -241,7 +241,7 @@ const styles = {
   modalCard: { background: '#FFFFFF', width: '90%', maxWidth: '650px', borderRadius: '40px', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '85vh', boxShadow: '0 30px 60px rgba(0,0,0,0.3)', '@media (max-width: 640px)': { maxHeight: '90vh', width: '95%' } },
   modalAnimateIn: 'modal-animate-center',
   modalAnimateOut: 'modal-exit-center',
-  header: { padding: '18px 24px', position: 'relative', borderBottom: '1px solid #F0F0F0', '@media (max-width: 640px)': { padding: '12px 16px' } },
+  header: { position: 'relative', borderBottom: '1px solid #F0F0F0', '@media (max-width: 640px)': { padding: '12px 16px' } },
   closeBtn: { position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#999', zIndex: 12000, padding: 8, borderRadius: 8, width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', '@media (max-width: 640px)': { width: 36, height: 36 } },
   studentInfo: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   avatarWrapper: { position: 'relative', marginBottom: '10px', '@media (max-width: 640px)': { marginBottom: '6px' } },
