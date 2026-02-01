@@ -35,8 +35,8 @@ button::after, .btn::after, [class*="card"]::after, nav::after,
     rgba(255, 215, 0, 0.6) 20%,
     transparent 60%
   );
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -72,7 +72,7 @@ button:hover, .btn:hover, [class*="card"]:hover, nav:hover,
 [role="button"]:hover, select:hover, option:hover,
 [class*="menu"]:hover {
   transform: translateY(-4px) scale(1.02);
-  box-shadow: 
+  box-shadow:
     0 20px 40px -10px rgba(0, 0, 0, 0.15),
     0 0 0 1px rgba(255, 215, 0, 0.1),
     0 0 20px rgba(255, 215, 0, 0.15);
@@ -84,7 +84,7 @@ button:active, .btn:active, [class*="card"]:active, nav:active,
 [role="button"]:active, select:active, option:active,
 [class*="menu"]:active {
   transform: translateY(-2px) scale(0.98);
-  box-shadow: 
+  box-shadow:
     0 10px 20px -5px rgba(0, 0, 0, 0.1),
     0 0 0 2px rgba(255, 215, 0, 0.2),
     0 0 15px rgba(255, 215, 0, 0.2);
@@ -123,7 +123,24 @@ button > *, .btn > *, [class*="card"] > *, nav > *,
   z-index: 2;
 }
 
-/* Smooth animation for the spotlight tracking */
+/* FIX: Ensure dropdown menus have proper z-index to appear above other elements */
+select, [class*="menu"] {
+  z-index: 100;
+}
+
+/* FIX: Ensure dropdown options and menu children appear above everything */
+option, [class*="menu"] > *,
+[class*="menu"] * > * {
+  z-index: 9999 !important;
+}
+
+/* FIX: For absolute positioned dropdowns/popovers */
+[class*="menu"][style*="position: absolute"],
+[class*="menu"][style*="position: fixed"] {
+  z-index: 100000 !important;
+}
+
+/* Smooth animation for spotlight tracking */
 @keyframes spotlightPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
