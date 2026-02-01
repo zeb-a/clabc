@@ -71,6 +71,32 @@ function App() {
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
   const [view, setView] = useState('portal'); // 'portal' | 'dashboard' | 'egg' | 'settings' | 'setup'
+  const [viewHistory, setViewHistory] = useState(['portal']);
+
+  // Navigate with history tracking for swipe-back
+  const navigate = (newView) => {
+    setViewHistory(prev => [...prev, newView]);
+    setView(newView);
+  };
+
+  // Go back in history (for swipe-back gesture)
+  const goBack = () => {
+    if (viewHistory.length > 1) {
+      const newHistory = viewHistory.slice(0, -1);
+      setViewHistory(newHistory);
+      setView(newHistory[newHistory.length - 1]);
+    }
+  };
+
+  // Listen for browser back events (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      goBack();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [viewHistory]);
 
   // 1. Add state to track if we are in the assignment studio
   const [isAssignmentStudioOpen, setIsAssignmentStudioOpen] = useState(false);
@@ -228,6 +254,7 @@ function App() {
     setClasses([]);
     setActiveClassId(null);
     setView('portal');
+    setViewHistory(['portal']);
   };
 
   const onAddClass = (newClass) => {
@@ -247,7 +274,7 @@ function App() {
 
   const onSelectClass = (classId) => {
     setActiveClassId(classId);
-    setView('dashboard');
+    navigate('dashboard');
   };
 
   const updateClasses = (updater) => {
@@ -472,9 +499,9 @@ function App() {
           user={user}
           activeClass={activeClass}
           behaviors={behaviors}
-          onBack={() => { setActiveClassId(null); setView('portal'); }}
-          onOpenEggRoad={() => setView('egg')}
-          onOpenSettings={() => setView('settings')}
+          onBack={() => { setActiveClassId(null); navigate('portal'); }}
+          onOpenEggRoad={() => navigate('egg')}
+          onOpenSettings={() => navigate('settings')}
           updateClasses={updateClasses}
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onOpenAssignments={() => setIsAssignmentStudioOpen(true)}
@@ -488,7 +515,7 @@ function App() {
       <>
         <EggRoad
           classData={activeClass}
-          onBack={() => setView('dashboard')}
+          onBack={() => navigate('dashboard')}
           onResetProgress={() => {
             // Reset all students' points to 0
             const updated = (prev) => prev.map(c =>
@@ -509,7 +536,7 @@ function App() {
         <SettingsPage
           activeClass={activeClass}
           behaviors={behaviors}
-          onBack={() => setView('dashboard')}
+          onBack={() => navigate('dashboard')}
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onUpdateStudents={(nextStudents) => updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, students: nextStudents } : c))}
         />
@@ -522,7 +549,7 @@ function App() {
       <SetupWizard onComplete={(newStudents, className) => {
         const newClass = { id: Date.now(), name: className || 'New Class', students: newStudents };
         onAddClass(newClass);
-        setView('portal');
+        navigate('portal');
       }} />
     );
   }
