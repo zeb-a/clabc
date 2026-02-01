@@ -99,12 +99,11 @@ function applyDarkModeStyles(isDark) {
         background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%) !important;
         color: white !important;
         border-color: #FFA500 !important;
-        transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
       }
 
       [data-point-animation-backdrop="true"] {
         background: rgba(0,0,0,0.5) !important;
-        transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: opacity 0.8s cubic-bezier(0.8, 0, 0.2, 1) !important;
       }
 
       /* All children of PointAnimation preserve original colors */

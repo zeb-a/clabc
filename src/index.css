@@ -37,6 +37,8 @@ body {
   /* Enable swipe back gesture on iOS */
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  /* Allow iOS swipe-back gesture by setting touch-action */
+  touch-action: pan-y pan-x;
 }
 
 /* Twemoji image styling */
@@ -204,6 +206,8 @@ html, body {
   /* Enable swipe back gesture on iOS */
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
+  /* Allow iOS swipe-back gesture by setting touch-action */
+  touch-action: pan-y pan-x;
 }
 
 /* Responsive modal widths */
