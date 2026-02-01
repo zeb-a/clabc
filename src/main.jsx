@@ -4,12 +4,16 @@ import './index.css'
 import './glassmorphism.css'
 import App from './App.jsx'
 import { LanguageProvider } from './i18n'
+import ThemeProvider, { useTheme } from './ThemeContext'
 import './global-polyfill';
 
 // Apply dark mode immediately before React renders
 if (typeof window !== 'undefined') {
   const applyTheme = () => {
-    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Check user preference first, then fall back to system preference
+    const userPreference = localStorage.getItem('theme-preference');
+    const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = userPreference ? userPreference === 'dark' : systemPrefersDark;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
 
     // Force override inline styles with dark mode
@@ -149,12 +153,14 @@ function GlobalKeyHandler({ children }) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LanguageProvider>
-      <GlobalGlassEffect>
-        <GlobalKeyHandler>
-          <App />
-        </GlobalKeyHandler>
-      </GlobalGlassEffect>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <GlobalGlassEffect>
+          <GlobalKeyHandler>
+            <App />
+          </GlobalKeyHandler>
+        </GlobalGlassEffect>
+      </LanguageProvider>
+    </ThemeProvider>
   </StrictMode>,
 )

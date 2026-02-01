@@ -105,5 +105,72 @@
         "type": "json"
       }
     ]
+  },
+  {
+    "id": "submissions_col",
+    "name": "submissions",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "class_id_field",
+        "name": "class_id",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "assignment_id_field",
+        "name": "assignment_id",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "assignment_title_field",
+        "name": "assignment_title",
+        "type": "text"
+      },
+      {
+        "system": false,
+        "id": "student_id_field",
+        "name": "student_id",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "student_name_field",
+        "name": "student_name",
+        "type": "text"
+      },
+      {
+        "system": false,
+        "id": "answers_field",
+        "name": "answers",
+        "type": "json"
+      },
+      {
+        "system": false,
+        "id": "status_field",
+        "name": "status",
+        "type": "text",
+        "default": "submitted"
+      },
+      {
+        "system": false,
+        "id": "grade_data_field",
+        "name": "grade_data",
+        "type": "json"
+      },
+      {
+        "system": false,
+        "id": "grade_field",
+        "name": "grade",
+        "type": "number",
+        "default": 0
+      }
+    ]
   }
 ]

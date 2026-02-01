@@ -185,11 +185,31 @@ option, [class*="menu"] > *,
   50% { opacity: 0.8; }
 }
 
-/* Dark mode body background transition */
+/* Dark mode body background transition - SMOOTHER */
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.8s cubic-bezier(0.2, 0, 0.2, 1),
+              color 0.6s cubic-bezier(0.2, 0, 0.2, 1);
   background-color: var(--bg-beige);
   color: var(--text-dark);
+}
+
+/* Add overlay for smooth theme transition */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0s;
+  z-index: 9999;
+}
+
+/* Animate overlay during theme change */
+[data-theme="dark"] body::before,
+[data-theme="light"] body::before {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Dark mode scrollbar */
@@ -220,7 +240,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Smooth transitions for all theme changes */
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Exclude transitions for performance on specific elements */

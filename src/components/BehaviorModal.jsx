@@ -105,7 +105,7 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
             <X size={24} />
           </button>
           <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ position: 'absolute', left: 1, top: 1, textTransform: 'uppercase', fontWeight: 900, color: '#ba3d3dff', fontSize: 13, letterSpacing: 0.6, '@media (max-width: 640px)': { fontSize: 11, letterSpacing: 0.4 } }}>Give Points</div>
+            <div style={{ position: 'fixed', left: 17, top: 17, textTransform: 'uppercase', fontWeight: 900, color: '#ba3d3dff', fontSize: 13, letterSpacing: 0.6, '@media (max-width: 640px)': { fontSize: 11, letterSpacing: 0.4 } }}>Give Points</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               {!hideName && <div style={styles.avatarWrapper}>
