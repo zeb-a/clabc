@@ -303,6 +303,7 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
         <>
           {/* Animated background with particles */}
           <motion.div
+            data-point-animation-backdrop="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
@@ -340,6 +341,7 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
           </AnimatePresence>
 
           <motion.div
+            data-point-animation="true"
             initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-40%', rotate: -10 }}
             animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%', rotate: 0 }}
             exit={{ opacity: 0, scale: 0.5, x: '-50%', y: '-40%', rotate: 10 }}

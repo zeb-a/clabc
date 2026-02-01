@@ -1,7 +1,45 @@
-/* Professional Glassmorphism Effect - Matches App Design */
+/* Professional Glassmorphism Effect with Dark Mode Support */
 :root {
   --mouse-x: 50%;
   --mouse-y: 50%;
+
+  /* Light mode colors (default) */
+  --bg-beige: #F6F9F4;
+  --card-bg: #FFFFFF;
+  --bg-gray: #F1F1F1;
+  --bg-hover: #E5E7EB;
+  --text-dark: #111827;
+  --text-light: #FFFFFF;
+  --muted: #6B7280;
+  --border-color: #E2E8F0;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --spotlight-inner: rgba(255, 255, 255, 0.5);
+  --spotlight-outer: rgba(255, 255, 255, 0.1);
+  --ring-color: #FFD700;
+  --ring-shadow: rgba(255, 215, 0, 0.15);
+  --hover-shadow-1: rgba(0, 0, 0, 0.15);
+  --hover-shadow-2: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode colors - Global theme for entire project */
+[data-theme="dark"] {
+  --bg-beige: #1a1a1a;
+  --card-bg: #252525;
+  --bg-gray: #2e2e2e;
+  --bg-hover: #383838;
+  --text-dark: #e5e5e5;
+  --text-light: #f0f0f0;
+  --muted: #b0b0b0;
+  --border-color: #4a4a4a;
+  --glass-bg: rgba(37, 37, 37, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --spotlight-inner: rgba(255, 255, 255, 0.18);
+  --spotlight-outer: rgba(255, 255, 255, 0.08);
+  --ring-color: #4CAF50;
+  --ring-shadow: rgba(76, 175, 80, 0.35);
+  --hover-shadow-1: rgba(0, 0, 0, 0.35);
+  --hover-shadow-2: rgba(0, 0, 0, 0.25);
 }
 
 /* Base glassmorphism styles */
@@ -11,13 +49,14 @@ button, .btn, [class*="card"], nav,
   position: relative;
   overflow: visible;
   isolation: isolate;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--glass-border);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.25s ease;
+              border-color 0.25s ease,
+              background 0.25s ease;
 }
 
 /* THE GLOWING RING BORDER - Apple-style edge light */
@@ -31,8 +70,8 @@ button::after, .btn::after, [class*="card"]::after, nav::after,
   padding: 2px;
   background: radial-gradient(
     200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    var(--primary-yellow, #FFD700) 0%,
-    rgba(255, 215, 0, 0.6) 20%,
+    var(--ring-color) 0%,
+    var(--ring-shadow) 20%,
     transparent 60%
   );
   -webkit-mask:
@@ -57,8 +96,8 @@ button::before, .btn::before, [class*="card"]::before, nav::before,
   border-radius: inherit;
   background: radial-gradient(
     300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.1) 30%,
+    var(--spotlight-inner) 0%,
+    var(--spotlight-outer) 30%,
     transparent 70%
   );
   opacity: 0;
@@ -73,10 +112,10 @@ button:hover, .btn:hover, [class*="card"]:hover, nav:hover,
 [class*="menu"]:hover {
   transform: translateY(-4px) scale(1.02);
   box-shadow:
-    0 20px 40px -10px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 215, 0, 0.1),
-    0 0 20px rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.4);
+    0 20px 40px -10px var(--hover-shadow-1),
+    0 0 0 1px var(--ring-shadow),
+    0 0 20px var(--ring-shadow);
+  border-color: var(--ring-color);
 }
 
 /* ACTIVE/CLICK STATE - Press down effect */
@@ -85,9 +124,9 @@ button:active, .btn:active, [class*="card"]:active, nav:active,
 [class*="menu"]:active {
   transform: translateY(-2px) scale(0.98);
   box-shadow:
-    0 10px 20px -5px rgba(0, 0, 0, 0.1),
-    0 0 0 2px rgba(255, 215, 0, 0.2),
-    0 0 15px rgba(255, 215, 0, 0.2);
+    0 10px 20px -5px var(--hover-shadow-2),
+    0 0 0 2px var(--ring-shadow),
+    0 0 15px var(--ring-shadow);
 }
 
 /* ACTIVATE THE RING AND SPOTLIGHT ON HOVER */
@@ -144,4 +183,85 @@ option, [class*="menu"] > *,
 @keyframes spotlightPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
+}
+
+/* Dark mode body background transition */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--bg-beige);
+  color: var(--text-dark);
+}
+
+/* Dark mode scrollbar */
+::-webkit-scrollbar-track {
+  background: var(--bg-beige);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+/* Dark mode inputs and form elements */
+input, textarea, select {
+  background-color: var(--card-bg);
+  color: var(--text-dark);
+  border-color: var(--glass-border);
+}
+
+/* Dark mode links */
+a {
+  color: var(--text-dark);
+}
+
+/* Dark mode headers and headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-dark);
+}
+
+/* Smooth transitions for all theme changes */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Exclude transitions for performance on specific elements */
+button, [role="button"], .btn {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease,
+              background 0.25s ease,
+              background-color 0.2s ease,
+              color 0.2s ease;
+}
+
+/* Dark mode overrides for hardcoded inline styles */
+[data-theme="dark"] {
+  /* Override common hardcoded backgrounds */
+  .class-card,
+  .card,
+  [style*="background: #fff"],
+  [style*="background: #FFF"],
+  [style*="background: #ffffff"],
+  [style*="background: #FFFFFF"] {
+    background: var(--card-bg) !important;
+  }
+
+  /* Override common gray backgrounds */
+  [style*="background: #f1f1f1"],
+  [style*="background: #F1F1F1"],
+  [style*="background: #E5E7EB"] {
+    background: var(--bg-gray) !important;
+  }
+
+  /* Override border colors */
+  [style*="border-color: #E2E8F0"],
+  [style*="border: 1px solid #E2E8F0"] {
+    border-color: var(--border-color) !important;
+  }
+
+  /* Override text colors */
+  [style*="color: #111827"],
+  [style*="color: #1A1A1A"],
+  [style*="color: #000"] {
+    color: var(--text-dark) !important;
+  }
 }

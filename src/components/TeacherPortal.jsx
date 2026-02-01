@@ -7,6 +7,8 @@ import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
 
+
+
 // Internal CSS for animations and layout stability
 const internalCSS = `
   @keyframes pulse-border {
@@ -180,6 +182,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
     return (
       <div style={{ marginTop: 45, height: '100%', display: 'flex', flexDirection: 'column' }}>
+       
         {showSelector ? (
           // --- AVATAR SELECTION GRID (Visual Only) ---
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -307,6 +310,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- NAV --- */}
       <nav className="safe-area-top" style={{ ...styles.nav }}>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -334,7 +338,9 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       </nav>
 
       <main style={{ ...styles.main, paddingTop: isMobile ? '100px' : '120px' }}>
+              
         <div style={{ ...styles.header }}>
+      
           <h2 style={{ margin: 0, fontSize: '18px' }}>{t('teacher_portal.my_classes')}</h2>
         </div>
 

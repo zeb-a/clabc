@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import {
   X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Pencil, Trash2, Trophy, MoreVertical, LogIn, UserPlus, HelpCircle
@@ -12,7 +12,6 @@ import StudentPortal from './StudentPortal';
 import ClassABCLogo from './ClassABCLogo';
 import './LandingPage.css';
 import useWindowSize from '../hooks/useWindowSize';
-import useDarkMode from '../hooks/useDarkMode';
 import { Moon, Sun } from 'lucide-react';
 ;
 
@@ -154,7 +153,24 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   const [modalMode, setModalMode] = useState(isCapacitorApp ? 'role' : null); // 'role', 'login', 'signup', 'student-login'
   const [portalView, setPortalView] = useState(null); // 'parent' or 'student'
   const isMobile = useWindowSize(768);
-  const [isDark, setIsDark] = useDarkMode();
+
+  // Detect dark mode from data-theme attribute
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.getAttribute('data-theme') === 'dark';
+    }
+    return false;
+  });
+
+  // Listen for data-theme changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      setIsDark(newIsDark);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Teacher Auth State
   const [email, setEmail] = useState('');
@@ -452,13 +468,9 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         <nav style={{ ...modernStyles.nav, ...(isMobile ? modernStyles.navMobile : {}), ...(isDark ? modernStyles.navDark : {}) }}>
           {isMobile ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', position: 'relative' }}>
-              <button
-                onClick={() => setIsDark(!isDark)}
-                style={{ padding: '8px', borderRadius: '8px', cursor: 'pointer', border: 'none', background: isDark ? 'rgba(255,255,255,0.15)' : '#F1F5F9', color: isDark ? '#e5e5e5' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDark ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
+              <div style={{ padding: '8px', borderRadius: '8px', background: isDark ? 'rgba(255,255,255,0.15)' : '#F1F5F9', color: isDark ? '#e5e5e5' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {isDark ? <Moon size={16} /> : <Sun size={16} />}
+              </div>
               <div style={{ ...modernStyles.logo, flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
                 <ClassABCLogo />
               </div>
@@ -568,13 +580,9 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 <ClassABCLogo />
               </div>
               <div style={modernStyles.navActions}>
-                <button
-                  onClick={() => setIsDark(!isDark)}
-                  style={{ ...modernStyles.themeToggle, ...(isDark ? modernStyles.themeToggleDark : {}) }}
-                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                >
-                  {isDark ? <Sun size={16} /> : <Moon size={16} />}
-                </button>
+                <div style={{ ...modernStyles.themeToggle, ...(isDark ? modernStyles.themeToggleDark : {}) }}>
+                  {isDark ? <Moon size={16} /> : <Sun size={16} />}
+                </div>
                 <LanguageSelector />
                 <button className="lp-nav-link" onClick={showSearchGuide} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.help')}</button>
                 <button className="lp-nav-link" onClick={() => setModalMode('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>

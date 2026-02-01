@@ -861,7 +861,7 @@ export function LanguageProvider({ children }) {
 
 	return React.createElement(
 		LanguageContext.Provider,
-		{ value: { lang, setLang } },
+		{ value: { lang: lang, setLang: setLang } },
 		children
 	);
 }
