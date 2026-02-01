@@ -1,83 +1,62 @@
 import React from 'react';
 
 const ClassABCLogo = () => {
-
-
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'clamp(18px, 1.5vw, 36px)', width: 'clamp(120px, 20vw, 420px)' }}>
-            <svg width="100%" style={{ height: 'auto' }} viewBox="0 0 360 140" preserveAspectRatio="xMinYMid meet"
-                xmlns="http://www.w3.org/2000/svg">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            <svg width="320" height="100" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg" style={{ height: 'clamp(50px, 6vw, 80px)', width: 'auto' }}>
 
-                {/* <!-- Background Circle --> */}
-                <circle cx="70" cy="70" r="60" fill="#E0F2FE" />
+                <g>
+                    <rect x="2" y="8" width="80" height="85" rx="10" fill="#EFF6FF" stroke="#3B82F6" strokeWidth="2"/>
 
-                {/* <!-- Star --> */}
-                <polygon
-                    points="70,20 82,52 116,52 88,72
-            100,104 70,84 40,104
-            52,72 24,52 58,52"
-                    fill="#FACC15"
-                    stroke="#F59E0B"
-                    strokeWidth="2" />
+                    <g transform="translate(12, 20)">
+                        <circle cx="8" cy="8" r="5" fill="#10B981"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#10B981" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
 
-                {/* <!-- Star Face --> */}
-                <circle cx="60" cy="66" r="3" fill="#1F2937" />
-                <circle cx="80" cy="66" r="3" fill="#1F2937" />
-                <path d="M62 76 Q70 82 78 76"
-                    stroke="#1F2937"
-                    strokeWidth="2"
-                    fill="none"
-                    strokeLinecap="round" />
+                    <g transform="translate(32, 20)">
+                        <circle cx="8" cy="8" r="5" fill="#F59E0B"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#F59E0B" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
 
-                {/* <!-- Clipboard --> */}
-                <rect x="26" y="86" width="28" height="32"
-                    rx="4" fill="#FFFFFF" stroke="#CBD5E1" />
-                <rect x="32" y="92" width="16" height="4" fill="#22C55E" />
-                <rect x="32" y="100" width="16" height="4" fill="#CBD5E1" />
+                    <g transform="translate(52, 20)">
+                        <circle cx="8" cy="8" r="5" fill="#8B5CF6"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#8B5CF6" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
 
-                {/* <!-- Chart --> */}
-                <rect x="86" y="86" width="36" height="32"
-                    rx="4" fill="#FFFFFF" stroke="#CBD5E1" />
-                <rect x="92" y="104" width="6" height="10" fill="#2563EB" />
-                <rect x="102" y="98" width="6" height="16" fill="#2563EB" />
-                <rect x="112" y="92" width="6" height="22" fill="#22C55E" />
+                    <g transform="translate(12, 55)">
+                        <circle cx="8" cy="8" r="5" fill="#EC4899"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#EC4899" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
 
-                {/* <!-- Checkmark --> */}
-                <path d="M88 36 L94 42 L106 30"
-                    stroke="#22C55E"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round" />
+                    <g transform="translate(32, 55)">
+                        <circle cx="8" cy="8" r="5" fill="#06B6D4"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#06B6D4" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
 
-                {/* <!-- Text --> */}
-                <text x="150" y="78"
-                    fontFamily="Cmic Sans Ms, Arial, sans-serif"
-                    fontSize="36"
-                    fontWeight="700"
-                    fill="#2563EB">
+                    <g transform="translate(52, 55)">
+                        <circle cx="8" cy="8" r="5" fill="#F97316"/>
+                        <rect x="2" y="14" width="12" height="12" rx="2" fill="#F97316" opacity="0.7"/>
+                        <rect x="3" y="27" width="10" height="2" fill="#7C3AED"/>
+                    </g>
+                </g>
+
+                <text x="95" y="40" fontFamily="comic sans ms , sans-serif" fontSize="32" fontWeight="800" fill="#5e6063ff">
                     Class
                 </text>
 
-                <text x="230" y="104"
-                    fontFamily="Chulkbuster, Arial, sans-serif"
-                    fontSize="36"
-                    fontWeight="700"
-                    fill="#F97316">
+                <text x="120" y="75" fontFamily="Arial, sans-serif" fontSize="32" fontWeight="800" fill="#3B82F6">
                     ABC
                 </text>
 
-                {/* <!-- Tagline --> */}
-                <text x="150" y="124"
-                    fontFamily="Inter, Arial, sans-serif"
-                    fontSize="14"
-                    fill="#64748B">
-                    Track · Reward · Report
+                <text x="95" y="92" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="600" fill="#64748B" letterSpacing="0.5">
+                    Smart Class Management
                 </text>
-
             </svg>
-
-
         </div>
     );
 };
