@@ -95,17 +95,27 @@ function App() {
   // Listen for browser back events (popstate) - This handles swipe-back
   useEffect(() => {
     const handlePopState = (event) => {
-      // When user swipes back, popstate fires
-      // Check if we have history to go back to
+      const state = event.state;
+
+      // Check if this is internal dashboard navigation (dashboardViewMode)
+      if (state && state.dashboardViewMode) {
+        // This is handled by ClassDashboard internally
+        // We need to trigger a re-render to let ClassDashboard see the state change
+        // Dispatch a custom event that ClassDashboard can listen to
+        window.dispatchEvent(new CustomEvent('dashboardViewModeChange', { detail: state.dashboardViewMode }));
+        return;
+      }
+
+      // Handle app-level navigation
       if (viewHistory.length > 1) {
         // Pop the current view from history
         const newHistory = viewHistory.slice(0, -1);
         const previousView = newHistory[newHistory.length - 1];
-        
+
         // Update React state
         setViewHistory(newHistory);
         setView(previousView);
-        
+
         // Replace the browser history to keep app history in sync
         window.history.replaceState({ view: previousView, appHistoryIndex: --historyRef.current }, '', `#${previousView}`);
       } else {

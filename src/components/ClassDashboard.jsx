@@ -459,7 +459,47 @@ export default function ClassDashboard({
     setBuzzerState('idle');
   };
   // --- SUBMISSIONS & MESSAGES STATE ---
-  const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard', 'messages'
+  const [viewMode, setViewMode] = useState('students'); // 'students', 'reports', 'assignments', etc.
+  const viewModeRef = useRef('students');
+
+  // Custom setViewMode that tracks history
+  const setViewModeWithHistory = (newMode) => {
+    if (newMode !== viewModeRef.current) {
+      // Push to browser history for swipe-back support
+      window.history.pushState(
+        { ...window.history.state, dashboardViewMode: newMode },
+        '',
+        window.location.hash
+      );
+      viewModeRef.current = newMode;
+      setViewMode(newMode);
+    }
+  };
+
+  // Initialize browser history with students viewMode
+  useEffect(() => {
+    if (!window.history.state || !window.history.state.dashboardViewMode) {
+      window.history.replaceState(
+        { ...window.history.state, dashboardViewMode: 'students' },
+        '',
+        window.location.hash
+      );
+    }
+  }, []);
+
+  // Listen for custom event from App.jsx when swipe-back happens on dashboard
+  useEffect(() => {
+    const handleDashboardViewModeChange = (event) => {
+      const newViewMode = event.detail;
+      // Map 'dashboard' to 'students' for consistency
+      const actualViewMode = newViewMode === 'dashboard' ? 'students' : newViewMode;
+      viewModeRef.current = actualViewMode;
+      setViewMode(actualViewMode);
+    };
+
+    window.addEventListener('dashboardViewModeChange', handleDashboardViewModeChange);
+    return () => window.removeEventListener('dashboardViewModeChange', handleDashboardViewModeChange);
+  }, []);
   const [submissions, setSubmissions] = useState([]);
   const [, setLoadingSubmissions] = useState(false);
 
@@ -836,14 +876,14 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Home}
             label={t('nav.back')}
-            onClick={() => { onBack(); setViewMode('dashboard'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { onBack(); setViewMode('students'); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
 
           <SidebarIcon
             icon={ClipboardList}
             label={t('dashboard.assignments')}
-            onClick={() => { setViewMode('assignments'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { setViewModeWithHistory('assignments'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'assignments'}
           />
 
@@ -851,7 +891,7 @@ export default function ClassDashboard({
             icon={MessageSquare}
             label={t('dashboard.inbox_grading')}
             onClick={() => {
-              setViewMode('messages');
+              setViewModeWithHistory('messages');
               fetchFreshSubmissions();
               if (isMobile) setSidebarVisible(false);
             }}
@@ -871,7 +911,7 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Dices}
             label={t('dashboard.lucky_draw')}
-            onClick={() => { setViewMode('dashboard'); setIsLuckyDrawOpen(true); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { setViewMode('students'); setIsLuckyDrawOpen(true); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="lucky-draw"
           />
@@ -889,7 +929,7 @@ export default function ClassDashboard({
             label={t('dashboard.attendance_mode')}
             onClick={() => {
               if (!isAttendanceMode) {
-                setViewMode('dashboard');
+                setViewMode('students');
                 setIsAttendanceMode(true);
               } else {
                 setIsAttendanceMode(false);
@@ -908,7 +948,7 @@ export default function ClassDashboard({
             label={t('dashboard.access_codes')}
             onClick={() => {
               ensureCodesAndOpen();
-              setViewMode('codes');
+              setViewModeWithHistory('codes');
               if (isMobile) setSidebarVisible(false);
             }}
             isActive={viewMode === 'codes'}
@@ -919,7 +959,7 @@ export default function ClassDashboard({
             icon={BarChart2}
             label={t('dashboard.reports')}
             onClick={() => {
-              setViewMode('reports');
+              setViewModeWithHistory('reports');
               updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, isViewingReports: true } : c));
               if (isMobile) setSidebarVisible(false);
             }}
@@ -929,7 +969,7 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Clock}
             label={t('dashboard.class_timer')}
-            onClick={() => { setViewMode('timer'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { setViewModeWithHistory('timer'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'timer'}
             style={styles.icon}
           />
@@ -948,7 +988,7 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Settings}
             label={t('dashboard.settings')}
-            onClick={() => { setViewMode('settings'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { setViewModeWithHistory('settings'); if (isMobile) setSidebarVisible(false); }}
             isActive={viewMode === 'settings'}
             style={styles.icon}
             dataNavbarIcon="settings"
@@ -1108,7 +1148,7 @@ export default function ClassDashboard({
                 activeClass={activeClass}
                 submissions={submissions}
                 onGradeSubmit={handleGradeSubmit} // Uses the grading logic in Dashboard
-                onBack={() => setViewMode('dashboard')} // Closes the window
+                onBack={() => setViewMode('students')} // Closes the window
               />
             </div>
           ) /* 2. ⚡ WIDER TIMER VIEW ⚡ */
@@ -1159,14 +1199,14 @@ export default function ClassDashboard({
                 <div key="reports" className="page-animate-in" style={{ height: '100%' }}>
                   <ReportsPage
                     activeClass={activeClass}
-                    onBack={() => setViewMode('dashboard')}
+                    onBack={() => setViewMode('students')}
                   />
                 </div>
               ) : viewMode === 'assignments' ? (
                 <div key="assignments" className="page-animate-in" style={{ height: '100%' }}>
                   <AssignmentsPage
                     activeClass={activeClass}
-                    onBack={() => setViewMode('dashboard')}
+                    onBack={() => setViewMode('students')}
                     onPublish={(data) => {
                       // This logic replaces the "missing" onOpenAssignments
                       updateClasses(prev => prev.map(c =>
@@ -1175,14 +1215,14 @@ export default function ClassDashboard({
                           : c
                       ));
                       // Go back after publishing
-                      setViewMode('dashboard');
+                      setViewMode('students');
                     }}
                   />
                 </div>
               ) : viewMode === 'codes' ? ( // Add this block
                 <AccessCodesPage
                   activeClass={activeClass}
-                  onBack={() => setViewMode('dashboard')}
+                  onBack={() => setViewMode('students')}
                 />
               ) : viewMode === 'settings' ? (
                 <div key="settings" className="page-animate-in" style={{ height: '100%' }}>
@@ -1190,8 +1230,8 @@ export default function ClassDashboard({
                     activeClass={activeClass}
 
                     behaviors={activeClass.behaviors || behaviors}
-                    onBack={() => setViewMode('dashboard')}
-                  onUpdateBehaviors={(newBehaviorsList) => {
+                    onBack={() => setViewMode('students')}
+                    onUpdateBehaviors={(newBehaviorsList) => {
                     // ⚡ FIX: Safely update the class with the new array of cards
                     updateClasses(prevClasses => prevClasses.map(c =>
                       c.id === activeClass.id
