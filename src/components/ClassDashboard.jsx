@@ -245,7 +245,6 @@ export default function ClassDashboard({
     window.addEventListener('behavior-import:request', handler);
     return () => window.removeEventListener('behavior-import:request', handler);
   }, [activeClass, updateClasses]);
-  const [isLuckyDrawOpen, setIsLuckyDrawOpen] = useState(false);
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editingStudentId, setEditingStudentId] = useState(null);
@@ -329,10 +328,9 @@ export default function ClassDashboard({
   const [showPoint, setShowPoint] = useState({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' });
   const [isAttendanceMode, setIsAttendanceMode] = useState(false);
   const [absentStudents, setAbsentStudents] = useState(new Set());
-  
+
   const [showCodesPage, setShowCodesPage] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showWhiteboard, setShowWhiteboard] = useState(false);
   // Toggle Function
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -433,6 +431,8 @@ export default function ClassDashboard({
     return () => document.removeEventListener('click', onAnyClick);
   }, [sidebarVisible]);
   // --- BUZZER STATE ---
+  const [isLuckyDrawOpen, setIsLuckyDrawOpen] = useState(false);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [buzzerState, setBuzzerState] = useState('idle'); // 'idle', 'counting', 'buzzing'
   const [buzzerCount, setBuzzerCount] = useState(5);
   const audioCtxRef = useRef(null);
@@ -462,6 +462,19 @@ export default function ClassDashboard({
   const [viewMode, setViewMode] = useState('students'); // 'students', 'reports', 'assignments', etc.
   const viewModeRef = useRef('students');
 
+  // Use existing state declarations from earlier in the file (isLuckyDrawOpen, showWhiteboard, buzzerState)
+  const modalRef = useRef(null);
+
+  // Special handler for buzzer since it calls a function instead of just setting state
+  const startBuzzerWithHistory = () => {
+    startBuzzerSequence();
+    window.history.pushState(
+      { ...window.history.state, dashboardModal: 'buzzer' },
+      '',
+      window.location.hash
+    );
+  };
+
   // Custom setViewMode that tracks history
   const setViewModeWithHistory = (newMode) => {
     if (newMode !== viewModeRef.current) {
@@ -476,11 +489,32 @@ export default function ClassDashboard({
     }
   };
 
+  // Track modal states in browser history for swipe-back
+  const openModalWithHistory = (modalType, setOpenFn) => {
+    setOpenFn(true);
+    window.history.pushState(
+      { ...window.history.state, dashboardModal: modalType },
+      '',
+      window.location.hash
+    );
+  };
+
+  const closeModal = () => {
+    setIsLuckyDrawOpen(false);
+    setShowWhiteboard(false);
+    setBuzzerState('idle');
+    window.history.replaceState(
+      { ...window.history.state, dashboardModal: null },
+      '',
+      window.location.hash
+    );
+  };
+
   // Initialize browser history with students viewMode
   useEffect(() => {
     if (!window.history.state || !window.history.state.dashboardViewMode) {
       window.history.replaceState(
-        { ...window.history.state, dashboardViewMode: 'students' },
+        { ...window.history.state, dashboardViewMode: 'students', dashboardModal: null },
         '',
         window.location.hash
       );
@@ -497,8 +531,16 @@ export default function ClassDashboard({
       setViewMode(actualViewMode);
     };
 
+    const handleModalClose = () => {
+      closeModal();
+    };
+
     window.addEventListener('dashboardViewModeChange', handleDashboardViewModeChange);
-    return () => window.removeEventListener('dashboardViewModeChange', handleDashboardViewModeChange);
+    window.addEventListener('modalClose', handleModalClose);
+    return () => {
+      window.removeEventListener('dashboardViewModeChange', handleDashboardViewModeChange);
+      window.removeEventListener('modalClose', handleModalClose);
+    };
   }, []);
   const [submissions, setSubmissions] = useState([]);
   const [, setLoadingSubmissions] = useState(false);
@@ -911,7 +953,7 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Dices}
             label={t('dashboard.lucky_draw')}
-            onClick={() => { setViewMode('students'); setIsLuckyDrawOpen(true); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { openModalWithHistory('luckyDraw', setIsLuckyDrawOpen); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
             dataNavbarIcon="lucky-draw"
           />
@@ -976,13 +1018,16 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Siren}
             label={t('dashboard.attention_buzzer')}
-            onClick={() => { startBuzzerSequence(); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              startBuzzerWithHistory();
+              if (isMobile) setSidebarVisible(false);
+            }}
             style={{ ...styles.icon, color: buzzerState !== 'idle' ? '#FF5252' : '#636E72' }}
           />
           <SidebarIcon
             icon={Presentation}
             label={t('dashboard.whiteboard')}
-            onClick={() => { setShowWhiteboard(true); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => { openModalWithHistory('whiteboard', setShowWhiteboard); if (isMobile) setSidebarVisible(false); }}
             style={styles.icon}
           />
           <SidebarIcon
@@ -1844,7 +1889,7 @@ export default function ClassDashboard({
         {isLuckyDrawOpen && (
           <LuckyDrawModal
             students={activeClass.students}
-            onClose={() => setIsLuckyDrawOpen(false)}
+            onClose={closeModal}
             onWinner={(winnerData, points = 1) => {
               // Ensure the points chosen in the modal are used when awarding
               if (Array.isArray(winnerData)) {
@@ -1853,7 +1898,7 @@ export default function ClassDashboard({
                 // Single winner: award the chosen points as well
                 handleGivePointsToMultiple([winnerData], points);
               }
-              setIsLuckyDrawOpen(false);
+              closeModal();
             }}
             onRequestAddStudents={() => setIsAddStudentOpen(true)}
           />
@@ -2011,7 +2056,7 @@ export default function ClassDashboard({
           </div>
         )}
         {showWhiteboard && (
-          <Whiteboard onClose={() => setShowWhiteboard(false)} />
+          <Whiteboard onClose={closeModal} />
         )}
         <PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} onComplete={() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' })} />
       </div>

@@ -97,6 +97,13 @@ function App() {
     const handlePopState = (event) => {
       const state = event.state;
 
+      // Check if this is a dashboard modal close (LuckyDraw, Whiteboard, Buzzer)
+      if (state && state.dashboardModal) {
+        // Dispatch event to close the modal
+        window.dispatchEvent(new CustomEvent('modalClose', { detail: state.dashboardModal }));
+        return;
+      }
+
       // Check if this is internal dashboard navigation (dashboardViewMode)
       if (state && state.dashboardViewMode) {
         // This is handled by ClassDashboard internally

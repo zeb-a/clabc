@@ -152,8 +152,61 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
   // For Capacitor app, default to showing role selection modal
   const [modalMode, setModalMode] = useState(isCapacitorApp ? 'role' : null); // 'role', 'login', 'signup', 'student-login'
+  const [modalHistory, setModalHistory] = useState([]); // Track navigation history for swipe-back
   const [portalView, setPortalView] = useState(null); // 'parent' or 'student'
   const isMobile = useWindowSize(768);
+
+  // Navigate with history tracking for swipe-back
+  const navigateModal = (newMode) => {
+    if (newMode !== modalMode) {
+      setModalHistory(prev => [...prev, newMode]);
+      setModalMode(newMode);
+      window.history.pushState(
+        { ...window.history.state, landingModal: newMode },
+        '',
+        window.location.hash
+      );
+    }
+  };
+
+  // Go back in modal history
+  const goBackModal = () => {
+    if (modalHistory.length > 0) {
+      const newHistory = modalHistory.slice(0, -1);
+      const previousMode = newHistory.length > 0 ? newHistory[newHistory.length - 1] : null;
+      setModalHistory(newHistory);
+      setModalMode(previousMode);
+      window.history.pushState(
+        { ...window.history.state, landingModal: previousMode },
+        '',
+        window.location.hash
+      );
+    }
+  };
+
+  // Listen for browser back events on landing page
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const state = event.state;
+
+      if (state && state.landingModal) {
+        // Handle modal navigation back
+        goBackModal();
+      } else if (modalMode) {
+        // Close modal if no modal state in history
+        setModalMode(null);
+        setModalHistory([]);
+        window.history.replaceState(
+          { ...window.history.state, landingModal: null },
+          '',
+          window.location.hash
+        );
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [modalMode, modalHistory]);
 
   // Use theme from ThemeContext
   const { isDark, switchTheme } = useTheme();
@@ -184,8 +237,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   const { t } = useTranslation();
 
   React.useEffect(() => {
-    if (openModal === 'signup') setModalMode('signup');
-    if (openModal === 'login') setModalMode('login');
+    if (openModal === 'signup') navigateModal('signup');
+    if (openModal === 'login') navigateModal('login');
   }, [openModal]);
 
   // Handle QR code auto-login from URL hash
@@ -330,7 +383,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     if (password !== confirmPassword) return setError('Passwords do not match. Please check again New Teacher.');
     try {
       await api.register({ email, password, name, title });
-      setModalMode('verify-email-info');
+      navigateModal('verify-email-info');
       setError('');
     } catch (err) { setError(err.message); }
   };
@@ -488,7 +541,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <button
-                        onClick={() => { setModalMode('role'); setShowMobileMenu(false); }}
+                        onClick={() => { navigateModal('role'); setShowMobileMenu(false); }}
                         style={{
                           width: '100%',
                           padding: '12px 14px',
@@ -512,7 +565,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         <span>{t('auth.login')}</span>
                       </button>
                       <button
-                        onClick={() => { setModalMode('signup'); setShowMobileMenu(false); }}
+                        onClick={() => { navigateModal('signup'); setShowMobileMenu(false); }}
                         style={{
                           width: '100%',
                           padding: '12px 14px',
@@ -579,8 +632,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 </button>
                 <LanguageSelector />
                 <button className="lp-nav-link" onClick={showSearchGuide} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.help')}</button>
-                <button className="lp-nav-link" onClick={() => setModalMode('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>
-                <button className="lp-signup-btn" onClick={() => setModalMode('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>{t('nav.signup')}</button>
+                <button className="lp-nav-link" onClick={() => navigateModal('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>
+                <button className="lp-signup-btn" onClick={() => navigateModal('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>{t('nav.signup')}</button>
               </div>
             </>
           )}
@@ -599,7 +652,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
           </h1>
           <p style={{ ...modernStyles.heroSubText, ...(isMobile ? modernStyles.heroSubTextMobile : {}) }}>{t('hero.subtext')}</p>
           <div style={modernStyles.heroBtnGroup}>
-            <MotionButton className="lp-cta" onClick={() => setModalMode('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+            <MotionButton className="lp-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
               {t('cta.create_class')} <ArrowRight size={18} />
             </MotionButton>
           </div>
@@ -716,7 +769,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
       {/* --- FOOTER CTA --- */}
       <section style={{ ...modernStyles.ctaSection, ...(isDark ? modernStyles.ctaSectionDark : {}) }}>
         <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '20px', ...(isDark ? { color: '#fff' } : {}) }}>{t('cta.ready')}</h2>
-        <MotionButton className="lp-cta" onClick={() => setModalMode('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+        <MotionButton className="lp-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
           {t('cta.join_today')}
         </MotionButton>
       </section>
@@ -739,7 +792,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {/* 1. ROLE SELECTION */}
             {modalMode === 'role' && (
                 <motion.div style={modernStyles.roleGrid} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}>
-                <motion.div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div onClick={() => { setError(''); navigateModal('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(22, 163, 74, 0.2)' : '#E8F5E9' }}><GraduationCap color="#4CAF50" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.teacher')}</h4>
@@ -753,7 +806,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.parent.desc')}</p>
                   </div>
                 </motion.div>
-                <motion.div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div onClick={() => { setError(''); navigateModal('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(20, 184, 166, 0.2)' : '#E0F2F1' }}><BookOpen color="#009688" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.student')}</h4>
@@ -814,7 +867,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  onClick={() => { setError(''); setModalMode('role'); }}
+                  onClick={() => { setError(''); navigateModal('role'); }}
                   whileHover={{ scale: 1.05 }}
                   style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}
                 >{t('nav.back')}</motion.p>
@@ -888,7 +941,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {modalMode === 'login' && (
                     <button
                       type="button"
-                      onClick={() => { setError(''); setResetEmail(email); setModalMode('forgot-password'); }}
+                      onClick={() => { setError(''); setResetEmail(email); navigateModal('forgot-password'); }}
                       style={{
                         fontSize: '13px',
                         color: '#64748B',
@@ -909,7 +962,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   <span>{modalMode === 'signup' ? t('auth.already') : t('auth.newhere')}</span>
                   <motion.button
                     type="button"
-                    onClick={() => { setError(''); setModalMode(modalMode === 'signup' ? 'login' : 'signup'); }}
+                    onClick={() => { setError(''); navigateModal(modalMode === 'signup' ? 'login' : 'signup'); }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
@@ -986,7 +1039,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     </p>
                     <MotionButton
                       type="button"
-                      onClick={() => { setResetSuccess(false); setResetEmail(''); setModalMode('login'); }}
+                      onClick={() => { setResetSuccess(false); setResetEmail(''); navigateModal('login'); }}
                       style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
                     >
                       Login
@@ -1016,7 +1069,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       </motion.button>
                       <motion.button
                         type="button"
-                        onClick={() => { setError(''); setResetEmail(''); setModalMode('login'); }}
+                        onClick={() => { setError(''); setResetEmail(''); navigateModal('login'); }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         style={{
@@ -1044,7 +1097,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {t('auth.verify_msg') || 'Please check your email and click the verification link to activate your account.'}<br />
                   {t('auth.verify_block') || 'You will not be able to log in until your email is verified.'}
                 </p>
-                <button onClick={() => { setError(''); setModalMode('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
+                <button onClick={() => { setError(''); navigateModal('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
               </div>
             )}
           </div>
@@ -1093,7 +1146,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {/* 1. ROLE SELECTION */}
             {modalMode === 'role' && (
                 <motion.div style={modernStyles.roleGrid} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}>
-                <motion.div onClick={() => { setError(''); setModalMode('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div onClick={() => { setError(''); navigateModal('login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(22, 163, 74, 0.2)' : '#E8F5E9' }}><GraduationCap color="#4CAF50" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.teacher')}</h4>
@@ -1107,7 +1160,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748B' }}>{t('role.parent.desc')}</p>
                   </div>
                 </motion.div>
-                <motion.div onClick={() => { setError(''); setModalMode('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
+                <motion.div onClick={() => { setError(''); navigateModal('student-login'); }} className="lp-role-option" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ ...modernStyles.roleOption, ...(isDark ? modernStyles.roleOptionDark : {}) }}>
                   <div style={{ ...modernStyles.roleIcon, background: isDark ? 'rgba(20, 184, 166, 0.2)' : '#E0F2F1' }}><BookOpen color="#009688" /></div>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '16px' }}>{t('role.student')}</h4>
@@ -1168,7 +1221,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  onClick={() => { setError(''); setModalMode('role'); }}
+                  onClick={() => { setError(''); navigateModal('role'); }}
                   whileHover={{ scale: 1.05 }}
                   style={{ textAlign: 'center', fontSize: '13px', color: '#94A3B8', cursor: 'pointer', ...(isDark ? { color: '#a1a1aa' } : {}) }}
                 >{t('nav.back')}</motion.p>
@@ -1242,7 +1295,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {modalMode === 'login' && (
                     <button
                       type="button"
-                      onClick={() => { setError(''); setResetEmail(email); setModalMode('forgot-password'); }}
+                      onClick={() => { setError(''); setResetEmail(email); navigateModal('forgot-password'); }}
                       style={{
                         fontSize: '13px',
                         color: '#64748B',
@@ -1263,7 +1316,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   <span>{modalMode === 'signup' ? t('auth.already') : t('auth.newhere')}</span>
                   <motion.button
                     type="button"
-                    onClick={() => { setError(''); setModalMode(modalMode === 'signup' ? 'login' : 'signup'); }}
+                    onClick={() => { setError(''); navigateModal(modalMode === 'signup' ? 'login' : 'signup'); }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
@@ -1340,7 +1393,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     </p>
                     <MotionButton
                       type="button"
-                      onClick={() => { setResetSuccess(false); setResetEmail(''); setModalMode('login'); }}
+                      onClick={() => { setResetSuccess(false); setResetEmail(''); navigateModal('login'); }}
                       style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
                     >
                       Login
@@ -1370,7 +1423,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       </motion.button>
                       <motion.button
                         type="button"
-                        onClick={() => { setError(''); setResetEmail(''); setModalMode('login'); }}
+                        onClick={() => { setError(''); setResetEmail(''); navigateModal('login'); }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         style={{
@@ -1398,7 +1451,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {t('auth.verify_msg') || 'Please check your email and click the verification link to activate your account.'}<br />
                   {t('auth.verify_block') || 'You will not be able to log in until your email is verified.'}
                 </p>
-                <button onClick={() => { setError(''); setModalMode('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
+                <button onClick={() => { setError(''); navigateModal('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
               </div>
             )}
         </div>
