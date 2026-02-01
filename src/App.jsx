@@ -73,25 +73,45 @@ function App() {
   const [view, setView] = useState('portal'); // 'portal' | 'dashboard' | 'egg' | 'settings' | 'setup'
   const [viewHistory, setViewHistory] = useState(['portal']);
 
+  // Track the current index in history to prevent conflicts
+  const historyRef = useRef(0);
+
+  // Initialize browser history on mount - push initial state
+  useEffect(() => {
+    window.history.replaceState({ view: 'portal', appHistoryIndex: 0 }, '', '#portal');
+  }, []);
+
   // Navigate with history tracking for swipe-back
   const navigate = (newView) => {
-    setViewHistory(prev => [...prev, newView]);
-    setView(newView);
-  };
-
-  // Go back in history (for swipe-back gesture)
-  const goBack = () => {
-    if (viewHistory.length > 1) {
-      const newHistory = viewHistory.slice(0, -1);
-      setViewHistory(newHistory);
-      setView(newHistory[newHistory.length - 1]);
+    const prevView = viewHistory[viewHistory.length - 1];
+    // Only push to history if it's a new view (not going back)
+    if (newView !== prevView) {
+      setViewHistory(prev => [...prev, newView]);
+      setView(newView);
+      window.history.pushState({ view: newView, appHistoryIndex: ++historyRef.current }, '', `#${newView}`);
     }
   };
 
-  // Listen for browser back events (popstate)
+  // Listen for browser back events (popstate) - This handles swipe-back
   useEffect(() => {
-    const handlePopState = () => {
-      goBack();
+    const handlePopState = (event) => {
+      // When user swipes back, popstate fires
+      // Check if we have history to go back to
+      if (viewHistory.length > 1) {
+        // Pop the current view from history
+        const newHistory = viewHistory.slice(0, -1);
+        const previousView = newHistory[newHistory.length - 1];
+        
+        // Update React state
+        setViewHistory(newHistory);
+        setView(previousView);
+        
+        // Replace the browser history to keep app history in sync
+        window.history.replaceState({ view: previousView, appHistoryIndex: --historyRef.current }, '', `#${previousView}`);
+      } else {
+        // If at root, prevent going back to browser homepage
+        window.history.replaceState({ view: 'portal', appHistoryIndex: 0 }, '', '#portal');
+      }
     };
 
     window.addEventListener('popstate', handlePopState);

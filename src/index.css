@@ -38,7 +38,15 @@ body {
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   /* Allow iOS swipe-back gesture by setting touch-action */
-  touch-action: pan-y pan-x;
+  touch-action: pan-y;
+  /* Prevent browser back navigation */
+  overscroll-behavior: none;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overscroll-behavior: none;
 }
 
 /* Twemoji image styling */
