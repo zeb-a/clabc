@@ -1,69 +1,130 @@
-/* glassmorphism.css - NO HTML CHANGES REQUIRED */
-
-/* 1. The Base: We use your existing tags/classes */
-button, .btn, .card, nav,
-[role="button"]  {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate; /* Keeps the light from breaking your text */
-  /* This creates a clean base border that won't move */
-  border: 1px solid rgba(224, 206, 206, 0.05) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+/* Professional Glassmorphism Effect - Matches App Design */
+:root {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
 }
 
-/* 2. THE MOVING BORDER (The "Apple" Edge Light) */
-/* We use the ::after element to simulate a glowing border */
-button::after, .btn::after, .card::after, nav::after,
-[role="button"]::after {
+/* Base glassmorphism styles */
+button, .btn, [class*="card"], nav,
+[role="button"], select, option,
+[class*="menu"] {
+  position: relative;
+  overflow: visible;
+  isolation: isolate;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s ease;
+}
+
+/* THE GLOWING RING BORDER - Apple-style edge light */
+button::after, .btn::after, [class*="card"]::after, nav::after,
+[role="button"]::after, select::after, option::after,
+[class*="menu"]::after {
   content: "";
   position: absolute;
-  inset: 0;
-  /* This creates a thin "ring" of light */
-  padding: 1.5px; 
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
   background: radial-gradient(
-    120px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-    #ff0022, /* Your Primary Yellow */
-    transparent 70%
+    200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    var(--primary-yellow, #FFD700) 0%,
+    rgba(255, 215, 0, 0.6) 20%,
+    transparent 60%
   );
-  /* The "Mask" magic: makes the light ONLY show up on the 1px border */
-  -webkit-mask: linear-gradient(#d06a6a 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
+  z-index: -1;
+  filter: blur(1px);
 }
 
-/* 3. THE INNER GLOW (The "Pop" inside the button) */
-button::before, .btn::before, .card::before, nav::before,
-[role="button"]::before {
+/* THE INNER SPOTLIGHT - Soft glow that follows mouse */
+button::before, .btn::before, [class*="card"]::before, nav::before,
+[role="button"]::before, select::before, option::before,
+[class*="menu"]::before {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: radial-gradient(
-    100px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-    rgba(131, 114, 192, 0.15), 
-    transparent 80%
+    300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.1) 30%,
+    transparent 70%
   );
   opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* 4. THE HOVER INTERACTION */
-button:hover, .btn:hover, .card:hover, nav:hover,
-nav:active,
-[role="button"]:hover,
-[role="button"]:active {
-  transform: translateY(-1px); /* Gentle lift */
-  /* Golden shadow to make it pop against your white/beige background */
-  box-shadow: 0 10px 20px -10px rgba(131, 233, 245, 0.4) !important;
+/* HOVER STATE - Pop up with dramatic ring glow */
+button:hover, .btn:hover, [class*="card"]:hover, nav:hover,
+[role="button"]:hover, select:hover, option:hover,
+[class*="menu"]:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 215, 0, 0.1),
+    0 0 20px rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.4);
 }
 
-/* Turn on both lights when hovering */
-button:hover::after, .btn:hover::after, .card:hover::after, nav:hover::after,
-[role="button"]:hover::after,
-button:hover::before, .btn:hover::before, .card:hover::before, nav:hover::before,
-[role="button"]:hover::before {
-  opacity: 1 !important; 
+/* ACTIVE/CLICK STATE - Press down effect */
+button:active, .btn:active, [class*="card"]:active, nav:active,
+[role="button"]:active, select:active, option:active,
+[class*="menu"]:active {
+  transform: translateY(-2px) scale(0.98);
+  box-shadow: 
+    0 10px 20px -5px rgba(0, 0, 0, 0.1),
+    0 0 0 2px rgba(255, 215, 0, 0.2),
+    0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+/* ACTIVATE THE RING AND SPOTLIGHT ON HOVER */
+button:hover::after, .btn:hover::after, [class*="card"]:hover::after, nav:hover::after,
+[role="button"]:hover::after, select:hover::after, option:hover::after,
+[class*="menu"]:hover::after,
+button:hover::before, .btn:hover::before, [class*="card"]:hover::before, nav:hover::before,
+[role="button"]:hover::before, select:hover::before, option:hover::before,
+[class*="menu"]:hover::before {
+  opacity: 1;
+}
+
+/* ACTIVATE ON TOUCH/MOBILE (pointerdown) */
+button:active::after, .btn:active::after, [class*="card"]:active::after,
+[role="button"]:active::after, select:active::after, option:active::after,
+[class*="menu"]:active::after,
+button:active::before, .btn:active::before, [class*="card"]:active::before,
+[role="button"]:active::before, select:active::before, option:active::before,
+[class*="menu"]:active::before {
+  opacity: 1;
+}
+
+/* Special override for nav to prevent layout shift */
+nav:hover, nav:active {
+  transform: none;
+}
+
+/* Ensure content stays above effects */
+button > *, .btn > *, [class*="card"] > *, nav > *,
+[role="button"] > *, select > *, option > *,
+[class*="menu"] > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Smooth animation for the spotlight tracking */
+@keyframes spotlightPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
