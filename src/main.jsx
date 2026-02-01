@@ -1,9 +1,46 @@
 import React, { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './glassmorphism.css'
 import App from './App.jsx'
 import { LanguageProvider } from './i18n'
 import './global-polyfill';
+
+function GlobalGlassEffect({ children }) {
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const target = e.target.closest('button, .card');
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        target.style.setProperty('--mouse-x', `${x}px`);
+        target.style.setProperty('--mouse-y', `${y}px`);
+      }
+    };
+
+    const handlePointerDown = (e) => {
+      const target = e.target.closest('button, .card');
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        target.style.setProperty('--mouse-x', `${x}px`);
+        target.style.setProperty('--mouse-y', `${y}px`);
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
+
+  return children;
+}
 
 function GlobalKeyHandler({ children }) {
   useEffect(() => {
@@ -40,9 +77,11 @@ function GlobalKeyHandler({ children }) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <LanguageProvider>
-      <GlobalKeyHandler>
-        <App />
-      </GlobalKeyHandler>
+      <GlobalGlassEffect>
+        <GlobalKeyHandler>
+          <App />
+        </GlobalKeyHandler>
+      </GlobalGlassEffect>
     </LanguageProvider>
   </StrictMode>,
 )
