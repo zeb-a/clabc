@@ -7,7 +7,7 @@ button, .btn, .card, nav,
   overflow: hidden;
   isolation: isolate; /* Keeps the light from breaking your text */
   /* This creates a clean base border that won't move */
-  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(224, 206, 206, 0.05) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
@@ -22,11 +22,11 @@ button::after, .btn::after, .card::after, nav::after,
   padding: 1.5px; 
   background: radial-gradient(
     120px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-    #4400ff, /* Your Primary Yellow */
+    #ff0022, /* Your Primary Yellow */
     transparent 70%
   );
   /* The "Mask" magic: makes the light ONLY show up on the 1px border */
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#d06a6a 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
