@@ -238,7 +238,9 @@ html, body {
 @media (pointer: coarse) {
   [data-tooltip]:hover::after,
   .tooltip {
+      [title]:hover::after {
     display: none !important;
+  }
   }
 }
 
