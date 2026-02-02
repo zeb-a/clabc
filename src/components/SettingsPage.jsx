@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Edit2, Plus, X, RefreshCw, Trash2, Save } from 'lucide-react';
+import { Edit2, Plus, X, RefreshCw, Trash2, Save, Minus } from 'lucide-react';
 import api from '../services/api';
 import InlineHelpButton from './InlineHelpButton';
-import { useTranslation } from '../i18n';
 
 // Modern, fun stickers for kids - using high-quality SVG graphics from reliable CDN
 // These are styled as modern flat illustrations with bold colors
@@ -115,13 +114,15 @@ const STICKER_OPTIONS = [
 ];
 
 export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateBehaviors }) {
-  const { t } = useTranslation();
   const [activeTab] = useState('cards'); // 'cards' | 'students' | 'general'
   const [cards, setCards] = useState(Array.isArray(behaviors) ? behaviors : []);
   const [, setSidebarCollapsed] = useState(false);
   const [editingCardId, setEditingCardId] = useState(null);
   const [editingCard, setEditingCard] = useState({ label: '', pts: 0, icon: '⭐', type: 'wow' });
   const [openEmojiFor, setOpenEmojiFor] = useState(null);
+      const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [addCardModalData, setAddCardModalData] = useState({ label: 'New Card', pts: 1, icon: '⭐' });
+  const [showEmojiPickerForModal, setShowEmojiPickerForModal] = useState(false);
 
   React.useEffect(() => setCards(Array.isArray(behaviors) ? behaviors : []), [behaviors]);
 
@@ -180,6 +181,18 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
       transform: scale(1.15);
       border-color: #6366f1 !important;
       box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    }
+    /* Add card hover effect */
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+    }
+    .add-card-hover:hover {
+      background-color: #F0FDF4 !important;
+      border-color: #4CAF50 !important;
+      color: #4CAF50 !important;
+      animation: pulse-border 2s infinite;
     }`;
     document.head.appendChild(style);
     return () => { const el = document.getElementById('settings-mobile-styles'); if (el) el.remove(); };
@@ -289,6 +302,19 @@ const handleBackClick = () => {
     // Save to backend (behaviors are global, not per-class)
     api.saveBehaviors(updated).then(reloadBehaviors);
   };
+
+  const handleAddCard = (newCardData) => {
+    const newCard = {
+      id: Date.now(),
+      ...newCardData,
+      type: newCardData.pts > 0 ? 'wow' : 'nono'
+    };
+    const updated = [newCard, ...cards];
+    setCards(updated);
+    if (onUpdateBehaviors) onUpdateBehaviors(updated);
+    api.saveBehaviors(updated).then(reloadBehaviors);
+    setShowAddCardModal(false);
+  };
         // Add global CSS for mobile hiding
         if (typeof document !== 'undefined' && !document.getElementById('settings-hide-on-mobile-style')) {
           const style = document.createElement('style');
@@ -308,28 +334,13 @@ const handleBackClick = () => {
         </div>
         {/* Centered header text for large screens only */}
         <div className="edit-point-cards-header-text hide-on-mobile" style={styles.headerCenterText}>
-          <span className="edit-point-cards-header-label" style={{ display: 'inline-block', width: '100%' }}>{t('settings.edit_cards')}</span>
+          <span className="edit-point-cards-header-label" style={{ display: 'inline-block', width: '100%' }}>Edit point cards</span>
         </div>
         
         <div className="settings-header-actions" style={{ ...styles.headerActions, flexDirection: 'row' }}>
           <div className="header-action-group" style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-          <InlineHelpButton pageId="settings-cards" />            <Tooltip text={t('settings.tooltip_add_card')}>
-            <button
-              aria-label="Add card"
-              style={styles.headerIconBtn}
-              onClick={() => {
-                const newCard = { id: Date.now(), label: t('settings.new_card'), pts: 1, type: 'wow', icon: '⭐' };
-                const updated = [newCard, ...cards];
-                setCards(updated);
-                setEditingCardId(newCard.id);
-                setEditingCard({ label: newCard.label, pts: newCard.pts, icon: newCard.icon, type: newCard.type });
-              }}
-            >
-              <Plus size={22} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>{t('settings.add_card')}</span>
-            </button>
-            </Tooltip>
-            <Tooltip text={t('settings.tooltip_reset_cards')}>
+          <InlineHelpButton pageId="settings-cards" />
+            <Tooltip text="Reset all behavior cards to default">
             <button
               aria-label="Reset behaviors"
               style={styles.headerIconBtn}
@@ -357,10 +368,10 @@ const handleBackClick = () => {
               }}
             >
               <RefreshCw size={22} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>{t('settings.reset')}</span>
+              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Reset</span>
             </button>
             </Tooltip>
-            <Tooltip text={t('settings.tooltip_done')}>
+            <Tooltip text="Done and close settings">
             <button
               aria-label="Done"
               style={styles.headerIconBtn}
@@ -401,12 +412,40 @@ const handleBackClick = () => {
             <section>
          
               <div style={styles.cardList}>
+                {/* --- ADD CARD CARD --- */}
+                <div
+                  className="add-card-hover"
+                  title="Add a new behavior card"
+                  onClick={() => setShowAddCardModal(true)}
+                  style={{
+                    ...styles.settingItem,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px dashed #CBD5E1',
+                    backgroundColor: '#F8FAFC',
+                    boxShadow: 'none',
+                    color: '#64748B',
+                    transition: 'all 0.3s ease',
+                    cursor: 'pointer',
+                    minHeight: 140,
+                    height: 180,
+                    minWidth: 360,
+                    maxWidth: 390,
+                  }}
+                >
+                  <div style={{ background: 'white', padding: 12, borderRadius: '50%', marginBottom: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <Plus size={32} />
+                  </div>
+                  <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Add Card</span>
+                </div>
                 {cards.map(card => (
                   <div key={card.id} style={styles.settingItem}>
                     <div style={styles.itemInfo}>
                       <div style={{ position: 'relative' }}>
                         {/* Only allow opening emoji picker when editing this card */}
-                        <Tooltip text={t('settings.tooltip_change_sticker')}>
+                        <Tooltip text="Change/choose avatar sticker">
                         <button
                           onClick={() => {
                             if (editingCardId === card.id) {
@@ -448,22 +487,22 @@ const handleBackClick = () => {
                               <input
                                 value={editingCard.label}
                                 onChange={(e) => setEditingCard(prev => ({ ...prev, label: e.target.value }))}
-                                placeholder={t('settings.card_label_placeholder')}
+                                placeholder="Card label"
                                 style={{ padding: '10px 12px', borderRadius: 10, border: '1px solid #E6EEF8', fontSize: 15, flex: '1 1 140px', minWidth: 120 }}
-                                title={t('settings.tooltip_edit_label')}
+                                title="Edit card label"
                               />
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <Tooltip text={t('settings.tooltip_decrease_points')}>
+                                  <Tooltip text="Decrease points">
                                     <button onClick={() => { const pts = Number(editingCard.pts) - 1; setEditingCard(prev => ({ ...prev, pts, type: pts > 0 ? 'wow' : 'nono' })); }} style={styles.smallIconBtn} aria-label="Decrease points">-</button>
                                   </Tooltip>
                                   <div style={{ minWidth: 36, textAlign: 'center', fontWeight: 800 }}>{editingCard.pts}</div>
-                                  <Tooltip text={t('settings.tooltip_increase_points')}>
+                                  <Tooltip text="Increase points">
                                     <button onClick={() => { const pts = Number(editingCard.pts) + 1; setEditingCard(prev => ({ ...prev, pts, type: pts > 0 ? 'wow' : 'nono' })); }} style={styles.smallIconBtn} aria-label="Increase points">+</button>
                                   </Tooltip>
                                 </div>
                                 <div style={{ color: editingCard.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '14px', fontWeight: 700, marginTop: 2 }}>
-                                  {editingCard.pts > 0 ? t('dashboard.wow_card') : t('dashboard.nono_card')}
+                                  {editingCard.pts > 0 ? 'WOW' : 'NO NO'}
                                 </div>
                               </div>
                             </div>
@@ -472,7 +511,7 @@ const handleBackClick = () => {
                           <div>
                             <div style={styles.itemLabel}>{card.label}</div>
                             <div style={{ color: card.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                              {card.pts > 0 ? t('dashboard.wow_card') : t('dashboard.nono_card')}
+                              {card.pts > 0 ? 'WOW' : 'NO NO'}
                             </div>
                             <div style={{ color: card.pts > 0 ? '#4CAF50' : '#F44336', fontSize: '24px', fontWeight: '900', marginTop: '4px' }}>
                               {card.pts > 0 ? `+${card.pts}` : card.pts}
@@ -484,19 +523,19 @@ const handleBackClick = () => {
                     <div style={styles.itemActions}>
                       {editingCardId === card.id ? (
                         <div style={styles.verticalActionStack}>
-                          <Tooltip text={t('settings.tooltip_save')}>
+                          <Tooltip text="Save changes">
                           <button onClick={() => handleSaveCard(card.id)} style={styles.saveIconBtn} aria-label="Save"><Save size={22} /></button>
                           </Tooltip>
-                          <Tooltip text={t('settings.tooltip_cancel_edit')}>
+                          <Tooltip text="Cancel editing">
                           <button onClick={() => setEditingCardId(null)} style={styles.cancelIconBtn} aria-label="Cancel"><X size={22} /></button>
                           </Tooltip>
                         </div>
                       ) : (
                         <>
-                          <Tooltip text={t('settings.tooltip_edit_card')}>
+                          <Tooltip text="Edit card">
                           <button onClick={() => { setEditingCardId(card.id); setEditingCard({ label: card.label, pts: card.pts, icon: card.icon, type: card.type }); }} style={styles.iconOnlyBtn} aria-label="Edit"><Edit2 size={20} /></button>
                           </Tooltip>
-                          <Tooltip text={t('settings.tooltip_delete_card')}>
+                          <Tooltip text="Delete card">
                           <button onClick={() => handleDeleteCard(card.id)} style={styles.iconOnlyBtn} aria-label="Delete"><Trash2 size={20} /></button>
                           </Tooltip>
                         </>
@@ -509,6 +548,107 @@ const handleBackClick = () => {
           ) : null}
         </main>
       </div>
+
+      {/* --- ADD CARD MODAL --- */}
+      {showAddCardModal && (
+        <div style={styles.modalOverlay} className="modal-overlay-in">
+          <div style={styles.modal} className="animated-modal-content modal-animate-center">
+            <div style={styles.modalHeader}>
+              <h3>Add New Card</h3>
+              <button style={styles.closeBtn} onClick={() => setShowAddCardModal(false)}><X size={20} /></button>
+            </div>
+
+            {/* Sticker/Icon Selection */}
+            <div style={styles.modalSection}>
+              <label style={styles.modalLabel}>Choose Icon</label>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, marginTop: 12 }}>
+                <div style={{ position: 'relative' }}>
+                  <Tooltip text="Click to choose sticker">
+                    <button
+                      onClick={() => setShowEmojiPickerForModal(!showEmojiPickerForModal)}
+                      style={{ ...styles.stickerBtn, width: 90, height: 90, fontSize: 48 }}
+                      aria-label="Pick sticker"
+                    >
+                      {addCardModalData.icon}
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+              {showEmojiPickerForModal && (
+                <div style={styles.centerEmojiModal} onClick={e => e.stopPropagation()} className="modal-overlay-in">
+                  <div style={styles.centerStickerGrid} className="animated-modal-content modal-animate-scale">
+                    {STICKER_OPTIONS.map(sticker => (
+                      <Tooltip key={sticker.id} text={sticker.name}>
+                        <button onClick={() => {
+                          setAddCardModalData(prev => ({ ...prev, icon: sticker.emoji }));
+                          setShowEmojiPickerForModal(false);
+                        }} style={{ ...styles.stickerBtn, padding: 12, fontSize: 32 }}>
+                          {sticker.emoji}
+                        </button>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Card Label */}
+            <div style={styles.modalSection}>
+              <label style={styles.modalLabel}>Card Name</label>
+              <input
+                type="text"
+                placeholder="Enter card name..."
+                value={addCardModalData.label}
+                onChange={(e) => setAddCardModalData(prev => ({ ...prev, label: e.target.value }))}
+                style={styles.modalInput}
+              />
+            </div>
+
+            {/* Points */}
+            <div style={styles.modalSection}>
+              <label style={styles.modalLabel}>Points</label>
+              <div style={styles.pointsControl}>
+                <button
+                  onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts - 1 }))}
+                  style={styles.pointsBtn}
+                >
+                  <Minus size={20} />
+                </button>
+                <div style={styles.pointsValue}>{addCardModalData.pts > 0 ? `+${addCardModalData.pts}` : addCardModalData.pts}</div>
+                <button
+                  onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts + 1 }))}
+                  style={styles.pointsBtn}
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+              <div style={{
+                ...styles.typeBadge,
+                background: addCardModalData.pts > 0 ? '#F0FDF4' : '#FEF2F2',
+                color: addCardModalData.pts > 0 ? '#16A34A' : '#DC2626'
+              }}>
+                {addCardModalData.pts > 0 ? 'WOW' : 'NO NO'}
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div style={styles.modalFooter}>
+              <button style={styles.modalCancelBtn} onClick={() => setShowAddCardModal(false)}>Cancel</button>
+              <button
+                style={{
+                  ...styles.modalSaveBtn,
+                  opacity: addCardModalData.label.trim() ? 1 : 0.6,
+                  cursor: addCardModalData.label.trim() ? 'pointer' : 'not-allowed'
+                }}
+                onClick={() => addCardModalData.label.trim() && handleAddCard(addCardModalData)}
+                disabled={!addCardModalData.label.trim()}
+              >
+                Add Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -697,7 +837,22 @@ const styles = {
   input: { width: '100%', padding: '15px', borderRadius: '12px', border: '1px solid #ddd', marginBottom: '20px', fontSize: '14px', boxSizing: 'border-box' },
   saveBtn: { width: '100%', padding: '15px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
   cancelBtn: { padding: '15px', background: '#f0f0f0', color: '#333', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
-  deleteConfirmBtn: { padding: '15px', background: '#FF6B6B', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }
+  deleteConfirmBtn: { padding: '15px', background: '#FF6B6B', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
+  // Add Card Modal Styles
+  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 },
+  modal: { background: 'white', padding: '30px', borderRadius: '24px', width: '450px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', zIndex: 10000 },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
+  closeBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: 4, borderRadius: 8, transition: 'all 0.2s' },
+  modalSection: { marginBottom: '20px' },
+  modalLabel: { display: 'block', fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '8px' },
+  modalInput: { width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+  pointsControl: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '12px' },
+  pointsBtn: { width: '48px', height: '48px', borderRadius: '12px', border: '1px solid #E2E8F0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', color: '#4CAF50' },
+  pointsValue: { fontSize: '24px', fontWeight: 800, minWidth: '60px', textAlign: 'center' },
+  typeBadge: { textAlign: 'center', padding: '8px 16px', borderRadius: '20px', fontWeight: 700, fontSize: '14px', textTransform: 'uppercase' },
+  modalFooter: { display: 'flex', gap: '10px', marginTop: '10px' },
+  modalSaveBtn: { padding: '12px 20px', borderRadius: '12px', border: 'none', background: '#4CAF50', color: 'white', fontWeight: 600, fontSize: '14px', cursor: 'pointer', flex: 1 },
+  modalCancelBtn: { padding: '12px 20px', borderRadius: '12px', border: 'none', background: '#F1F5F9', color: '#64748B', fontWeight: 600, fontSize: '14px', cursor: 'pointer', flex: 1 }
 };
 
 // Minimal Tooltip component
