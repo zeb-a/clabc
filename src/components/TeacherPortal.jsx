@@ -78,18 +78,6 @@ const internalCSS = `
   }
   .hover-show { opacity: 0; transition: opacity 160ms ease; pointer-events: none; }
   .avatar-trigger-hover:hover .hover-show { opacity: 1; }
-  /* Custom scrollbar for avatar grid */
-  .avatar-grid-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-  .avatar-grid-scroll::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  .avatar-grid-scroll::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 4px;
-  }
   /* Logout button styles */
   .logout-btn { background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%); border: 2px solid #FECACA; padding: 11px 18px; border-radius: 14px; display: inline-flex; align-items: center; gap: 8px; color: #DC2626; cursor: pointer; transition: all 160ms ease; font-weight: 700; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1); }
   .logout-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border-color: #F87171; }

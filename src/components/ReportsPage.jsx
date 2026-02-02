@@ -367,12 +367,12 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                 {/* Header Right: Select Menus and X Button */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, position: 'relative', width: isMobile ? '100%' : 'auto', maxWidth: isMobile ? 'calc(100% - 40px)' : 'auto' }}>
                     {/* Language Select */}
-                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none', minWidth: isMobile ? 0 : 'auto' }}>
+                    <div style={{ position: isMobile ? 'relative' : 'static', flex: isMobile ? 1 : 'none', minWidth: isMobile ? 0 : 'auto', marginLeft: isMobile ? '-55px' : 0 }}>
                         <select
                             value={language}
                             onChange={e => setLanguage(e.target.value)}
                             style={{
-                                width: isMobile ? '100%' : undefined,
+                                width: isMobile ? '90%' : undefined,
                                 padding: isMobile ? '6px 10px' : '8px 16px',
                                 borderRadius: '8px',
                                 border: '1px solid #e0e0e0',
@@ -395,7 +395,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                             value={timePeriod || 'week'}
                             onChange={e => setTimePeriod(e.target.value)}
                             style={{
-                                width: isMobile ? '100%' : undefined,
+                                width: isMobile ? '85%' : undefined,
                                 padding: isMobile ? '6px 10px' : '8px 16px',
                                 borderRadius: '8px',
                                 border: '1px solid #e0e0e0',
@@ -420,7 +420,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                 value={selectedStudentId}
                                 onChange={e => setSelectedStudentId(e.target.value)}
                                 style={{
-                                    width: isMobile ? '100%' : undefined,
+                                    width: isMobile ? '95%' : undefined,
                                     padding: isMobile ? '6px 10px' : '8px 16px',
                                     borderRadius: '8px',
                                     border: '1px solid #e0e0e0',
@@ -449,12 +449,12 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                             onClick={onBack || (() => window.history.back())}
                             style={{
                                 ...styles.goBackBtn,
-                                padding: isMobile ? '1px 0px' : '2px 8px',
+                                padding: isMobile ? '0px 0px' : '2px 4ßpx',
                                 fontSize: isMobile ? '16px' : '18px',
                                 marginLeft: isMobile ? 1 : 1, // <-- increased from 2 to 7 for mobile
                                 position: isMobile ? 'absolute' : 'static',
                                 right: isMobile ? -15 : undefined, // <-- add 5px right offset
-                                top: isMobile ? 0 : undefined,
+                                top: isMobile ? -27 : undefined,
                                 zIndex: 2,
                                 background: '#fff',
                                 border: '1.5px solid #e0e0e0',
