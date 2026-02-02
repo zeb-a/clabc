@@ -30,6 +30,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  overflow-y: hidden;
   /* iOS swipe back gesture - limit horizontal only */
   overscroll-behavior-x: contain;
   /* Allow pull-to-refresh */
@@ -116,21 +117,19 @@ button:hover:not(:disabled) {
 }
 
 /* Make scrollbar thin and only visible on hover/scroll */
-
-
 *::-webkit-scrollbar {
-  width: 10px !important; /* Very thin scrollbar */
+  width: 9px !important; /* Very thin scrollbar */
   height: 4px !important;
 }
 *::-webkit-scrollbar-track {
   background: transparent !important;
 }
 *::-webkit-scrollbar-thumb {
-  background: rgba(48, 46, 46, 0.3) !important; /* More transparent */
+  background: rgba(156, 163, 175, 0.3) !important; /* More transparent */
   border-radius: 10px !important;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(149, 154, 164, 0.6) !important;
+  background: rgba(156, 163, 175, 0.6) !important;
 }
 
 /* Dark mode scrollbar */
@@ -140,10 +139,7 @@ button:hover:not(:disabled) {
 [data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.4) !important;
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+
 /* Fix jumpy scrollbars by making them always present but invisible */
 *::-webkit-scrollbar {
   opacity: 1;
@@ -155,6 +151,11 @@ button:hover:not(:disabled) {
 *::-webkit-scrollbar-thumb:hover {
   opacity: 0.6;
 }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes zoomIn {
   0% {
     opacity: 0;
@@ -229,6 +230,7 @@ html, body {
   .animated-modal-content {
     max-width: 95vw !important;
     margin: 0 auto !important;
+    -webkit-overflow-scrolling: none;
   }
 }
 

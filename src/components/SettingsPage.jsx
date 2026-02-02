@@ -654,7 +654,7 @@ const handleBackClick = () => {
 }
 
 const styles = {
-  pageContainer: { height: '100vh', display: 'flex', flexDirection: 'column',overflowY: 'auto', background: '#F8FAFC', position: 'relative' },
+  pageContainer: { height: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC', position: 'relative' },
   header: { background: '#fff', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   headerActions: {
     display: 'flex',
