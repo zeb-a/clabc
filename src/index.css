@@ -122,24 +122,35 @@ button:hover:not(:disabled) {
   to { transform: scale(1.1); }
 }
 
-/* Make scrollbar look like the app */
+/* Make scrollbar thin and only visible on hover/scroll */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: rgba(156, 163, 175, 0.5);
   border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
 }
 
 /* Dark mode scrollbar */
-[data-theme="dark"] ::-webkit-scrollbar-track {
-  background: #2d2d2d;
+[data-theme="dark"] {
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: #555;
+  background: rgba(156, 163, 175, 0.3);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
 }
 @keyframes fadeIn {
   from { opacity: 0; }
