@@ -37,10 +37,10 @@ body {
   /* Enable swipe back gesture on iOS */
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
-  /* Allow iOS swipe-back gesture by setting touch-action */
+  /* Allow iOS swipe-back gesture and pull-to-refresh */
   touch-action: pan-y;
-  /* Prevent browser back navigation */
-  overscroll-behavior: none;
+  /* Enable pull-to-refresh gesture */
+  overscroll-behavior-y: contain;
 }
 
 #root {
@@ -124,33 +124,30 @@ button:hover:not(:disabled) {
 
 /* Make scrollbar thin and only visible on hover/scroll */
 html {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px; /* Very thin scrollbar */
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.5);
+  background: rgba(156, 163, 175, 0.3); /* More transparent */
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.8);
+  background: rgba(156, 163, 175, 0.6);
 }
 
 /* Dark mode scrollbar */
-[data-theme="dark"] {
-  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-}
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.3);
+  background: rgba(156, 163, 175, 0.2);
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6);
+  background: rgba(156, 163, 175, 0.4);
 }
 @keyframes fadeIn {
   from { opacity: 0; }
