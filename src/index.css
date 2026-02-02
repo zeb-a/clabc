@@ -119,7 +119,7 @@ button:hover:not(:disabled) {
 
 
 *::-webkit-scrollbar {
-  width: 8px !important; /* Very thin scrollbar */
+  width: 10px !important; /* Very thin scrollbar */
   height: 4px !important;
 }
 *::-webkit-scrollbar-track {
@@ -130,7 +130,7 @@ button:hover:not(:disabled) {
   border-radius: 10px !important;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6) !important;
+  background: rgba(149, 154, 164, 0.6) !important;
 }
 
 /* Dark mode scrollbar */

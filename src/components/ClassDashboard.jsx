@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import {
   Dices, Trophy, Settings, Home, UserPlus, Camera, SmilePlus,
   ChevronLeft, ChevronRight, Sliders, ChevronDown, ArrowUpDown,
-  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical, X
+  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical, X, Check, Users
 } from 'lucide-react';
 
 import ReportsPage from './ReportsPage';
@@ -273,6 +273,7 @@ export default function ClassDashboard({
   const [displaySize, setDisplaySize] = useState(isMobile ? 'compact' : 'spacious');
   const [selectedStudents, setSelectedStudents] = useState(new Set());
   const [showClassBehaviorModal, setShowClassBehaviorModal] = useState(false);
+  const [showMultiSelectBehaviorModal, setShowMultiSelectBehaviorModal] = useState(false);
   // Animations for awarded students: id -> { type }
   const [animatingStudents, setAnimatingStudents] = useState({});
 
@@ -435,6 +436,8 @@ export default function ClassDashboard({
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [buzzerState, setBuzzerState] = useState('idle'); // 'idle', 'counting', 'buzzing'
   const [buzzerCount, setBuzzerCount] = useState(5);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false); // Multi-select mode for student cards
+  const [multiSelectedStudents, setMultiSelectedStudents] = useState(new Set()); // Students selected in multi-select mode
   const audioCtxRef = useRef(null);
   const mainOscRef = useRef(null);
 
@@ -802,6 +805,62 @@ export default function ClassDashboard({
     // Trigger animation for present students only
     try { triggerAnimationForIds(presentStudents.map(s => s.id), behavior.pts); } catch (e) { console.warn('triggerAnimationForIds failed', e); }
   };
+
+  // Function to give points to multiple selected students via behavior modal
+  const handleGivePointsToMultiSelect = (behavior) => {
+    const selectedStudentsArray = Array.from(multiSelectedStudents)
+      .map(id => sortedStudents.find(s => s.id === id))
+      .filter(Boolean);
+
+    if (selectedStudentsArray.length === 0) return;
+
+    // 1. Trigger the animation for the selected students
+    setShowPoint({
+      visible: true,
+      student: { name: `${selectedStudentsArray.length} Selected`, students: selectedStudentsArray },
+      points: behavior.pts,
+      behaviorEmoji: behavior.icon || '⭐'
+    });
+
+    setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
+
+    // 2. Update only the selected students
+    updateClasses((prev) =>
+      prev.map((c) =>
+        c.id === activeClass.id
+          ? {
+            ...c,
+            students: c.students.map((s) => {
+              // Check if this student is in our selected array
+              const isSelected = selectedStudentsArray.find(sel => sel.id === s.id);
+              if (isSelected) {
+                return {
+                  ...s,
+                  score: s.score + behavior.pts,
+                  history: [...(s.history || []), {
+                    label: behavior.label,
+                    pts: behavior.pts,
+                    type: behavior.type,
+                    timestamp: new Date().toISOString()
+                  }]
+                };
+              }
+              return s;
+            })
+          }
+          : c
+      )
+    );
+
+    // Clear selections and close modal
+    setMultiSelectedStudents(new Set());
+    setIsMultiSelectMode(false);
+    setShowMultiSelectBehaviorModal(false);
+
+    // Trigger animation for selected students
+    try { triggerAnimationForIds(selectedStudentsArray.map(s => s.id), behavior.pts); } catch (e) { console.warn('triggerAnimationForIds failed', e); }
+  };
+
   // --- SURGICAL ADDITION FOR LUCKY DRAW MULTI-WINNERS ---
   const handleGivePointsToMultiple = (studentsArray, points = 1) => {
 
@@ -1515,6 +1574,28 @@ export default function ClassDashboard({
                                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
                                 <span style={{ flex: 1, textAlign: 'left' }}>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
                               </button>
+
+                              {/* Select Multiple */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsMultiSelectMode(!isMultiSelectMode);
+                                  setMultiSelectedStudents(new Set());
+                                  setShowHeaderMenu(false);
+                                }}
+                                style={{
+                                  ...styles.gridOption,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10,
+                                  padding: '10px 12px',
+                                  background: isMultiSelectMode ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
+                                  color: isMultiSelectMode ? '#fff' : '#475569'
+                                }}
+                              >
+                                <CheckSquare size={18} />
+                                <span style={{ flex: 1, textAlign: 'left' }}>Select Multiple</span>
+                              </button>
                           </div>
                         )}
                         </div>
@@ -1630,6 +1711,136 @@ export default function ClassDashboard({
                         >
                           {isFullscreen ? <Minimize size={22} /> : <Maximize size={22} />}
                         </IconButton>
+
+                        {/* Select Multiple Button */}
+                        <button
+                          onClick={() => {
+                            setIsMultiSelectMode(!isMultiSelectMode);
+                            setMultiSelectedStudents(new Set());
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? 0 : '8px',
+                            padding: isMobile ? '10px' : '12px 16px',
+                            borderRadius: '12px',
+                            background: isMultiSelectMode ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#fff',
+                            color: isMultiSelectMode ? '#fff' : '#475569',
+                            border: isMultiSelectMode ? 'none' : '1px solid #E2E8F0',
+                            fontWeight: 700,
+                            fontSize: isMobile ? '11px' : '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: isMultiSelectMode ? '0 4px 12px rgba(102, 126, 234, 0.3)' : 'none',
+                            transform: isMultiSelectMode ? 'translateY(-2px)' : 'translateY(0)'
+                          }}
+                        >
+                          <CheckSquare size={isMobile ? 18 : 22} />
+                          {!isMobile && <span>Select Multiple</span>}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Multi-select Action Bar - Shows when students are selected */}
+                    {isMultiSelectMode && multiSelectedStudents.size > 0 && (
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: 'fixed',
+                          bottom: isMobile ? '10px' : '10px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          display: 'flex',
+                          gap: isMobile ? '8px' : '12px',
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          borderRadius: '20px',
+                          padding: isMobile ? '12px' : '14px 20px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          zIndex: 1000,
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          maxWidth: 'calc(100% - 40px)',
+                          width: 'auto'
+                        }}
+                      >
+                        {/* Select All Button */}
+                        <button
+                          onClick={() => {
+                            const allStudents = new Set(sortedStudents.map(s => s.id));
+                            setMultiSelectedStudents(allStudents);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? '6px' : '8px',
+                            padding: isMobile ? '10px' : '10px 16px',
+                            borderRadius: '12px',
+                            background: '#EEF2FF',
+                            color: '#4F46E5',
+                            border: 'none',
+                            fontWeight: 700,
+                            fontSize: isMobile ? '11px' : '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                          }}
+                        >
+                          <Users size={isMobile ? 18 : 18} />
+                          <span>Select All</span>
+                        </button>
+
+                        {/* Cancel Button */}
+                        <button
+                          onClick={() => {
+                            setIsMultiSelectMode(false);
+                            setMultiSelectedStudents(new Set());
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? '6px' : '8px',
+                            padding: isMobile ? '10px' : '10px 16px',
+                            borderRadius: '12px',
+                            background: '#FEF2F2',
+                            color: '#DC2626',
+                            border: 'none',
+                            fontWeight: 700,
+                            fontSize: isMobile ? '11px' : '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                          }}
+                        >
+                          <X size={isMobile ? 18 : 18} />
+                          <span>Cancel</span>
+                        </button>
+
+                        {/* Give Points Button */}
+                        <button
+                          onClick={() => {
+                            setShowMultiSelectBehaviorModal(true);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? '6px' : '8px',
+                            padding: isMobile ? '10px' : '10px 16px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            fontWeight: 700,
+                            fontSize: isMobile ? '11px' : '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                            flexShrink: 0
+                          }}
+                        >
+                          <Check size={isMobile ? 18 : 18} />
+                          <span>Give Points</span>
+                        </button>
                       </div>
                     )}
 
@@ -1770,7 +1981,12 @@ export default function ClassDashboard({
                         <div
                           key={s.id}
                           onClick={(event) => {
-                            if (isAttendanceMode) {
+                            if (isMultiSelectMode) {
+                              // Multi-select mode: toggle selection
+                              const next = new Set(multiSelectedStudents);
+                              if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
+                              setMultiSelectedStudents(next);
+                            } else if (isAttendanceMode) {
                               const next = new Set(absentStudents);
                               if (next.has(s.id)) next.delete(s.id); else next.add(s.id);
                               setAbsentStudents(next);
@@ -1784,13 +2000,41 @@ export default function ClassDashboard({
                           }}
                           style={{
                             position: 'relative',
-                            opacity: isAttendanceMode ? (isAbsentToday ? 0.4 : 1) : (isAbsentToday ? 0.4 : (selectedStudents.size > 0 && !selectedStudents.has(s.id) ? 0.5 : 1)),
+                            opacity: isMultiSelectMode
+                              ? (multiSelectedStudents.size > 0 && !multiSelectedStudents.has(s.id) ? 0.4 : 1)
+                              : (isAttendanceMode ? (isAbsentToday ? 0.4 : 1) : (isAbsentToday ? 0.4 : (selectedStudents.size > 0 && !selectedStudents.has(s.id) ? 0.5 : 1))),
                             transition: 'opacity 0.15s, filter 0.15s',
-                            cursor: isAttendanceMode ? 'pointer' : isAbsentToday ? 'not-allowed' : 'default',
-                            filter: isAbsentToday ? 'grayscale(1)' : 'grayscale(0)',
+                            cursor: isMultiSelectMode || isAttendanceMode ? 'pointer' : isAbsentToday ? 'not-allowed' : 'default',
+                            filter: isMultiSelectMode && !multiSelectedStudents.has(s.id) ? 'grayscale(1)' : (isAbsentToday ? 'grayscale(1)' : 'grayscale(0)'),
                             pointerEvents: 'auto'
                           }}
                         >
+                          {/* Selection Circle - Shows in multi-select mode */}
+                          {isMultiSelectMode && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: displaySize === 'compact' ? '6px' : '12px',
+                                right: displaySize === 'compact' ? '6px' : '12px',
+                                width: displaySize === 'compact' ? '24px' : '32px',
+                                height: displaySize === 'compact' ? '24px' : '32px',
+                                borderRadius: '50%',
+                                background: multiSelectedStudents.has(s.id)
+                                  ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                                  : 'rgba(255, 255, 255, 0.9)',
+                                border: multiSelectedStudents.has(s.id) ? 'none' : '2px solid #E2E8F0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                zIndex: 10,
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                backdropFilter: 'blur(10px)'
+                              }}
+                            >
+                              {multiSelectedStudents.has(s.id) && <Check size={displaySize === 'compact' ? 14 : 18} color="white" />}
+                            </div>
+                          )}
                           <StudentCard
                             student={s}
                             isCompact={displaySize === 'compact'}
@@ -1808,6 +2052,7 @@ export default function ClassDashboard({
                             onDelete={() => setDeleteConfirmStudentId(s.id)}
                             animating={Boolean(animatingStudents && animatingStudents[s.id])}
                             animationType={animatingStudents && animatingStudents[s.id] ? animatingStudents[s.id].type : undefined}
+                            disableActions={isMultiSelectMode}
                           />
                           {selectedStudents.has(s.id) && <div style={{ position: 'absolute', inset: 0, borderRadius: displaySize === 'compact' ? '50%' : '24px', border: '3px solid #4CAF50', pointerEvents: 'none', zIndex: 5 }} />}
                           {isAbsentToday && !isAttendanceMode && (
@@ -1883,6 +2128,14 @@ export default function ClassDashboard({
             behaviors={activeClass.behaviors || behaviors}
             onClose={() => setShowClassBehaviorModal(false)}
             onGivePoint={handleGivePointsToClass}
+          />
+        )}
+        {showMultiSelectBehaviorModal && (
+          <BehaviorModal
+            student={{ name: '', hideName: true }}
+            behaviors={activeClass.behaviors || behaviors}
+            onClose={() => setShowMultiSelectBehaviorModal(false)}
+            onGivePoint={handleGivePointsToMultiSelect}
           />
         )}
         {/* {isLuckyDrawOpen && <LuckyDrawModal students={activeClass.students} onClose={() => setIsLuckyDrawOpen(false)} onWinner={(s) => { setIsLuckyDrawOpen(false); setSelectedStudent(s); }} />} */}

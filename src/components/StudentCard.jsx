@@ -4,7 +4,7 @@ import SafeAvatar from './SafeAvatar';
 import { Edit2, Trash2 } from 'lucide-react';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 
-const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, animationType = 'small', isCompact = false }) => {
+const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, animationType = 'small', isCompact = false, disableActions = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const isTouchDevice = useIsTouchDevice();
@@ -78,14 +78,20 @@ const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, an
                 e.stopPropagation();
                 onEdit(student);
               }}
+              disabled={disableActions}
               style={{
                 background: 'white', border: '1px solid #ddd',
-                borderRadius: '8px', padding: '8px', cursor: 'pointer',
-                color: '#4CAF50', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                borderRadius: '8px', padding: '8px', cursor: disableActions ? 'not-allowed' : 'pointer',
+                color: disableActions ? '#999' : '#4CAF50', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                opacity: disableActions ? 0.4 : 1
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#E8F5E9'}
+              onMouseEnter={(e) => {
+                if (!disableActions) {
+                  e.currentTarget.style.background = '#E8F5E9';
+                }
+              }}
               onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
             >
               <Edit2 size={16} />
@@ -98,14 +104,20 @@ const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, an
                 e.stopPropagation();
                 onDelete(student);
               }}
+              disabled={disableActions}
               style={{
                 background: 'white', border: '1px solid #ddd',
-                borderRadius: '8px', padding: '8px', cursor: 'pointer',
-                color: '#FF6B6B', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                borderRadius: '8px', padding: '8px', cursor: disableActions ? 'not-allowed' : 'pointer',
+                color: disableActions ? '#999' : '#FF6B6B', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                opacity: disableActions ? 0.4 : 1
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#FFEBEE'}
+              onMouseEnter={(e) => {
+                if (!disableActions) {
+                  e.currentTarget.style.background = '#FFEBEE';
+                }
+              }}
               onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
             >
               <Trash2 size={16} />
