@@ -227,6 +227,14 @@ html, body {
   }
 }
 
+/* Hide tooltips on touch devices */
+@media (pointer: coarse) {
+  [data-tooltip]:hover::after,
+  .tooltip {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .modal-animate-scale,
   .animated-modal-content {
