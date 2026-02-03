@@ -30,7 +30,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  overflow-y: hidden;
   /* iOS swipe back gesture - limit horizontal only */
   overscroll-behavior-x: contain;
   /* Allow pull-to-refresh */
@@ -118,7 +117,7 @@ button:hover:not(:disabled) {
 
 /* Make scrollbar thin and only visible on hover/scroll */
 *::-webkit-scrollbar {
-  width: 9px !important; /* Very thin scrollbar */
+  width: 4px !important; /* Very thin scrollbar */
   height: 4px !important;
 }
 *::-webkit-scrollbar-track {
@@ -234,14 +233,69 @@ html, body {
   }
 }
 
-/* Hide tooltips on touch devices */
+/* Disable ALL tooltips on mobile/touch devices */
 @media (pointer: coarse) {
-  [data-tooltip]:hover::after,
-  .tooltip {
-      [title]:hover::after {
+  /* Hide native title attribute tooltips */
+  [title]:hover::after,
+  [title]:focus::after {
     display: none !important;
   }
+  
+  /* Hide custom tooltip components */
+  .tooltip,
+  [class*="tooltip"],
+  [data-tooltip]:hover::after {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
+}
+
+/* Additional mobile-specific tooltip disabling */
+@media (max-width: 768px) {
+  /* Hide all tooltip elements */
+  .tooltip,
+  [class*="tooltip"],
+  [style*="tooltip"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  
+  /* Prevent hover states that trigger tooltips */
+  *:hover .tooltip,
+  *:hover [class*="tooltip"] {
+    display: none !important;
+  }
+}
+
+/* Fix input and avatar backgrounds in dark mode */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea {
+  background: var(--card-bg, #252525) !important;
+  color: var(--text-dark, #e5e5e5) !important;
+  border-color: var(--border-color, #4a4a4a) !important;
+}
+
+[data-theme="dark"] [style*="background: #27272a"],
+[data-theme="dark"] [style*="background: #272727"],
+[data-theme="dark"] [style*="background: #1a1a1a"] {
+  background: var(--card-bg, #252525) !important;
+}
+
+[data-theme="dark"] [style*="background: #fff"],
+[data-theme="dark"] [style*="background: #FFF"],
+[data-theme="dark"] [style*="background: #ffffff"],
+[data-theme="dark"] [style*="background: #FFFFFF"] {
+  background: var(--card-bg, #252525) !important;
+  border: 1px solid var(--border-color, #4a4a4a) !important;
+}
+
+[data-theme="dark"] [style*="background: #f0f0f0"],
+[data-theme="dark"] [style*="background: #F0F0F0"],
+[data-theme="dark"] [style*="background: #f5f5f5"],
+[data-theme="dark"] [style*="background: #F5F5F5"] {
+  background: var(--bg-gray, #2e2e2e) !important;
 }
 
 @media (max-width: 768px) {
