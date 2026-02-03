@@ -353,14 +353,14 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
         try {
             // Temporarily hide the buttons and Edit buttons during capture
             const buttons = document.querySelector('[style*="position: absolute"]');
-            const editButtons = reportContentRef.current.querySelectorAll('button[style*="color: #6366f1"], button[style*="color: #4CAF50"]');
+            const feedbackEditButtons = reportContentRef.current.querySelectorAll('.feedback-edit-button');
             
             const originalButtonDisplay = buttons ? buttons.style.display : '';
-            const editButtonDisplays = Array.from(editButtons).map(btn => btn.style.display);
+            const feedbackButtonDisplays = Array.from(feedbackEditButtons).map(btn => btn.style.display);
             
             // Hide elements
             if (buttons) buttons.style.display = 'none';
-            editButtons.forEach(btn => btn.style.display = 'none');
+            feedbackEditButtons.forEach(btn => btn.style.display = 'none');
 
             const canvas = await html2canvas(reportContentRef.current, {
                 scale: 2,
@@ -375,8 +375,8 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
             
             // Restore elements
             if (buttons) buttons.style.display = originalButtonDisplay;
-            editButtons.forEach((btn, index) => {
-                btn.style.display = editButtonDisplays[index];
+            feedbackEditButtons.forEach((btn, index) => {
+                btn.style.display = feedbackButtonDisplays[index];
             });
             
             const imgData = canvas.toDataURL('image/png');
@@ -433,8 +433,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                         top: 0;
                         width: 100%;
                     }
-                    #report-content button[style*="color: #6366f1"],
-                    #report-content button[style*="color: #4CAF50"] {
+                    #report-content .feedback-edit-button {
                         display: none !important;
                     }
                     @page {
@@ -711,6 +710,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                         <div style={{ marginTop: 8 }}>
                                             {editingFeedback[student.id] ? (
                                                 <button
+                                                    className="feedback-edit-button"
                                                     style={{ ...styles.goBackBtn, color: '#4CAF50', borderColor: '#4CAF50', marginRight: 8 }}
                                                     onClick={() => setEditingFeedback(e => ({ ...e, [student.id]: false }))}
                                                 >
@@ -718,6 +718,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                                 </button>
                                             ) : (
                                                 <button
+                                                    className="feedback-edit-button"
                                                     style={{ ...styles.goBackBtn, color: '#6366f1', borderColor: '#6366f1', marginRight: 8 }}
                                                     onClick={() => setEditingFeedback(e => ({ ...e, [student.id]: true }))}
                                                 >
