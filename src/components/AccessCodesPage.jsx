@@ -11,7 +11,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
     ? activeClass.students.filter(s => s.name.toLowerCase().includes(searchValue.trim().toLowerCase()))
     : activeClass.students;
   return (
-    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh', overflowY: 'auto' }}>
+    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh' }}>
       <style>{`
         .codes-header {
           display: flex;
@@ -127,7 +127,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           align-items: center;
           justify-content: center;
           background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-          padding: 12px;
+          padding: 8px;
           border-radius: 16px;
           border: 2px solid #E2E8F0;
           margin: 0 auto;
@@ -283,63 +283,108 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
                   <span className="codes-code">{codes.parentCode}</span>
                   {codes.parentCode !== '---' && (
                     <div className="codes-qr">
-                      <QRCode id={`parent-qr-${s.id}`} value={parentUrl} size={80} style={{ width: '80px', height: '80px' }} />
-                      <button
-                        className={`codes-copy ${copiedId === `parent-${s.id}` ? 'copied' : ''}`}
-                        onClick={async () => {
-                          const id = `parent-${s.id}`;
-                          const svg = document.getElementById(`parent-qr-${s.id}`);
-                          if (svg) {
+                      <div style={{
+                        padding: '4px',
+                        background: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                      }}>
+                        <QRCode 
+                          id={`parent-qr-${s.id}`} 
+                          value={parentUrl} 
+                          size={100} 
+                          style={{ 
+                            width: '100px', 
+                            height: '100px'
+                          }} 
+                          level="H"
+                          includeMargin={false}
+                          bgColor="#FFFFFF"
+                          fgColor="#2E7D32"
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        <button
+                          className={`codes-copy ${copiedId === `parent-${s.id}` ? 'copied' : ''}`}
+                          onClick={async () => {
+                            const id = `parent-${s.id}`;
                             try {
-                              const serializer = new XMLSerializer();
-                              const svgString = serializer.serializeToString(svg);
-                              const canvas = document.createElement('canvas');
-                              const size = 120;
-                              canvas.width = size;
-                              canvas.height = size;
-                              const ctx = canvas.getContext('2d');
-                              const img = new window.Image();
-                              const svg64 = btoa(unescape(encodeURIComponent(svgString)));
-                              const imageSrc = 'data:image/svg+xml;base64,' + svg64;
-                              img.onload = async function() {
-                                ctx.clearRect(0, 0, size, size);
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(0, 0, size, size);
-                                ctx.drawImage(img, 0, 0, size, size);
-                                canvas.toBlob(async (blob) => {
-                                  try {
-                                    await navigator.clipboard.write([
-                                      new window.ClipboardItem({ 'image/png': blob })
-                                    ]);
-                                    setCopiedId(id);
-                                    setTimeout(() => setCopiedId(null), 2000);
-                                  } catch {
-                                    alert('Failed to copy image. Your browser may not support this feature.');
-                                  }
-                                }, 'image/png');
-                              };
-                              img.onerror = function() {
-                                alert('Failed to render QR code image.');
-                              };
-                              img.src = imageSrc;
-                            } catch (err) {
-                              console.error('QR copy error:', err);
+                              await navigator.clipboard.writeText(codes.parentCode);
+                              setCopiedId(id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            } catch {
+                              alert('Failed to copy access code.');
                             }
-                          }
-                        }}
-                      >
-                        {copiedId === `parent-${s.id}` ? (
-                          <>
-                            <Check size={14} />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Download size={14} />
-                            Copy QR
-                          </>
-                        )}
-                      </button>
+                          }}
+                          style={{ width: '90px' }}
+                        >
+                          {copiedId === `parent-${s.id}` ? (
+                            <>
+                              <Check size={14} />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Download size={14} />
+                              Copy
+                            </>
+                          )}
+                        </button>
+                      <button
+                        className="codes-copy"
+                          onClick={async () => {
+                            const svg = document.getElementById(`parent-qr-${s.id}`);
+                            if (svg) {
+                              try {
+                                const serializer = new XMLSerializer();
+                                const svgString = serializer.serializeToString(svg);
+                                const canvas = document.createElement('canvas');
+                                
+                                // --- UPDATED: Higher resolution and margins ---
+                                const size = 512; // Much bigger size for high quality
+                                const margin = 40; // White space around the QR
+                                
+                                canvas.width = size;
+                                canvas.height = size;
+                                const ctx = canvas.getContext('2d');
+                                const img = new window.Image();
+                                const svg64 = btoa(unescape(encodeURIComponent(svgString)));
+                                const imageSrc = 'data:image/svg+xml;base64,' + svg64;
+                                img.onload = function() {
+                                  ctx.clearRect(0, 0, size, size);
+                                  ctx.fillStyle = '#ffffff';
+                                  ctx.fillRect(0, 0, size, size);
+                                  
+                                  // Draw image centered with margin
+                                  ctx.drawImage(img, margin, margin, size - (margin * 2), size - (margin * 2));
+                                  
+                                  canvas.toBlob((blob) => {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `parent-qr-${s.name}-${s.id}.png`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                  }, 'image/png');
+                                };
+                                img.onerror = function() {
+                                  alert('Failed to render QR code image.');
+                                };
+                                img.src = imageSrc;
+                              } catch (err) {
+                                console.error('QR download error:', err);
+                                alert('Failed to download QR code.');
+                              }
+                            }
+                          }}
+                          title="Download QR"
+                          style={{ padding: '8px 10px' }}
+                        >
+                          <Download size={14} />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -348,63 +393,108 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
                   <span className="codes-code student">{codes.studentCode}</span>
                   {codes.studentCode !== '---' && (
                     <div className="codes-qr">
-                      <QRCode id={`student-qr-${s.id}`} value={studentUrl} size={80} style={{ width: '80px', height: '80px' }} />
-                      <button
-                        className={`codes-copy student ${copiedId === `student-${s.id}` ? 'copied' : ''}`}
-                        onClick={async () => {
-                          const id = `student-${s.id}`;
-                          const svg = document.getElementById(`student-qr-${s.id}`);
-                          if (svg) {
+                      <div style={{
+                        padding: '4px',
+                        background: 'white',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                      }}>
+                        <QRCode 
+                          id={`student-qr-${s.id}`} 
+                          value={studentUrl} 
+                          size={100} 
+                          style={{ 
+                            width: '100px', 
+                            height: '100px'
+                          }} 
+                          level="H"
+                          includeMargin={false}
+                          bgColor="#FFFFFF"
+                          fgColor="#1565C0"
+                        />
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                        <button
+                          className={`codes-copy student ${copiedId === `student-${s.id}` ? 'copied' : ''}`}
+                          onClick={async () => {
+                            const id = `student-${s.id}`;
                             try {
-                              const serializer = new XMLSerializer();
-                              const svgString = serializer.serializeToString(svg);
-                              const canvas = document.createElement('canvas');
-                              const size = 120;
-                              canvas.width = size;
-                              canvas.height = size;
-                              const ctx = canvas.getContext('2d');
-                              const img = new window.Image();
-                              const svg64 = btoa(unescape(encodeURIComponent(svgString)));
-                              const imageSrc = 'data:image/svg+xml;base64,' + svg64;
-                              img.onload = async function() {
-                                ctx.clearRect(0, 0, size, size);
-                                ctx.fillStyle = '#ffffff';
-                                ctx.fillRect(0, 0, size, size);
-                                ctx.drawImage(img, 0, 0, size, size);
-                                canvas.toBlob(async (blob) => {
-                                  try {
-                                    await navigator.clipboard.write([
-                                      new window.ClipboardItem({ 'image/png': blob })
-                                    ]);
-                                    setCopiedId(id);
-                                    setTimeout(() => setCopiedId(null), 2000);
-                                  } catch {
-                                    alert('Failed to copy image. Your browser may not support this feature.');
-                                  }
-                                }, 'image/png');
-                              };
-                              img.onerror = function() {
-                                alert('Failed to render QR code image.');
-                              };
-                              img.src = imageSrc;
-                            } catch (err) {
-                              console.error('QR copy error:', err);
+                              await navigator.clipboard.writeText(codes.studentCode);
+                              setCopiedId(id);
+                              setTimeout(() => setCopiedId(null), 2000);
+                            } catch {
+                              alert('Failed to copy access code.');
                             }
-                          }
-                        }}
+                          }}
+                          style={{ width: '90px' }}
+                        >
+                          {copiedId === `student-${s.id}` ? (
+                            <>
+                              <Check size={14} />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Download size={14} />
+                              Copy
+                            </>
+                          )}
+                        </button>
+                        <button
+                          className="codes-copy student"
+                          onClick={async () => {
+                            const svg = document.getElementById(`student-qr-${s.id}`);
+                            if (svg) {
+                              try {
+                                const serializer = new XMLSerializer();
+                                const svgString = serializer.serializeToString(svg);
+                                const canvas = document.createElement('canvas');
+                                
+                                // --- UPDATED: Higher resolution and margins ---
+                                const size = 512; // Much bigger size
+                                const margin = 40; // White space around the QR
+                                
+                                canvas.width = size;
+                                canvas.height = size;
+                                const ctx = canvas.getContext('2d');
+                                const img = new window.Image();
+                                const svg64 = btoa(unescape(encodeURIComponent(svgString)));
+                                const imageSrc = 'data:image/svg+xml;base64,' + svg64;
+                                img.onload = function() {
+                                  ctx.clearRect(0, 0, size, size);
+                                  ctx.fillStyle = '#ffffff';
+                                  ctx.fillRect(0, 0, size, size);
+                                  
+                                  // Draw image centered with margin
+                                  ctx.drawImage(img, margin, margin, size - (margin * 2), size - (margin * 2));
+                                  
+                                  canvas.toBlob((blob) => {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `student-qr-${s.name}-${s.id}.png`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                  }, 'image/png');
+                                };
+                                img.onerror = function() {
+                                  alert('Failed to render QR code image.');
+                                };
+                                img.src = imageSrc;
+                              } catch (err) {
+                                console.error('QR download error:', err);
+                                alert('Failed to download QR code.');
+                              }
+                            }
+                          }}
+                        title="Download QR"
+                        style={{ padding: '8px 10px' }}
                       >
-                        {copiedId === `student-${s.id}` ? (
-                          <>
-                            <Check size={14} />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Download size={14} />
-                            Copy QR
-                          </>
-                        )}
+                        <Download size={14} />
                       </button>
+                      </div>
                     </div>
                   )}
                 </div>
