@@ -1,7 +1,5 @@
 import React, { useState, useRef } from 'react';
 import { X, Check, XCircle, Download, Printer, Award, Save } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import api from '../services/api';
 
 /**
