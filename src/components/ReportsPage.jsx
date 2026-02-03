@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import SimpleWysiwyg from 'react-simple-wysiwyg';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { X } from 'lucide-react';
+import { X, Download, Printer } from 'lucide-react';
 import {
     Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
 } from 'chart.js';
 import { boringAvatar } from '../utils/avatar'; // Ensure this path is correct
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 import InlineHelpButton from './InlineHelpButton';
 
@@ -196,6 +198,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
     const [language, setLanguage] = useState('en'); // 'en' or 'zh'
     const [selectedStudentId, setSelectedStudentId] = useState(studentId || '');
     const [realStats, setRealStats] = useState({});
+    const reportContentRef = useRef(null);
 
     // Responsive Hooks
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -343,6 +346,126 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
 
     const t = translations[language];
 
+    // Download as PDF
+    const handleDownload = async () => {
+        if (!reportContentRef.current) return;
+
+        try {
+            // Temporarily hide the buttons and Edit buttons during capture
+            const buttons = document.querySelector('[style*="position: absolute"]');
+            const editButtons = reportContentRef.current.querySelectorAll('button[style*="color: #6366f1"], button[style*="color: #4CAF50"]');
+            
+            const originalButtonDisplay = buttons ? buttons.style.display : '';
+            const editButtonDisplays = Array.from(editButtons).map(btn => btn.style.display);
+            
+            // Hide elements
+            if (buttons) buttons.style.display = 'none';
+            editButtons.forEach(btn => btn.style.display = 'none');
+
+            const canvas = await html2canvas(reportContentRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true,
+                width: reportContentRef.current.scrollWidth,
+                height: reportContentRef.current.scrollHeight,
+                windowWidth: reportContentRef.current.scrollWidth,
+                windowHeight: reportContentRef.current.scrollHeight
+            });
+            
+            // Restore elements
+            if (buttons) buttons.style.display = originalButtonDisplay;
+            editButtons.forEach((btn, index) => {
+                btn.style.display = editButtonDisplays[index];
+            });
+            
+            const imgData = canvas.toDataURL('image/png');
+            
+            // Calculate PDF dimensions (A4 ratio)
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 295; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            
+            // Add additional pages if needed
+            while (heightLeft > 0) {
+                position = -heightLeft;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            
+            const filename = selectedStudentId 
+                ? `${activeClass?.students?.find(s => s.id === selectedStudentId)?.name || 'student'}_${timePeriod}_report.pdf`
+                : `${activeClass?.name || 'class'}_${timePeriod}_report.pdf`;
+            
+            pdf.save(filename);
+        } catch (error) {
+            console.error('Failed to generate PDF:', error);
+            alert('Failed to generate PDF. Please try again.');
+        }
+    };
+
+    // Print
+    const handlePrint = () => {
+        if (!reportContentRef.current) return;
+
+        // Create print-specific styles
+        const printStyles = `
+            <style>
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #report-content, #report-content * {
+                        visibility: visible;
+                    }
+                    #report-content {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    #report-content button[style*="color: #6366f1"],
+                    #report-content button[style*="color: #4CAF50"] {
+                        display: none !important;
+                    }
+                    @page {
+                        margin: 1cm;
+                        size: A4;
+                    }
+                }
+            </style>
+        `;
+
+        // Add print styles to head
+        const styleSheet = document.createElement('style');
+        styleSheet.innerHTML = printStyles.replace('#report-content', '.print-content');
+        document.head.appendChild(styleSheet);
+
+        // Add ID to report content for print targeting
+        const originalId = reportContentRef.current.id;
+        reportContentRef.current.id = 'print-content';
+        reportContentRef.current.className = 'print-content';
+
+        // Trigger print
+        window.print();
+
+        // Clean up after print dialog closes
+        setTimeout(() => {
+            document.head.removeChild(styleSheet);
+            reportContentRef.current.id = originalId;
+            reportContentRef.current.className = '';
+        }, 1000);
+    };
+
     return (
         <div className="safe-area-top" style={{ ...styles.container, padding: isMobile ? '20px' : '40px' }}>
             <div className="safe-area-top" style={{
@@ -354,8 +477,8 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                 position: 'relative',
                 paddingBottom: isMobile ? '10px' : '20px',
             }}>
-                {/* Header Left: Title (hidden for parent view and on mobile) */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Header Left: Title */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                     {!isParentView && !isMobile && (
                         <h1 style={{ ...styles.mainTitle, fontSize: isMobile ? '18px' : '24px', margin: 0 }}>
                             {selectedStudentId && !isParentView
@@ -471,7 +594,47 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
             {displayStudents.length === 0 ? (
                 <div style={styles.emptyState}>{t.emptyState}</div>
             ) : (
-                displayStudents.map(student => {
+                <div style={{ position: 'relative' }}>
+                    {/* Download and Print Buttons - Top Right of Body */}
+                    <div style={{
+                        position: 'absolute',
+                        top: isMobile ? '10px' : '20px',
+                        right: isMobile ? '10px' : '20px',
+                        zIndex: 10,
+                        display: 'flex',
+                        gap: isMobile ? 6 : 8
+                    }}>
+                        <button 
+                            onClick={handleDownload} 
+                            style={{ 
+                                ...styles.downloadPrintBtn,
+                                padding: isMobile ? '8px 12px' : '10px 16px',
+                                fontSize: isMobile ? '12px' : '14px',
+                                minWidth: isMobile ? 'auto' : '80px'
+                            }}
+                            title="Download PDF"
+                        >
+                            <Download size={isMobile ? 14 : 16} />
+                            {!isMobile && <span style={{ marginLeft: '6px' }}>PDF</span>}
+                        </button>
+                        <button 
+                            onClick={handlePrint} 
+                            style={{ 
+                                ...styles.downloadPrintBtn,
+                                padding: isMobile ? '8px 12px' : '10px 16px',
+                                fontSize: isMobile ? '12px' : '14px',
+                                minWidth: isMobile ? 'auto' : '80px'
+                            }}
+                            title="Print"
+                        >
+                            <Printer size={isMobile ? 14 : 16} />
+                            {!isMobile && <span style={{ marginLeft: '6px' }}>Print</span>}
+                        </button>
+                    </div>
+
+                    {/* Report Content - for PDF capture */}
+                    <div ref={reportContentRef} style={{ paddingTop: isMobile ? '60px' : '80px' }}>
+                        {displayStudents.map(student => {
                     const stats = getStudentStats(student);
                     const teacherNote = generateTeacherNote(student, stats, timePeriod, language);
                     const doughnutData = {
@@ -626,7 +789,9 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                             </div>
                         </div>
                     );
-                })
+                })}
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -699,4 +864,20 @@ const styles = {
     chartTitle: { fontSize: '14px', fontWeight: 'bold', marginBottom: '15px', color: '#444' },
     emptyState: { textAlign: 'center', padding: '50px', color: '#ccc' },
     printBtn: { padding: '8px 20px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' },
+    downloadPrintBtn: {
+        padding: '8px 12px',
+        border: '1px solid #e0e0e0',
+        background: '#fff',
+        cursor: 'pointer',
+        borderRadius: '8px',
+        fontWeight: '600',
+        color: '#6366f1',
+        fontSize: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '4px',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    },
 };

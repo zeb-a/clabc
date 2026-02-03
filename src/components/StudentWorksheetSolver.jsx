@@ -107,7 +107,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
       answers: answers,
       status: 'submitted',
       grade_data: {},
-      grade: 0
+      grade: "0"
     };
     try {
       await api.pbRequest('/collections/submissions/records', {
