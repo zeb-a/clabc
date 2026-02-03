@@ -233,38 +233,11 @@ html, body {
   }
 }
 
-/* Disable ALL tooltips on mobile/touch devices */
+/* Hide tooltips on touch devices */
 @media (pointer: coarse) {
-  /* Hide native title attribute tooltips */
-  [title]:hover::after,
-  [title]:focus::after {
-    display: none !important;
-  }
-  
-  /* Hide custom tooltip components */
+  [data-tooltip]:hover::after,
   .tooltip,
-  [class*="tooltip"],
-  [data-tooltip]:hover::after {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-  }
-}
-
-/* Additional mobile-specific tooltip disabling */
-@media (max-width: 768px) {
-  /* Hide all tooltip elements */
-  .tooltip,
-  [class*="tooltip"],
-  [style*="tooltip"] {
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-  }
-  
-  /* Prevent hover states that trigger tooltips */
-  *:hover .tooltip,
-  *:hover [class*="tooltip"] {
+  [title]:hover::after {
     display: none !important;
   }
 }

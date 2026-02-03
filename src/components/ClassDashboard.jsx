@@ -34,6 +34,7 @@ const clamp = (min, val, max) => val;
 const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataNavbarIcon }) => {
   const [hovered, setHovered] = React.useState(false);
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
   const handleClick = (e) => {
     onClick(e);
@@ -69,7 +70,7 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
           <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72' }} />
         </div>
         {badge}
-        {hovered && (
+        {hovered && !isTouchDevice && (
           <div style={{
             position: 'absolute',
             left: '72px',
