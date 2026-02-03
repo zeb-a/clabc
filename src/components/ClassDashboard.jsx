@@ -466,6 +466,11 @@ export default function ClassDashboard({
   const [viewMode, setViewMode] = useState('students'); // 'students', 'reports', 'assignments', etc.
   const viewModeRef = useRef('students');
 
+  // Keep viewModeRef in sync with viewMode state
+  useEffect(() => {
+    viewModeRef.current = viewMode;
+  }, [viewMode]);
+
   // Use existing state declarations from earlier in the file (isLuckyDrawOpen, showWhiteboard, buzzerState)
   const modalRef = useRef(null);
 
@@ -566,16 +571,27 @@ export default function ClassDashboard({
   };
 
   // 2. Handle Grading (Passed to InboxPage)
-  const handleGradeSubmit = async (submissionId, gradeValue) => {
+  const handleGradeSubmit = async (submissionId, gradeValue, detailedGrading = null) => {
     try {
       // First, get the submission to find the student ID and previous grade
       const submission = await api.pbRequest(`/collections/submissions/records/${submissionId}`);
       const previousGrade = Number(submission.grade) || 0;
 
+      // Prepare update data
+      const updateData = { 
+        grade: gradeValue, 
+        status: 'graded'
+      };
+
+      // If detailed grading is provided, store it
+      if (detailedGrading) {
+        updateData.detailed_grading = JSON.stringify(detailedGrading);
+      }
+
       // Update the submission with grade and status
       await api.pbRequest(`/collections/submissions/records/${submissionId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ grade: gradeValue, status: 'graded' })
+        body: JSON.stringify(updateData)
       });
 
       // Add only the difference to the student's total score (for regrading)
@@ -991,7 +1007,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={MessageSquare}
-            label={t('dashboard.inbox_grading')}
+            label="📝 Grade Work"
             onClick={() => {
               setViewModeWithHistory('messages');
               fetchFreshSubmissions();

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { ChevronLeft, CheckCircle, X, Award, MessageSquare } from 'lucide-react';
+import { ChevronLeft, CheckCircle, X, MessageSquare, Check, Users } from 'lucide-react';
 import InlineHelpButton from './InlineHelpButton';
+import AssignmentGradingModal from './AssignmentGradingModal';
 
 const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
   const [selectedSub, setSelectedSub] = useState(null);
   const [grade, setGrade] = useState('');
-  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('pending');
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   const pending = submissions.filter(s => s.status === 'submitted');
@@ -18,9 +19,17 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
 
   const submit = async () => {
     await onGradeSubmit(selectedSub.id, grade);
-    // Try to update student's total points in parent/class dashboard if possible
+    setSelectedSub(null);
+  };
+
+  // Handle detailed grading from modal
+  const handleDetailedGrade = async (gradedData) => {
+    await onGradeSubmit(selectedSub.id, gradedData.finalScore, gradedData);
+    // Trigger point update for student card in class dashboard
     if (selectedSub?.student_id && typeof window !== 'undefined' && window.dispatchEvent) {
-      window.dispatchEvent(new CustomEvent('studentPointsUpdated', { detail: { studentId: selectedSub.student_id, points: Number(grade) } }));
+      window.dispatchEvent(new CustomEvent('studentPointsUpdated', { 
+        detail: { studentId: selectedSub.student_id, points: Number(gradedData.finalScore) } 
+      }));
     }
     setSelectedSub(null);
   };
@@ -28,183 +37,311 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
   return (
     <div className="inbox-page safe-area-top" style={{ ...pageStyles.container, paddingTop: 'calc(12px + var(--safe-top, 0px))' }}>
       <style>{`
-        .inbox-page .sidebar { width: 160px !important; }
-        .inbox-page .workHeader { padding: 12px !important; }
+        .inbox-page { 
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          background:rgba(210, 30, 210, 0.37);
+        }
+        .inbox-page .sidebar { display: none !important; }
         .inbox-page .badge { font-size: 11px !important; padding: 6px 10px !important; }
+        
+        /* Card Hover Effects */
+        .submission-card {
+          transition: all 0.3s ease !important;
+          cursor: pointer !important;
+        }
+        .submission-card:hover {
+          transform: translateY(-4px) !important;
+          box-shadow: 0 8px 25px rgba(225, 225, 232, 0.15) !important;
+        }
+        
         @media (max-width: 768px) {
-          .inbox-page .sidebar { display: none !important; }
-          .inbox-page .workstation { padding: 16px !important; }
           .inbox-page .closeBtn button { width: 40px; height: 40px; }
         }
       `}</style>
-      
-      {/* MAIN GRADING AREA */}
-      <div style={pageStyles.main}>
-        {/* Header with X and ? top right, and nav toggle */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px 0 0', minHeight: 48 }}>
-          <div />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Nav toggle button: show tooltip on desktop, text label on mobile */}
-            <button
-              onClick={() => setSidebarVisible(v => !v)}
-              style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', marginRight: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-              title={!isMobile ? 'Show Inbox Nav' : undefined}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="5" width="14" height="2" rx="1" fill="#64748B"/><rect x="3" y="9" width="14" height="2" rx="1" fill="#64748B"/><rect x="3" y="13" width="14" height="2" rx="1" fill="#64748B"/></svg>
-              {isMobile && <span style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>Inbox</span>}
-            </button>
-            {/* Help button: tooltip on desktop, text label on mobile */}
-            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <InlineHelpButton pageId="inbox" />
-              {isMobile && <span style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>Help</span>}
-            </span>
-            {/* Close button: tooltip on desktop, text label on mobile */}
-            <button
-              onClick={onBack}
-              style={{ background: '#F1F5F9', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-              title={!isMobile ? 'Close' : undefined}
-            >
-              <X size={20} />
-              {isMobile && <span style={{ fontSize: 10, color: '#64748B', marginTop: 2 }}>Close</span>}
-            </button>
+
+      {/* Header 2026 Style */}
+      <div style={pageStyles.modernHeader}>
+        <div style={pageStyles.headerLeft}>
+          <div style={pageStyles.headerContent}>
+            <div style={pageStyles.headerIcon}>
+              <MessageSquare size={28} color="#fff" />
+            </div>
+            <div>
+              <h1 style={pageStyles.headerTitle}>Grading Center</h1>
+              <p style={pageStyles.headerSubtitle}>
+                {pending.length} pending • {graded.length} graded
+              </p>
+            </div>
           </div>
         </div>
+        
+        <button onClick={onBack} style={pageStyles.closeBtn}>
+          <X size={20} color="#fff" />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={pageStyles.tabsContainer}>
+        <button
+          onClick={() => setActiveTab('pending')}
+          style={{
+            ...pageStyles.tab,
+            ...(activeTab === 'pending' ? pageStyles.activeTab : pageStyles.inactiveTab)
+          }}
+        >
+          <CheckCircle size={16} />
+          <span>Pending ({pending.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('graded')}
+          style={{
+            ...pageStyles.tab,
+            ...(activeTab === 'graded' ? pageStyles.activeTab : pageStyles.inactiveTab)
+          }}
+        >
+          <Check size={16} />
+          <span>Graded ({graded.length})</span>
+        </button>
+      </div>
+
+      {/* Main Content Area */}
+      <div style={pageStyles.mainContent}>
         {selectedSub ? (
-          <div style={pageStyles.workstation}>
-            <header style={pageStyles.workHeader}>
-              <div>
-                <h1 style={{ fontSize: '24px', fontWeight: 800 }}>{selectedSub.student_name}</h1>
-                <p style={{ color: '#666' }}>{selectedSub.assignment_title}</p>
-              </div>
-              <div style={pageStyles.badge}>{selectedSub.status}</div>
-            </header>
-
-            <div style={pageStyles.contentBody}>
-              <h3 style={pageStyles.sectionTitle}>Student Responses</h3>
-              {Object.entries(selectedSub.answers || {}).map(([, a], i) => (
-                <div key={i} style={pageStyles.answerBox}>
-                  <div style={pageStyles.qNum}>Question {i + 1}</div>
-                  <div style={{ fontSize: '16px', lineHeight: '1.6' }}>{a}</div>
-                </div>
-              ))}
-            </div>
-
-            <footer style={pageStyles.gradingBar}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Points"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  style={{ width: 60, fontSize: 16, padding: '6px 8px', borderRadius: 8, border: '1px solid #DDD', marginRight: 4, textAlign: 'center' }}
-                />
-                <button onClick={submit} style={{ background: '#1976D2', border: 'none', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} title="Save Grade">
-                  <Award color="#FFF" size={20} />
-                </button>
-              </div>
-            </footer>
-          </div>
+          <>
+            <AssignmentGradingModal
+              submission={selectedSub}
+              studentName={selectedSub.student_name}
+              assignmentTitle={selectedSub.assignment_title}
+              onClose={() => setSelectedSub(null)}
+              onSaveGrade={handleDetailedGrade}
+            />
+          </>
         ) : (
-          <div style={pageStyles.emptyState}>
-            <MessageSquare size={48} color="#DDD" />
-            <p>Select a submission to start grading</p>
+          <div style={pageStyles.content}>
+            {activeTab === 'pending' && (
+              <div style={pageStyles.submissionsGrid}>
+                {pending.map(sub => (
+                  <SubmissionCard
+                    key={sub.id}
+                    sub={sub}
+                    onClick={() => handleSelect(sub)}
+                    isPending
+                  />
+                ))}
+              </div>
+            )}
+            
+            {activeTab === 'graded' && (
+              <div style={pageStyles.submissionsGrid}>
+                {graded.map(sub => (
+                  <SubmissionCard
+                    key={sub.id}
+                    sub={sub}
+                    onClick={() => handleSelect(sub)}
+                    isGraded
+                  />
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'pending' && pending.length === 0 && (
+              <div style={pageStyles.emptyState}>
+                <CheckCircle size={48} color="#4CAF50" />
+                <h3>No Pending Submissions</h3>
+                <p>All caught up! 🎉</p>
+              </div>
+            )}
+
+            {activeTab === 'graded' && graded.length === 0 && (
+              <div style={pageStyles.emptyState}>
+                <Users size={48} color="#666" />
+                <h3>No Graded Work Yet</h3>
+                <p>Start grading pending submissions</p>
+              </div>
+            )}
           </div>
         )}
       </div>
-      
-     {sidebarVisible && !selectedSub && (
-      <div style={pageStyles.sidebar}>
-        <div style={pageStyles.sidebarHeader}>
-          <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Inbox</h2>
-        </div>
-        <div style={pageStyles.scrollArea}>
-          <SectionLabel label="Waiting for Review" count={pending.length} color="#FF4757" />
-          {pending.map(sub => (
-            <SubmissionCard
-              key={sub.id}
-              sub={sub}
-              active={selectedSub?.id === sub.id}
-              onClick={() => handleSelect(sub)}
-            />
-          ))}
-          <div style={{ marginTop: '30px' }} />
-          <SectionLabel label="Recently Graded" count={graded.length} color="#4CAF50" />
-          {graded.map(sub => (
-            <SubmissionCard
-              key={sub.id}
-              sub={sub}
-              active={selectedSub?.id === sub.id}
-              onClick={() => handleSelect(sub)}
-              isGraded
-            />
-          ))}
-        </div>
-      </div>
-     )}
-
     </div>
   );
 };
 
-// Helper Components
-const SectionLabel = ({ label, count, color }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 10px', marginBottom: '10px' }}>
-    <span style={{ fontSize: '12px', fontWeight: 700, color: '#999', textTransform: 'uppercase' }}>{label}</span>
-    <span style={{ fontSize: '12px', fontWeight: 700, color }}>{count}</span>
-  </div>
-);
 
-const SubmissionCard = ({ sub, active, onClick, isGraded }) => (
+
+const SubmissionCard = ({ sub, active, onClick, isGraded, isPending }) => (
   <div
+    className="submission-card"
     onClick={onClick}
     style={{
       ...pageStyles.card,
-      borderLeft: active ? '4px solid #4A90E2' : '4px solid transparent',
-      background: active ? '#F0F7FF' : 'white',
+      borderLeft: active ? '4px solidrgb(191, 189, 233)' : '4px solid transparent',
+      background: active ? '#F8F9FF' : 'white',
       opacity: isGraded ? 0.7 : 1
     }}
   >
-    <div style={{ fontWeight: 700 }}>{sub.student_name}</div>
-    <div style={{ fontSize: '12px', color: '#666' }}>{sub.assignment_title}</div>
-    {isGraded && <div style={{ fontSize: '12px', color: '#4CAF50', marginTop: '5px' }}>Grade: {sub.grade}</div>}
+    <div style={pageStyles.cardHeader}>
+      <div style={{ fontWeight: 600, fontSize: '16px', color: '#111027' }}>{sub.student_name}</div>
+      <div style={{ 
+        fontSize: '12px', 
+        color: isPending ? '#FFD93D' : isGraded ? '#4CAF50' : '#666', 
+        backgroundColor: isPending ? 'rgba(255, 217, 61, 0.1)' : isGraded ? 'rgba(76, 175, 80, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+        padding: '4px 8px',
+        borderRadius: '12px',
+        display: 'inline-block'
+      }}>
+        {isPending && '⏳ Pending'}
+        {isGraded && '✓ Graded'}
+      </div>
+    </div>
+    <div style={{ fontSize: '14px', color: '#174151', marginTop: '8px', opacity: 0.9 }}>{sub.assignment_title}</div>
+    {isGraded && <div style={{ fontSize: '13px', color: '#4CAF50', marginTop: '8px', fontWeight: '500' }}>Score: {sub.grade}</div>}
   </div>
 );
 
 const pageStyles = {
-  container: { display: 'flex', height: '100%', width: '100%', background: '#F8F9FA', position: 'relative', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1, flexDirection: 'row' },
-  sidebar: { width: '200px', background: '#FFF', borderRight: '1px solid #EEE', display: 'flex', flexDirection: 'column' },
-  sidebarHeader: { 
-    padding: '20px', 
-    borderBottom: '1px solid #EEE',
+  container: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    height: '100%', 
+    width: '100%', 
+    background: '#F6F9F4',
+    position: 'relative',
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    zIndex: 1
+  },
+  
+  // Modern Header Styles
+  modernHeader: {
+    background: 'rgba(70, 148, 220, 0.7)',
+    padding: '24px 32px',
     display: 'flex',
-    justifyContent: 'space-between', // Pushes Inbox title left, X button right
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solidrgb(28, 28, 30)',
+    borderRadius: '0 0 24px 24px / 24px 0 0'
+  },
+  headerLeft: {
+    display: 'flex',
     alignItems: 'center'
   },
-  scrollArea: { flex: 1, overflowY: 'auto', padding: '20px' },
-  main: { flex: 1, display: 'flex', flexDirection: 'column', background: '#F8F9FA' },
+  headerContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px'
+  },
+  headerIcon: {
+    background: 'rgba(255, 255, 255, 0.15)',
+    padding: '12px',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  headerTitle: {
+    margin: '0 0 4px 0',
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: '-0.5px'
+  },
+  headerSubtitle: {
+    margin: 0,
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500'
+  },
   closeBtn: {
-    background: '#F1F5F9',
-    color: '#64748B',
-    border: 'none',
-    padding: '8px',
-    borderRadius: '10px',
+    background: 'rgba(255, 255, 255, 0.15)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    borderRadius: '12px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: '10px',
     transition: 'all 0.2s ease'
-  }, card: { padding: '15px', borderRadius: '12px', marginBottom: '10px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)', transition: 'all 0.2s' },
-  workstation: { display: 'flex', flexDirection: 'column', height: '100%', maxWidth: '800px', margin: '0 auto', width: '100%', padding: '40px' },
-  workHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
-  badge: { padding: '4px 12px', borderRadius: '20px', background: '#E3F2FD', color: '#1976D2', fontSize: '12px', fontWeight: 'bold' },
-  contentBody: { flex: 1, overflowY: 'auto', paddingRight: '10px' },
-  answerBox: { background: '#FFF', padding: '20px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #EEE' },
-  qNum: { fontSize: '12px', fontWeight: 800, color: '#4A90E2', marginBottom: '10px', textTransform: 'uppercase' },
-  gradingBar: { background: '#FFF', padding: '20px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 -10px 30px rgba(0,0,0,0.05)', marginTop: '20px', marginBottom: 0 },
-  gradeInput: { border: 'none', fontSize: '18px', fontWeight: 700, width: '150px', outline: 'none' },
-  submitBtn: { background: '#000', color: '#FFF', padding: '12px 24px', borderRadius: '14px', border: 'none', fontWeight: 700, cursor: 'pointer' },
-  emptyState: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }
+  },
+
+  // Tab Styles
+  tabsContainer: {
+    display: 'flex',
+    padding: '0 32px',
+    gap: '8px',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+  },
+  tab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px 20px',
+    borderRadius: '12px 12px 0 0',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    transition: 'all 0.3s ease'
+  },
+  activeTab: {
+    background: 'rgba(255, 255, 255, 0.95)',
+    color: '#4F46E5',
+    borderBottom: '2px solid #4F46E5'
+  },
+  inactiveTab: {
+    background: 'rgba(79, 70, 229, 0.1)',
+    color: 'rgba(79, 70, 229, 0.7)',
+    borderBottom: '2px solid transparent'
+  },
+
+  // Content Area
+  mainContent: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '24px 32px'
+  },
+  content: {
+    maxWidth: '1200px',
+    margin: '0 auto'
+  },
+  submissionsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '16px',
+    padding: '24px 0'
+  },
+
+  // Card Styles  
+  card: { 
+    backgroundColor: '#FAFBFF', 
+    border: '1px solid #E0E7FF', 
+    borderRadius: '16px', 
+    padding: '20px', 
+    cursor: 'pointer', 
+    transition: 'all 0.3s ease',
+    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.08)',
+    backdropFilter: 'none'
+  },
+  cardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px'
+  },
+
+  // Empty States
+  emptyState: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    color: 'rgba(255, 255, 255, 0.8)',
+    padding: '60px 20px',
+    textAlign: 'center'
+  }
 };
 
 export default InboxPage;
