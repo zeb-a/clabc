@@ -25,6 +25,7 @@ import AssignmentsPage from './AssignmentsPage'; // Add this line at the top
 import AccessCodesPage from './AccessCodesPage'; // Add this line
 import SettingsPage from './SettingsPage';
 import InlineHelpButton from './InlineHelpButton';
+import PointsHistoryView from './PointsHistoryView';
 import { useTranslation } from '../i18n';
 
 // Helper function for documentation of clamp usage in inline styles
@@ -34,7 +35,6 @@ const clamp = (min, val, max) => val;
 const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataNavbarIcon }) => {
   const [hovered, setHovered] = React.useState(false);
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
-  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
   const handleClick = (e) => {
     onClick(e);
@@ -70,7 +70,7 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
           <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72' }} />
         </div>
         {badge}
-        {hovered && !isTouchDevice && (
+        {hovered && (
           <div style={{
             position: 'absolute',
             left: '72px',
@@ -225,6 +225,7 @@ export default function ClassDashboard({
   onOpenEggRoad,
   onOpenSettings,
   updateClasses,
+  refreshClasses,
   onOpenAssignments
 }) {
   const { t } = useTranslation();
@@ -439,6 +440,7 @@ export default function ClassDashboard({
   const [buzzerCount, setBuzzerCount] = useState(5);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false); // Multi-select mode for student cards
   const [multiSelectedStudents, setMultiSelectedStudents] = useState(new Set()); // Students selected in multi-select mode
+  const [showHistory, setShowHistory] = useState(false); // Points history modal
   const audioCtxRef = useRef(null);
   const mainOscRef = useRef(null);
 
@@ -465,11 +467,6 @@ export default function ClassDashboard({
   // --- SUBMISSIONS & MESSAGES STATE ---
   const [viewMode, setViewMode] = useState('students'); // 'students', 'reports', 'assignments', etc.
   const viewModeRef = useRef('students');
-
-  // Keep viewModeRef in sync with viewMode state
-  useEffect(() => {
-    viewModeRef.current = viewMode;
-  }, [viewMode]);
 
   // Use existing state declarations from earlier in the file (isLuckyDrawOpen, showWhiteboard, buzzerState)
   const modalRef = useRef(null);
@@ -511,6 +508,7 @@ export default function ClassDashboard({
   const closeModal = () => {
     setIsLuckyDrawOpen(false);
     setShowWhiteboard(false);
+    setShowHistory(false);
     setBuzzerState('idle');
     window.history.replaceState(
       { ...window.history.state, dashboardModal: null },
@@ -571,27 +569,16 @@ export default function ClassDashboard({
   };
 
   // 2. Handle Grading (Passed to InboxPage)
-  const handleGradeSubmit = async (submissionId, gradeValue, detailedGrading = null) => {
+  const handleGradeSubmit = async (submissionId, gradeValue) => {
     try {
       // First, get the submission to find the student ID and previous grade
       const submission = await api.pbRequest(`/collections/submissions/records/${submissionId}`);
       const previousGrade = Number(submission.grade) || 0;
 
-      // Prepare update data
-      const updateData = { 
-        grade: gradeValue, 
-        status: 'graded'
-      };
-
-      // If detailed grading is provided, store it
-      if (detailedGrading) {
-        updateData.detailed_grading = JSON.stringify(detailedGrading);
-      }
-
       // Update the submission with grade and status
       await api.pbRequest(`/collections/submissions/records/${submissionId}`, {
         method: 'PATCH',
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({ grade: gradeValue, status: 'graded' })
       });
 
       // Add only the difference to the student's total score (for regrading)
@@ -982,7 +969,6 @@ export default function ClassDashboard({
                 transition: 'transform 0.3s ease',
                 boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
                 outline: '3px solid rgba(99,102,241,0.08)',
-                overflowY: 'auto',
                 boxSizing: 'border-box',
                 marginTop: '7px'
               };
@@ -1007,7 +993,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={MessageSquare}
-            label="📝 Grade Work"
+            label={t('dashboard.inbox_grading')}
             onClick={() => {
               setViewModeWithHistory('messages');
               fetchFreshSubmissions();
@@ -1134,7 +1120,7 @@ export default function ClassDashboard({
             onClick={(e) => { e.stopPropagation(); setSidebarVisible(prev => !prev); }}
             style={(() => {
               // Hide chevron when modals or overlays are open
-              const isOverlayOpen = isLuckyDrawOpen || showWhiteboard || buzzerState !== 'idle' ||
+              const isOverlayOpen = isLuckyDrawOpen || showWhiteboard || showHistory || buzzerState !== 'idle' ||
                                    viewMode === 'timer' || viewMode === 'settings' ||
                                    viewMode === 'reports' || viewMode === 'assignments' ||
                                    viewMode === 'codes' || viewMode === 'messages' ||
@@ -1414,6 +1400,18 @@ export default function ClassDashboard({
                     </div>
 
                     {/* Right side: Controls */}
+                      {!isMobile && (
+                      <div style={{ width: '100px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                        <IconButton
+                          title={t('dashboard.points_history')}
+                          onClick={() => setShowHistory(true)}
+                        >
+                          <Clock size={22} />
+                        </IconButton>
+                      </div>
+                    )}
+
+                    {/* Right side: Controls */}
                     {isMobile ? (
                       /* Mobile: 3-dot menu */
                       <div style={{ width: '100px', display: 'flex', justifyContent: 'flex-end' }}>
@@ -1590,6 +1588,19 @@ export default function ClassDashboard({
                               >
                                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
                                 <span style={{ flex: 1, textAlign: 'left' }}>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+                              </button>
+
+                              {/* Points History */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowHeaderMenu(false);
+                                  setShowHistory(true);
+                                }}
+                                style={{ ...styles.gridOption, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}
+                              >
+                                <Clock size={18} />
+                                <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.points_history')}</span>
                               </button>
 
                               {/* Select Multiple */}
@@ -2328,6 +2339,16 @@ export default function ClassDashboard({
         {showWhiteboard && (
           <Whiteboard onClose={closeModal} />
         )}
+
+        {/* Points History Modal */}
+        {showHistory && (
+          <PointsHistoryView
+            activeClass={activeClass}
+            onClose={() => setShowHistory(false)}
+            refreshClasses={refreshClasses}
+          />
+        )}
+
         <PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} onComplete={() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' })} />
       </div>
 

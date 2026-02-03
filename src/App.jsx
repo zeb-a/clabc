@@ -540,6 +540,7 @@ function App() {
           onOpenEggRoad={() => navigate('egg')}
           onOpenSettings={() => navigate('settings')}
           updateClasses={updateClasses}
+          refreshClasses={refreshClasses}
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onOpenAssignments={() => setIsAssignmentStudioOpen(true)}
         />
