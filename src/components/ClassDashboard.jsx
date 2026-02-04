@@ -1003,7 +1003,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={MessageSquare}
-            label={t('Grading Inbox')}
+            label={t('dashboard.inbox_grading')}
             onClick={() => {
               setViewModeWithHistory('messages');
               fetchFreshSubmissions();
