@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Clock, Trophy, X, Trash2, User, Filter, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Clock, Trophy, X, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 import SafeAvatar from './SafeAvatar';
 import { boringAvatar } from '../utils/avatar';
 import { useTranslation } from '../i18n';

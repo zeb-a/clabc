@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Mail, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Bell, AlertTriangle } from 'lucide-react';
 
 const AssignmentSubmissionNotification = ({ submissions, onNotificationClick }) => {
   // Derive notifications and unreadCount from submissions prop

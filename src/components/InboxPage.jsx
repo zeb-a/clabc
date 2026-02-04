@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, CheckCircle, X, MessageSquare, Check, Users } from 'lucide-react';
+import { CheckCircle, X, MessageSquare, Check, Users } from 'lucide-react';
 import AssignmentGradingModal from './AssignmentGradingModal';
 
 const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {

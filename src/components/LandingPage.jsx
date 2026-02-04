@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import {
-  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Pencil, Trash2, Trophy, MoreVertical, LogIn, UserPlus, HelpCircle
+  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus, HelpCircle
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useTranslation } from '../i18n';
@@ -14,7 +14,6 @@ import './LandingPage.css';
 import useWindowSize from '../hooks/useWindowSize';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
-;
 
 // Small motion-enabled card wrapper. Uses motion values to create a subtle
 // tilt + scale on pointer move. Respects prefers-reduced-motion.

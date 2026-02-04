@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronRight, CheckCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 const SetupWizard = ({ onComplete }) => {
   const [step, setStep] = useState(1);

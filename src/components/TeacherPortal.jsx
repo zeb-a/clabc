@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3 } from 'lucide-react';
+import { Plus, LogOut, X, Edit2, Trash2, Upload } from 'lucide-react';
 import InlineHelpButton from './InlineHelpButton';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
