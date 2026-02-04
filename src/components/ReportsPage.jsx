@@ -190,7 +190,7 @@ function generateTeacherNote(student, behavior, period, language = 'en') {
 
 /* ================= 📊 MAIN COMPONENT ================= */
 
-export default function ReportsPage({ activeClass, studentId, isParentView, onBack }) {
+export default function ReportsPage({ activeClass, studentId, isParentView, onBack, updateClasses }) {
     // Editable feedback state
     const [editingFeedback, setEditingFeedback] = useState({}); // { [studentId]: true/false }
     const [feedback, setFeedback] = useState({}); // { [studentId]: text }
@@ -198,6 +198,7 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
     const [language, setLanguage] = useState('en'); // 'en' or 'zh'
     const [selectedStudentId, setSelectedStudentId] = useState(studentId || '');
     const [realStats, setRealStats] = useState({});
+    const [allTimeStats, setAllTimeStats] = useState({}); // For ratio pie chart (all-time totals)
     const reportContentRef = useRef(null);
 
     // Responsive Hooks
@@ -223,7 +224,38 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
         return activeClass.students;
     }, [activeClass, studentId, selectedStudentId]);
 
-    // Fetch real behavior data
+    // Initialize feedback from existing student data
+    useEffect(() => {
+        const savedFeedback = {};
+        displayStudents.forEach(student => {
+            if (student.feedback) {
+                savedFeedback[student.id] = student.feedback;
+            }
+        });
+        setFeedback(savedFeedback);
+    }, [displayStudents]);
+
+    // Calculate all-time stats for ratio pie chart
+    useEffect(() => {
+        const stats = {};
+        displayStudents.forEach(student => {
+            const studentHistory = student.history || [];
+            const positiveTotal = studentHistory
+                .filter(h => h.pts > 0)
+                .reduce((sum, h) => sum + h.pts, 0);
+            const negativeTotal = studentHistory
+                .filter(h => h.pts < 0)
+                .reduce((sum, h) => sum + h.pts, 0);
+
+            stats[student.id] = {
+                positive: { total: positiveTotal },
+                negative: { total: negativeTotal }
+            };
+        });
+        setAllTimeStats(stats);
+    }, [displayStudents]);
+
+    // Fetch real behavior data (filtered by time period)
     useEffect(() => {
         const fetchRealStats = async () => {
             const stats = {};
@@ -345,6 +377,24 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
     };
 
     const t = translations[language];
+
+    // Save feedback to database
+    const handleSaveFeedback = (studentId, feedbackText) => {
+        if (!updateClasses || isParentView) return;
+
+        updateClasses(prev => prev.map(c =>
+            c.id === activeClass.id
+                ? {
+                    ...c,
+                    students: c.students.map(s =>
+                        s.id === studentId
+                            ? { ...s, feedback: feedbackText }
+                            : s
+                    )
+                }
+                : c
+        ));
+    };
 
     // Download as PDF
     const handleDownload = async () => {
@@ -636,13 +686,15 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                         {displayStudents.map(student => {
                     const stats = getStudentStats(student);
                     const teacherNote = generateTeacherNote(student, stats, timePeriod, language);
+                    // Use all-time stats for ratio pie chart
+                    const allTimeStudentStats = allTimeStats[student.id] || { positive: { total: 0 }, negative: { total: 0 } };
                     const doughnutData = {
                         labels: [
                             language === 'zh' ? '积极行为' : 'Positive Behaviors',
                             language === 'zh' ? '需改进行为' : 'Needs Work'
                         ],
                         datasets: [{
-                            data: [Math.abs(stats.positive.total) || 0, Math.abs(stats.negative.total) || 0],
+                            data: [Math.abs(allTimeStudentStats.positive.total) || 0, Math.abs(allTimeStudentStats.negative.total) || 0],
                             backgroundColor: ['#4CAF50', '#FF5252'],
                             borderWidth: 0,
                         }]
@@ -712,7 +764,10 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                                 <button
                                                     className="feedback-edit-button"
                                                     style={{ ...styles.goBackBtn, color: '#4CAF50', borderColor: '#4CAF50', marginRight: 8 }}
-                                                    onClick={() => setEditingFeedback(e => ({ ...e, [student.id]: false }))}
+                                                    onClick={() => {
+                                                        handleSaveFeedback(student.id, feedback[student.id]);
+                                                        setEditingFeedback(e => ({ ...e, [student.id]: false }));
+                                                    }}
                                                 >
                                                     Save
                                                 </button>
@@ -779,11 +834,11 @@ export default function ReportsPage({ activeClass, studentId, isParentView, onBa
                                     </div>
                                     <div style={{ marginTop: 8, fontSize: 14 }}>
                                         <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>
-                                            {t.positive}: {Math.abs(stats.positive.total) || 0}
+                                            {t.positive}: {Math.abs(allTimeStudentStats.positive.total) || 0}
                                         </span>
                                         {' '}|{' '}
                                         <span style={{ color: '#FF5252', fontWeight: 'bold' }}>
-                                            {t.needsWork}: {Math.abs(stats.negative.total) || 0}
+                                            {t.needsWork}: {Math.abs(allTimeStudentStats.negative.total) || 0}
                                         </span>
                                     </div>
                                 </div>

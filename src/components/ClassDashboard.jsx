@@ -799,7 +799,16 @@ export default function ClassDashboard({
         c.id === activeClass.id
           ? { ...c, students: c.students.map((s) => {
               if (absentStudents.has(s.id)) return s;
-              return { ...s, score: s.score + behavior.pts };
+              return {
+                ...s,
+                score: s.score + behavior.pts,
+                history: [...(s.history || []), {
+                  label: behavior.label,
+                  pts: behavior.pts,
+                  type: behavior.type,
+                  timestamp: new Date().toISOString()
+                }]
+              };
             })
           }
         : c
@@ -993,7 +1002,7 @@ export default function ClassDashboard({
 
           <SidebarIcon
             icon={MessageSquare}
-            label={t('dashboard.inbox_grading')}
+            label={t('Grading Inbox')}
             onClick={() => {
               setViewModeWithHistory('messages');
               fetchFreshSubmissions();
@@ -1307,6 +1316,7 @@ export default function ClassDashboard({
                   <ReportsPage
                     activeClass={activeClass}
                     onBack={() => setViewMode('students')}
+                    updateClasses={updateClasses}
                   />
                 </div>
               ) : viewMode === 'assignments' ? (
