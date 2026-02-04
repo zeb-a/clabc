@@ -165,7 +165,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     onSave,
     currentClassId
   ) => {
-    const { t } = useTranslation();
     const activeAvatar = avatarValue || boringAvatar(nameValue || (mode === 'add' ? t('teacher_portal.add_new_class') : t('teacher_portal.class_name')));
 
     return (
@@ -292,6 +291,17 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const classToEdit = classes ? classes.find(c => c.id === editingClassId) : null;
   const classToDelete = classes ? classes.find(c => c.id === deleteConfirmId) : null;
 
+  const getCardActionBtnStyle = (cls, placement) => ({
+    ...styles.iconBtn,
+    position: 'absolute',
+    top: 12,
+    ...(placement === 'left' ? { left: 12 } : { right: 12 }),
+    opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
+    pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
+    transition: 'opacity 0.2s ease',
+    zIndex: 10
+  });
+
   return (
     <div style={{ ...styles.container, fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system' }}>
       <style>{internalCSS}</style>
@@ -334,7 +344,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
         <div className="class-grid" style={{
           ...styles.grid,
-          ...styles.grid,
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : styles.grid.gridTemplateColumns,
           gap: isMobile ? '8px' : styles.grid.gap
         }}>
@@ -361,16 +370,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               {/* Edit/Delete Icons */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleEditClass(cls); }}
-                style={{
-                  ...styles.iconBtn,
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
-                  pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
-                  transition: 'opacity 0.2s ease',
-                  zIndex: 10
-                }}
+                style={getCardActionBtnStyle(cls, 'right')}
                 title={t('teacher_portal.edit')}
               >
                 <Edit2 size={18} />
@@ -378,17 +378,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               {cls.id !== 'demo-class' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(cls.id); }}
-                  style={{
-                    ...styles.iconBtn,
-                    color: '#FF6B6B',
-                    position: 'absolute',
-                    top: 12,
-                    left: 12,
-                    opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
-                    pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
-                    transition: 'opacity 0.2s ease',
-                    zIndex: 10
-                  }}
+                  style={{ ...getCardActionBtnStyle(cls, 'left'), color: '#FF6B6B' }}
                   title="Delete class"
                 >
                   <Trash2 size={18} />
@@ -552,7 +542,6 @@ const styles = {
   nav: { display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  avatarHint: { display: 'none' },
   header: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center', marginTop: 0 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: '14px', maxWidth: '100%', padding: '8px 16px 16px' }, 
 
