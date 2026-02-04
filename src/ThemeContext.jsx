@@ -113,21 +113,55 @@ function applyDarkModeStyles(isDark) {
         border-color: inherit !important;
       }
 
-      /* Apply gentle dark mode to everything EXCEPT PointAnimation */
-      *:not([data-point-animation]):not([data-point-animation-backdrop]):not([data-point-animation] *) {
+      /* Apply gentle dark mode to everything EXCEPT PointAnimation and elements that shouldn't have backgrounds */
+      *:not([data-point-animation]):not([data-point-animation-backdrop]):not([data-point-animation] *):not(span):not(em):not(strong):not(code):not(mark):not(i):not(b):not(img):not(a):not(input):not(textarea):not(select):not(svg):not(path):not(circle):not(line):not(polyline):not(polygon):not(rect):not(g) {
         background-color: #252525 !important;
-        color: #e5e5e5 !important;
+        color: #f0f0f0 !important;
         border-color: #4a4a4a !important;
+      }
+
+      /* Readable text: force light color so text is visible on dark backgrounds */
+      span, em, strong, code, mark, i, b, p, h1, h2, h3, h4, h5, h6, label, td, th, li {
+        color: #f0f0f0 !important;
+      }
+
+      /* Transparent background for text/inline/emoji/avatars so no black boxes */
+      span:not([class*="card"]):not([class*="btn"]):not([class*="button"]):not([style*="background"]):not([style*="Background"]),
+      em, strong, code, mark, i, b,
+      img, img.emoji, [class*="emoji"], [data-emoji],
+      a:not([class*="btn"]):not([class*="button"]):not([role="button"]) {
+        background-color: transparent !important;
+      }
+      /* Avatar/emoji wrappers (div containing only img) — no black background */
+      div:has(> img), [class*="avatar"] {
+        background-color: transparent !important;
+      }
+
+      /* Icons (SVG): no black background — transparent so icon shape is visible; color from parent */
+      svg, svg path, svg circle, svg line, svg polyline, svg polygon, svg rect, svg g {
+        background-color: transparent !important;
+        background: none !important;
+      }
+
+      /* Nav/sidebar: ensure text and icons are clearly visible (light on dark) */
+      nav, nav * {
+        color: #f0f0f0 !important;
+      }
+      nav [data-active="true"], nav [data-active="true"] * {
+        color: #4CAF50 !important;
+      }
+      nav svg {
+        color: inherit !important;
       }
 
       button, .btn {
         background-color: #252525 !important;
-        color: #e5e5e5 !important;
+        color: #f0f0f0 !important;
       }
 
       input, textarea, select {
         background-color: #2e2e2e !important;
-        color: #e5e5e5 !important;
+        color: #f0f0f0 !important;
       }
 
       /* Clearer white borders for modals */

@@ -100,6 +100,7 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
       <div
         onClick={handleClick}
         data-navbar-icon={dataNavbarIcon}
+        data-active={isActive ? 'true' : undefined}
         role="button"
         tabIndex={0}
         style={{
