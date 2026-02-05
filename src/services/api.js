@@ -584,5 +584,48 @@ if (avatar && avatar.startsWith('data:image')) {
   setToken(token) {
     if (token) localStorage.setItem('classABC_pb_token', token);
     else localStorage.removeItem('classABC_pb_token');
+  },
+
+  /**
+   * Sign in with Google (OAuth2) via PocketBase.
+   * Uses the PocketBase SDK popup flow; requires Google OAuth to be configured in PocketBase admin
+   * and redirect URI set to https://your-pb-domain/api/oauth2-redirect.
+   * @returns {Promise<{ user: { email, name, id, title }, token: string }>}
+   */
+  async loginWithGoogle() {
+    const { default: PocketBase } = await import('pocketbase');
+    const apiBase = base.startsWith('http') ? base : (typeof window !== 'undefined' ? window.location.origin + base : base);
+    const baseOrigin = apiBase.replace(/\/api\/?$/, '') || (typeof window !== 'undefined' ? window.location.origin : '');
+    const pb = new PocketBase(baseOrigin);
+
+    return new Promise((resolve, reject) => {
+      pb.collection(AUTH_COLL).authWithOAuth2({ provider: 'google' })
+        .then((authData) => {
+          if (!authData?.token || !authData?.record) {
+            reject(new Error('Google sign-in did not return auth data.'));
+            return;
+          }
+          if (authData.token) {
+            localStorage.setItem('classABC_pb_token', authData.token);
+          }
+          const record = authData.record;
+          resolve({
+            user: {
+              email: record.email,
+              name: record.name ?? record.email,
+              id: record.id,
+              title: record.title ?? ''
+            },
+            token: authData.token
+          });
+        })
+        .catch((err) => {
+          if (err?.message?.includes('popup') || err?.message?.includes('blocked')) {
+            reject(new Error('Popup was blocked. Please allow popups for this site and try again.'));
+          } else {
+            reject(err?.message ? new Error(err.message) : err);
+          }
+        });
+    });
   }
 };

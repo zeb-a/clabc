@@ -10,6 +10,7 @@ import ParentPortal from './ParentPortal';
 import StudentPortal from './StudentPortal';
 // --- THE LOGO COMPONENT ---
 import ClassABCLogo from './ClassABCLogo';
+import GoogleLoginButton from './GoogleLoginButton';
 import './LandingPage.css';
 import useWindowSize from '../hooks/useWindowSize';
 import { Moon, Sun } from 'lucide-react';
@@ -224,6 +225,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   // UI State
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Forgot Password State
   const [resetEmail, setResetEmail] = useState('');
@@ -396,6 +398,22 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         onLoginSuccess({ ...resp.user, token: resp.token });
       }
     } catch (err) { setError(err.message); }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      const resp = await api.loginWithGoogle();
+      if (resp?.token) {
+        api.setToken(resp.token);
+        onLoginSuccess({ ...resp.user, token: resp.token });
+      }
+    } catch (err) {
+      setError(err?.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   const handleForgotPassword = async (e) => {
@@ -887,6 +905,20 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
+                {modalMode === 'login' && (
+                  <>
+                    <GoogleLoginButton
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      text={googleLoading ? t('student.verifying') : t('auth.google_signin')}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', marginTop: '12px', marginBottom: '4px' }}>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                      <span style={{ fontSize: '13px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('auth.or')}</span>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                    </div>
+                  </>
+                )}
                 {modalMode === 'signup' && (
                   <div style={{ display: 'flex', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
                     <select
@@ -1241,6 +1273,20 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {error}
                 </motion.div>}
+                {modalMode === 'login' && (
+                  <>
+                    <GoogleLoginButton
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      text={googleLoading ? t('student.verifying') : t('auth.google_signin')}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', marginTop: '12px', marginBottom: '4px' }}>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                      <span style={{ fontSize: '13px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('auth.or')}</span>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                    </div>
+                  </>
+                )}
                 {modalMode === 'signup' && (
                   <div style={{ display: 'flex', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
                     <select

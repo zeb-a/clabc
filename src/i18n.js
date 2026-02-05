@@ -46,6 +46,8 @@ const TRANSLATIONS = {
 		'auth.verify_msg': 'Please check your email and click the verification link to activate your account.',
 		'auth.verify_block': 'You will not be able to log in until your email is verified.',
 		'auth.goto_login': 'Go to Login',
+		'auth.google_signin': 'Sign in with Google',
+		'auth.or': 'or',
 
 		// --- Feature Section ---
 		'features.avatars.title': 'Custom Avatars',
@@ -479,6 +481,8 @@ const TRANSLATIONS = {
 		'auth.verify_msg': '请检查您的邮箱并点击验证链接以激活账户。',
 		'auth.verify_block': '在邮箱验证之前，您无法登录。',
 		'auth.goto_login': '前往登录',
+		'auth.google_signin': '使用 Google 登录',
+		'auth.or': '或',
 
 		// --- Feature Section ---
 		'features.title': '助力高效教学的全方位功能',
