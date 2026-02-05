@@ -47,6 +47,7 @@ const TRANSLATIONS = {
 		'auth.verify_block': 'You will not be able to log in until your email is verified.',
 		'auth.goto_login': 'Go to Login',
 		'auth.google_signin': 'Sign in with Google',
+		'auth.google_signup': 'Sign up with Google',
 		'auth.or': 'or',
 
 		// --- Feature Section ---
@@ -482,6 +483,7 @@ const TRANSLATIONS = {
 		'auth.verify_block': '在邮箱验证之前，您无法登录。',
 		'auth.goto_login': '前往登录',
 		'auth.google_signin': '使用 Google 登录',
+		'auth.google_signup': '使用 Google 注册',
 		'auth.or': '或',
 
 		// --- Feature Section ---
