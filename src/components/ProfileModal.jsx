@@ -195,7 +195,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
               onChange={e => setTitle(e.target.value)}
               style={{ ...styles.input, width: '80px', padding: '8px' }}
             >
-              <option value="">--</option>
+              <option value="">Title</option>
               <option value="Mr.">Mr.</option>
               <option value="Mrs.">Mrs.</option>
               <option value="Miss">Miss</option>
@@ -205,6 +205,7 @@ export default function ProfileModal({ user, onSave, onClose }) {
             </select>
             <input value={name} onChange={e => setName(e.target.value)} placeholder={t('profile.full_name')} style={{ ...styles.input, flex: 1 }} />
           </div>
+          <input type="text" value={user.email || ''} readOnly placeholder={t('profile.email')} style={{ ...styles.input, background: '#F8FAFC', cursor: 'not-allowed' }} />
           <input type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} placeholder={t('profile.current_password')} style={styles.input} />
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={t('profile.new_password')} style={styles.input} />
           <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder={t('profile.confirm_new_password')} style={styles.input} />
