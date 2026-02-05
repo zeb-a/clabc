@@ -920,6 +920,20 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   </>
                 )}
                 {modalMode === 'signup' && (
+                  <>
+                    <GoogleLoginButton
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      text={googleLoading ? t('student.verifying') : t('auth.google_signup')}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', marginTop: '12px', marginBottom: '4px' }}>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                      <span style={{ fontSize: '13px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('auth.or')}</span>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                    </div>
+                  </>
+                )}
+                {modalMode === 'signup' && (
                   <div style={{ display: 'flex', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
                     <select
                       value={title}
@@ -1279,6 +1293,20 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                       onClick={handleGoogleLogin}
                       disabled={googleLoading}
                       text={googleLoading ? t('student.verifying') : t('auth.google_signin')}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', marginTop: '12px', marginBottom: '4px' }}>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                      <span style={{ fontSize: '13px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('auth.or')}</span>
+                      <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
+                    </div>
+                  </>
+                )}
+                {modalMode === 'signup' && (
+                  <>
+                    <GoogleLoginButton
+                      onClick={handleGoogleLogin}
+                      disabled={googleLoading}
+                      text={googleLoading ? t('student.verifying') : t('auth.google_signup')}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', marginTop: '12px', marginBottom: '4px' }}>
                       <span style={{ flex: 1, height: 1, background: isDark ? 'rgba(255,255,255,0.15)' : '#E2E8F0' }} />
