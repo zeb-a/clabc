@@ -15,6 +15,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "k6:smoke": "k6 run k6/smoke.js",
+    "k6:dashboard": "k6 run k6/class-dashboard-load.js",
     "server:install": "cd server && npm install",
     "server:dev": "cd server && npm run dev",
     "server:start": "cd server && npm start",
@@ -55,6 +57,7 @@
     "lucide-react": "^0.562.0",
     "nodemailer": "^7.0.12",
     "pocketbase": "^0.26.8",
+    "pixi.js": "^8.5.2",
     "qrcode.react": "^4.2.0",
     "quill": "^2.0.3",
     "react": "^19.2.0",
@@ -63,7 +66,9 @@
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.0.18",
     "react-simple-wysiwyg": "^3.4.1",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "phaser": "^3.90.0"
+   
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

@@ -17,6 +17,7 @@ import ConfirmAccountPage from './components/ConfirmAccountPage';
 import SearchableGuide from './components/SearchableGuide';
 import AssignmentsPage from "./components/AssignmentsPage";
 import ErrorBoundary from './components/ErrorBoundary';
+import TornadoGameWrapper from './components/TornadoGameWrapper';
 import './components/ModalAnimations.css';
 // --- INITIAL DATA ---
 
@@ -70,7 +71,7 @@ function App() {
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
-  const [view, setView] = useState('portal'); // 'portal' | 'dashboard' | 'egg' | 'settings' | 'setup'
+  const [view, setView] = useState('portal'); // 'portal' | 'dashboard' | 'egg' | 'settings' | 'setup' | 'games'
   const [viewHistory, setViewHistory] = useState(['portal']);
 
   // Track the current index in history to prevent conflicts
@@ -309,6 +310,10 @@ function App() {
     });
   };
 
+  const handleTornadoBack = () => {
+    navigate('portal');
+  };
+
   const onSelectClass = (classId) => {
     setActiveClassId(classId);
     navigate('dashboard');
@@ -523,6 +528,7 @@ function App() {
         onLogout={onLogout}
         onEditProfile={() => setShowProfile(true)}
         updateClasses={setClasses}
+        onOpenTorenado={() => navigate('torenado')}
       />
     </>
     );
@@ -590,6 +596,11 @@ function App() {
         navigate('portal');
       }} />
     );
+  }
+
+  // Torenado game
+  if (view === 'torenado') {
+    return <TornadoGameWrapper onBack={handleTornadoBack} classes={classes} />;
   }
   // 2. In your render logic:
 

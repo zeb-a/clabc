@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { Plus, LogOut, X, Edit2, Trash2, Upload } from 'lucide-react';
+import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap } from 'lucide-react';
 import InlineHelpButton from './InlineHelpButton';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
-
-
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -83,11 +81,16 @@ const internalCSS = `
   .logout-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border-color: #F87171; }
 `;
 
-export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses }) {
+export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado }) {
   const { t } = useTranslation();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTorenadoModal, setShowTorenadoModal] = useState(false);
+  const [torenadoSelectedClass, setTorenadoSelectedClass] = useState(null);
+  const [torenadoPlayers, setTorenadoPlayers] = useState([]);
+  const [playerCount, setPlayerCount] = useState(2);
+  const [isTeamMode, setIsTeamMode] = useState(false);
 
   // --- Add Class State ---
   const [newClassName, setNewClassName] = useState('');
@@ -156,6 +159,101 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     setDeleteConfirmId(null);
   };
 
+  // --- TORENADO GAME HANDLERS ---
+  const handleTorenadoStartGame = () => {
+    if (!torenadoSelectedClass) return;
+
+    const selectedStudents = torenadoSelectedClass.students || [];
+    let players = [];
+
+    if (isTeamMode) {
+      // Team mode - assign students to teams
+      const teams = [];
+      for (let i = 0; i < playerCount; i++) {
+        teams.push({
+          id: i,
+          name: `Team ${i + 1}`,
+          color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i],
+          students: []
+        });
+      }
+
+      selectedStudents.forEach((student, index) => {
+        const teamIndex = index % playerCount;
+        teams[teamIndex].students.push(student.name);
+      });
+
+      players = teams.map(team => ({
+        id: team.id,
+        name: team.name,
+        color: team.color,
+        members: team.students
+      }));
+    } else {
+      // Individual mode - use selected students
+      if (torenadoPlayers.length === 0) {
+        // If no students selected, use first 2
+        const studentList = selectedStudents.slice(0, 2).map(student => ({
+          id: student.id,
+          name: student.name,
+          color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][selectedStudents.indexOf(student) % 4]
+        }));
+        players = studentList;
+      } else {
+        // Use selected students
+        players = torenadoPlayers.map(p => ({
+          id: p.id,
+          name: p.name,
+          color: p.color
+        }));
+      }
+    }
+
+    setTorenadoPlayers(players);
+    setShowTorenadoModal(false);
+
+    console.log('[TeacherPortal] Saving torenado players to localStorage:', players);
+    console.log('[TeacherPortal] Saving torenado config:', {
+      playerCount: playerCount,
+      isTeamMode: isTeamMode,
+      classId: torenadoSelectedClass.id
+    });
+
+    // Store in localStorage for TornadoGameWrapper
+    localStorage.setItem('torenado_players', JSON.stringify(players));
+    localStorage.setItem('torenado_config', JSON.stringify({
+      playerCount: playerCount,
+      isTeamMode: isTeamMode,
+      classId: torenadoSelectedClass.id
+    }));
+
+    // Navigate to torenado view
+    if (onOpenTorenado) {
+      onOpenTorenado();
+    } else {
+      window.location.hash = 'torenado';
+    }
+  };
+
+  const toggleStudentForTorenado = (studentId) => {
+    if (isTeamMode) return; // In team mode, all students are automatically assigned
+
+    setTorenadoPlayers(prev => {
+      const isSelected = prev.some(p => p.id === studentId);
+      if (isSelected) {
+        return prev.filter(p => p.id !== studentId);
+      } else {
+        if (prev.length >= 4) return prev; // Max 4 players
+        const student = torenadoSelectedClass.students.find(s => s.id === studentId);
+        return [...prev, {
+          id: student.id,
+          name: student.name,
+          color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][prev.length]
+        }];
+      }
+    });
+  };
+
   // Helper: Content for Modal
   const renderModalContent = (
     mode, // 'add' or 'edit'
@@ -169,7 +267,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
     return (
       <div style={{ marginTop: 45, height: '100%', display: 'flex', flexDirection: 'column' }}>
-       
         {showSelector ? (
           // --- AVATAR SELECTION GRID (Visual Only) ---
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -291,24 +388,12 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const classToEdit = classes ? classes.find(c => c.id === editingClassId) : null;
   const classToDelete = classes ? classes.find(c => c.id === deleteConfirmId) : null;
 
-  const getCardActionBtnStyle = (cls, placement) => ({
-    ...styles.iconBtn,
-    position: 'absolute',
-    top: 12,
-    ...(placement === 'left' ? { left: 12 } : { right: 12 }),
-    opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
-    pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
-    transition: 'opacity 0.2s ease',
-    zIndex: 10
-  });
-
   return (
     <div style={{ ...styles.container, fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system' }}>
       <style>{internalCSS}</style>
 
       {/* --- NAV --- */}
       <nav className="safe-area-top" style={{ ...styles.nav }}>
-        
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -327,6 +412,20 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button
+            onClick={() => setShowTorenadoModal(true)}
+            style={{
+              ...styles.logoutBtn,
+              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+              border: '2px solid #A78BFA',
+              color: '#fff',
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
+            }}
+            title="🌪️ Torenado Game"
+          >
+            <Zap size={14} />
+            <span style={{ marginLeft: 4, fontWeight: 600 }}>Torenado</span>
+          </button>
           <InlineHelpButton pageId="teacher-portal" />
           <button onClick={() => setLogoutConfirm(true)} title={t('teacher_portal.logout')} style={styles.logoutBtn}>
             <LogOut size={14} />
@@ -336,13 +435,12 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       </nav>
 
       <main style={{ ...styles.main, paddingTop: isMobile ? '100px' : '120px' }}>
-              
         <div style={{ ...styles.header }}>
-      
           <h2 style={{ margin: 0, fontSize: '18px' }}>{t('teacher_portal.my_classes')}</h2>
         </div>
 
         <div className="class-grid" style={{
+          ...styles.grid,
           ...styles.grid,
           gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : styles.grid.gridTemplateColumns,
           gap: isMobile ? '8px' : styles.grid.gap
@@ -370,7 +468,16 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               {/* Edit/Delete Icons */}
               <button
                 onClick={(e) => { e.stopPropagation(); handleEditClass(cls); }}
-                style={getCardActionBtnStyle(cls, 'right')}
+                style={{
+                  ...styles.iconBtn,
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
+                  pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
+                  transition: 'opacity 0.2s ease',
+                  zIndex: 10
+                }}
                 title={t('teacher_portal.edit')}
               >
                 <Edit2 size={18} />
@@ -378,7 +485,17 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               {cls.id !== 'demo-class' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(cls.id); }}
-                  style={{ ...getCardActionBtnStyle(cls, 'left'), color: '#FF6B6B' }}
+                  style={{
+                    ...styles.iconBtn,
+                    color: '#FF6B6B',
+                    position: 'absolute',
+                    top: 12,
+                    left: 12,
+                    opacity: (hoveredClassId === cls.id || isTouchDevice) ? 1 : 0,
+                    pointerEvents: (hoveredClassId === cls.id || isTouchDevice) ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease',
+                    zIndex: 10
+                  }}
                   title="Delete class"
                 >
                   <Trash2 size={18} />
@@ -533,6 +650,290 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           </div>
         </div>
       )}
+
+      {/* --- TORENADO GAME MODAL --- */}
+      {showTorenadoModal && (
+        <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
+          <div style={{ ...styles.deleteModal, maxWidth: '600px', width: '90%' }} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.deleteModalTitle}>
+              <span>🌪️ Torenado Game Setup</span>
+              <button onClick={() => setShowTorenadoModal(false)} style={styles.modalCloseAbs}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Class Selection - Grid of Cards */}
+            <div style={{ marginTop: 30 }}>
+              <label style={{ fontSize: '16px', fontWeight: '600', color: '#4B5563', marginBottom: '12px', display: 'block' }}>
+                📚 Select a Class:
+              </label>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', 
+                gap: '12px',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                padding: '8px'
+              }}>
+                {classes.map(cls => (
+                  <div
+                    key={cls.id}
+                    onClick={() => {
+                      setTorenadoSelectedClass(cls);
+                      setTorenadoPlayers([]);
+                    }}
+                    style={{
+                      padding: '14px',
+                      borderRadius: '14px',
+                      border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#E5E7EB'}`,
+                      background: torenadoSelectedClass?.id === cls.id 
+                        ? 'linear-gradient(135deg, #8B5CF615, #EC489915)' 
+                        : 'white',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: torenadoSelectedClass?.id === cls.id 
+                        ? '0 4px 15px rgba(139, 92, 246, 0.3)' 
+                        : '0 2px 6px rgba(0,0,0,0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (torenadoSelectedClass?.id !== cls.id) {
+                        e.currentTarget.style.border = '2px solid #A78BFA';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (torenadoSelectedClass?.id !== cls.id) {
+                        e.currentTarget.style.border = '2px solid #E5E7EB';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }
+                    }}
+                  >
+                    <SafeAvatar
+                      src={cls.avatar || boringAvatar(cls.name || 'class')}
+                      name={cls.name}
+                      style={{ width: '56px', height: '56px', borderRadius: '14px', objectFit: 'cover' }}
+                    />
+                    <div style={{ textAlign: 'center', width: '100%' }}>
+                      <div style={{ 
+                        fontSize: '13px', 
+                        fontWeight: '700', 
+                        color: torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#374151',
+                        marginBottom: '2px'
+                      }}>
+                        {cls.name}
+                      </div>
+                      <div style={{ 
+                        fontSize: '11px', 
+                        color: '#6B7280',
+                        fontWeight: '500'
+                      }}>
+                        {cls.students?.length || 0} student{(cls.students?.length || 0) !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                    {torenadoSelectedClass?.id === cls.id && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-6px',
+                        right: '-6px',
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 8px rgba(139, 92, 246, 0.4)'
+                      }}>
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Game Mode Toggle */}
+            {torenadoSelectedClass && (
+              <div style={{ marginTop: 25 }}>
+                <label style={{ fontSize: '16px', fontWeight: '600', color: '#4B5563', marginBottom: '12px', display: 'block' }}>
+                  🎮 Game Mode:
+                </label>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => { setIsTeamMode(false); setPlayerCount(2); setTorenadoPlayers([]); }}
+                    style={{
+                      ...styles.logoutBtn,
+                      flex: 1,
+                      minWidth: '120px',
+                      background: isTeamMode ? '#F3F4F6' : 'linear-gradient(135deg, #3B82F6, #10B981)',
+                      color: isTeamMode ? '#6B7280' : '#fff',
+                      border: isTeamMode ? '2px solid #E5E7EB' : '2px solid #059669',
+                      boxShadow: isTeamMode ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.4)'
+                    }}
+                  >
+                    👤 Individual
+                  </button>
+                  <button
+                    onClick={() => { setIsTeamMode(true); setPlayerCount(2); setTorenadoPlayers([]); }}
+                    style={{
+                      ...styles.logoutBtn,
+                      flex: 1,
+                      minWidth: '120px',
+                      background: isTeamMode ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : '#F3F4F6',
+                      color: isTeamMode ? '#fff' : '#6B7280',
+                      border: isTeamMode ? '2px solid #A78BFA' : '2px solid #E5E7EB',
+                      boxShadow: isTeamMode ? '0 4px 15px rgba(139, 92, 246, 0.4)' : 'none'
+                    }}
+                  >
+                    👥 Teams
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Player Count */}
+            {torenadoSelectedClass && isTeamMode && (
+              <div style={{ marginTop: 25 }}>
+                <label style={{ fontSize: '16px', fontWeight: '600', color: '#4B5563', marginBottom: '12px', display: 'block' }}>
+                  👥 Number of Teams:
+                </label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {[2, 3, 4].map(count => (
+                    <button
+                      key={count}
+                      onClick={() => setPlayerCount(count)}
+                      style={{
+                        padding: '12px 24px',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        border: '3px solid',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        background: playerCount === count
+                          ? 'linear-gradient(135deg, #F59E0B, #EF4444)'
+                          : 'rgba(255, 255, 255, 0.8)',
+                        borderColor: playerCount === count ? '#F59E0B' : '#E5E7EB',
+                        color: playerCount === count ? '#fff' : '#4B5563',
+                        boxShadow: playerCount === count
+                          ? '0 4px 15px rgba(245, 158, 11, 0.4)'
+                          : 'none',
+                        transform: playerCount === count ? 'scale(1.05)' : 'scale(1)'
+                      }}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Student/Team Selection Display */}
+            {torenadoSelectedClass && (
+              <div style={{ marginTop: 25, maxHeight: '300px', overflowY: 'auto', padding: '10px', background: '#F9FAFB', borderRadius: '12px' }}>
+                {isTeamMode ? (
+                  <div style={{ fontSize: '14px', color: '#6B7280', lineHeight: '1.6' }}>
+                    <p style={{ marginBottom: '10px' }}>
+                      <strong>Teams will be automatically formed:</strong>
+                    </p>
+                    <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      {Array.from({ length: playerCount }).map((_, i) => {
+                        const teamMembers = (torenadoSelectedClass.students || []).filter((_, idx) => idx % playerCount === i);
+                        const teamColor = ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i];
+                        return (
+                          <div key={i} style={{
+                            padding: '12px',
+                            borderRadius: '10px',
+                            background: teamColor + '20',
+                            border: `2px solid ${teamColor}`
+                          }}>
+                            <strong style={{ color: teamColor }}>Team {i + 1}</strong>
+                            <ul style={{ margin: '8px 0 0 16px', paddingLeft: '20px', fontSize: '13px' }}>
+                              {teamMembers.map(student => (
+                                <li key={student.id}>{student.name}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '10px' }}>
+                      <strong>Select {playerCount} student(s) to play:</strong> (Max 4 players)
+                    </p>
+                    <div style={{ display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                      {torenadoSelectedClass.students.map(student => {
+                        const isSelected = torenadoPlayers.some(p => p.id === student.id);
+                        return (
+                          <button
+                            key={student.id}
+                            onClick={() => toggleStudentForTorenado(student.id)}
+                            disabled={!isSelected && torenadoPlayers.length >= 4}
+                            style={{
+                              padding: '10px 14px',
+                              borderRadius: '8px',
+                              border: '2px solid',
+                              cursor: !isSelected && torenadoPlayers.length >= 4 ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.2s ease',
+                              background: isSelected
+                                ? 'linear-gradient(135deg, #10B981, #059669)'
+                                : '#fff',
+                              borderColor: isSelected ? '#10B981' : '#E5E7EB',
+                              color: isSelected ? '#fff' : '#4B5563',
+                              opacity: !isSelected && torenadoPlayers.length >= 4 ? '0.5' : '1',
+                              textAlign: 'left',
+                              fontSize: '14px',
+                              fontWeight: '500'
+                            }}
+                          >
+                            {isSelected ? '✓ ' : ''}{student.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Start Button */}
+            {torenadoSelectedClass && (
+              <div style={{ marginTop: 25 }}>
+                <button
+                  onClick={handleTorenadoStartGame}
+                  disabled={isTeamMode ? false : torenadoPlayers.length < 2}
+                  style={{
+                    width: '100%',
+                    padding: '16px 24px',
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    borderRadius: '14px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
+                    color: '#fff',
+                    boxShadow: '0 6px 25px rgba(139, 92, 246, 0.4)',
+                    opacity: isTeamMode ? 1 : torenadoPlayers.length >= 2 ? 1 : 0.5,
+                    pointerEvents: isTeamMode ? 'auto' : torenadoPlayers.length >= 2 ? 'auto' : 'none'
+                  }}
+                >
+                  🚀 Start Game
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -542,6 +943,7 @@ const styles = {
   nav: { display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
   navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  avatarHint: { display: 'none' },
   header: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center', marginTop: 0 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: '14px', maxWidth: '100%', padding: '8px 16px 16px' }, 
 
