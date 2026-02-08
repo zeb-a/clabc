@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import TornadoGame from './TornadoGame';
 import FaceOffGame from './FaceOffGame';
+import MemoryMatchGame from './MemoryMatchGame';
 import api from '../services/api';
 
 const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: externalIsReplay }) => {
@@ -22,7 +23,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   const isReplay = externalIsReplay !== undefined ? externalIsReplay : checkIsReplay();
   const initialGameState = isReplay ? 'select-class' : 'config';
   
-  // Game type: 'tornado' or 'faceoff'
+  // Game type: 'tornado', 'faceoff', or 'memorymatch'
   const [gameType, setGameType] = useState(localStorage.getItem('selected_game_type') || 'tornado');
   
   const [gameState, setGameState] = useState(initialGameState); // select-game, select-class, select-students, config, playing, finished
@@ -44,6 +45,11 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     wordImagePairs: []
   });
   const [bulkUploadImages, setBulkUploadImages] = useState([]);
+  const [memoryMatchConfig, setMemoryMatchConfig] = useState({
+    rounds: 5,
+    contentItems: []
+  });
+  const [memoryMatchBulkUploadImages, setMemoryMatchBulkUploadImages] = useState([]);
   const [players, setPlayers] = useState([]);
   const [pixiContainer, setPixiContainer] = useState(null);
   const [prefilled, setPrefilled] = useState(false);
@@ -56,9 +62,23 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   };
 
   const addFaceOffWordImagePair = (word, image) => {
-    setFaceOffConfig(prev => ({ 
-      ...prev, 
-      wordImagePairs: [...prev.wordImagePairs, { word, image }] 
+    setFaceOffConfig(prev => ({
+      ...prev,
+      wordImagePairs: [...prev.wordImagePairs, { word, image }]
+    }));
+  };
+
+  const addMemoryMatchContentItem = (text, image, type) => {
+    setMemoryMatchConfig(prev => ({
+      ...prev,
+      contentItems: [...prev.contentItems, { text, src: image, type }]
+    }));
+  };
+
+  const removeMemoryMatchItem = (index) => {
+    setMemoryMatchConfig(prev => ({
+      ...prev,
+      contentItems: prev.contentItems.filter((_, i) => i !== index)
     }));
   };
 
@@ -253,7 +273,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 setGameType('tornado');
@@ -262,6 +282,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
               style={{
                 flex: 1,
+                minWidth: '140px',
                 padding: '40px 20px',
                 fontSize: '24px',
                 fontWeight: 'bold',
@@ -300,6 +321,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
               style={{
                 flex: 1,
+                minWidth: '140px',
                 padding: '40px 20px',
                 fontSize: '24px',
                 fontWeight: 'bold',
@@ -329,6 +351,45 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               <div style={{ fontSize: '48px' }}>⚡</div>
               <div>FaceOff</div>
             </button>
+
+            <button
+              onClick={() => {
+                setGameType('memorymatch');
+                localStorage.setItem('selected_game_type', 'memorymatch');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+                color: '#fff',
+                borderColor: '#8B5CF6',
+                boxShadow: '0 6px 25px rgba(139, 92, 246, 0.4)',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 8px 30px rgba(139, 92, 246, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'scale(1.02)';
+                e.target.style.boxShadow = '0 6px 25px rgba(139, 92, 246, 0.4)';
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>🧠</div>
+              <div>Memory Match</div>
+            </button>
           </div>
 
           <div style={{
@@ -342,6 +403,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           }}>
             <div><strong>🌪️ Tornado:</strong> Classic card-flipping game with point challenges</div>
             <div style={{ marginTop: '10px' }}><strong>⚡ FaceOff:</strong> Fast-paced word-to-picture matching for 2 players</div>
+            <div style={{ marginTop: '10px' }}><strong>🧠 Memory Match:</strong> Match pairs of cards with images or text</div>
           </div>
         </div>
       )}
@@ -408,8 +470,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 key={cls.id}
                 onClick={() => {
                   setSelectedClass(cls);
-                  // Skip mode selection for FaceOff, go directly to config
-                  if (gameType === 'faceoff') {
+                  // Skip mode selection for FaceOff and Memory Match, go directly to config
+                  if (gameType === 'faceoff' || gameType === 'memorymatch') {
                     setGameState('config');
                   } else {
                     setGameState('select-mode');
@@ -1153,6 +1215,592 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             }}
           >
             ⚡ START FACEOFF ⚡
+          </button>
+        </div>
+      )}
+
+      {/* Memory Match Configuration Screen */}
+      {gameState === 'config' && gameType === 'memorymatch' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '700px',
+          padding: '30px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '30px',
+          border: '5px solid #8B5CF6',
+          boxShadow: '0 20px 60px rgba(139, 92, 246, 0.3)',
+          marginTop: '50px',
+          marginBottom: '50px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            {/* Back Button */}
+            <button
+              onClick={() => {
+                setGameState('select-class');
+                setSelectedStudents([]);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
+              }}
+            >
+              ← Back
+            </button>
+
+            <div style={{
+              textAlign: 'center',
+              flex: 1,
+              margin: '0 15px'
+            }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0,
+                fontFamily: 'Comic Sans MS, cursive, sans-serif'
+              }}>
+                🧠 Memory Match Configuration
+              </div>
+              {selectedClass && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  marginTop: '4px'
+                }}>
+                  Class: {selectedClass.name}
+                </div>
+              )}
+            </div>
+
+            <div style={{ width: '80px' }}></div>
+          </div>
+
+          {/* Content Items - Upload Images/Text */}
+          <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #ddd' }}>
+            <label style={{
+              color: '#333',
+              fontSize: '15px',
+              fontWeight: '700',
+              display: 'block',
+              marginBottom: '10px'
+            }}>
+              📚 Content Items ({memoryMatchConfig.contentItems.length}):
+            </label>
+
+            {/* Bulk Upload Button */}
+            <div style={{ marginBottom: '15px' }}>
+              <button
+                onClick={() => document.getElementById('memory-bulk-file-input').click()}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  border: '2px dashed #8B5CF6',
+                  borderRadius: '10px',
+                  background: '#fff',
+                  color: '#8B5CF6',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#8B5CF615';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span>📸📸📸</span>
+                <span>Upload Multiple Images</span>
+              </button>
+              <input
+                id="memory-bulk-file-input"
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+
+                  const imagePromises = Array.from(files).map(file => {
+                    return new Promise((resolve) => {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        resolve({
+                          id: `memory_bulk_${Date.now()}_${Math.random()}`,
+                          src: reader.result,
+                          name: file.name
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                  });
+
+                  Promise.all(imagePromises).then(images => {
+                    setMemoryMatchBulkUploadImages(prev => [...prev, ...images]);
+                    e.target.value = '';
+                  });
+                }}
+              />
+            </div>
+
+            {/* Bulk Uploaded Images - Display with text/label inputs */}
+            {memoryMatchBulkUploadImages.length > 0 && (
+              <div style={{
+                marginBottom: '15px',
+                padding: '12px',
+                background: '#F0F9FF',
+                borderRadius: '12px',
+                border: '2px solid #3B82F6'
+              }}>
+                <label style={{
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  color: '#1E40AF',
+                  marginBottom: '10px',
+                  display: 'block'
+                }}>
+                  📝 Add labels for uploaded images ({memoryMatchBulkUploadImages.length}):
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: '10px',
+                  maxHeight: '250px',
+                  overflowY: 'auto',
+                  padding: '8px',
+                  background: '#fff',
+                  borderRadius: '8px'
+                }}>
+                  {memoryMatchBulkUploadImages.map((imgData, index) => (
+                    <div key={imgData.id} style={{
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      padding: '8px',
+                      background: '#F9FAFB',
+                      borderRadius: '8px',
+                      border: '1px solid #E5E7EB'
+                    }}>
+                      <img
+                        src={imgData.src}
+                        alt={`Image ${index + 1}`}
+                        style={{
+                          width: '50px',
+                          height: '50px',
+                          objectFit: 'cover',
+                          borderRadius: '6px',
+                          border: '2px solid #3B82F6',
+                          flexShrink: 0
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder={`Label for image ${index + 1}...`}
+                        defaultValue=""
+                        id={`memory-word-input-${imgData.id}`}
+                        style={{
+                          flex: 1,
+                          padding: '6px 10px',
+                          fontSize: '12px',
+                          border: '2px solid #E5E7EB',
+                          borderRadius: '6px',
+                          background: '#fff',
+                          color: '#333',
+                          outline: 'none',
+                          minWidth: '80px'
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            document.getElementById(`memory-add-btn-${imgData.id}`)?.click();
+                          }
+                        }}
+                      />
+                      <button
+                        id={`memory-add-btn-${imgData.id}`}
+                        onClick={() => {
+                          const wordInput = document.getElementById(`memory-word-input-${imgData.id}`);
+                          const text = wordInput?.value?.trim();
+                          if (text) {
+                            addMemoryMatchContentItem(text, imgData.src, 'image');
+                            setMemoryMatchBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
+                          } else {
+                            alert('Please enter a label for this image!');
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          background: 'linear-gradient(135deg, #3B82F6, #1E40AF)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => {
+                          setMemoryMatchBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
+                        }}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          background: 'rgba(239, 68, 68, 0.9)',
+                          color: '#fff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {memoryMatchBulkUploadImages.length > 0 && (
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                    <button
+                      onClick={() => {
+                        // Add all bulk images as unlabeled content items
+                        memoryMatchBulkUploadImages.forEach(imgData => {
+                          addMemoryMatchContentItem('', imgData.src, 'image');
+                        });
+                        setMemoryMatchBulkUploadImages([]);
+                      }}
+                      disabled={memoryMatchBulkUploadImages.length % 2 !== 0}
+                      style={{
+                        flex: 1,
+                        padding: '8px 16px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        background: memoryMatchBulkUploadImages.length % 2 === 0
+                          ? 'linear-gradient(135deg, #10B981, #059669)'
+                          : '#ccc',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: memoryMatchBulkUploadImages.length % 2 === 0 ? 'pointer' : 'not-allowed',
+                        opacity: memoryMatchBulkUploadImages.length % 2 === 0 ? 1 : 0.5
+                      }}
+                    >
+                      Quick Start ({memoryMatchBulkUploadImages.length} images)
+                    </button>
+                    <button
+                      onClick={() => setMemoryMatchBulkUploadImages([])}
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        background: '#EF4444',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reminder Messages */}
+            {(memoryMatchConfig.contentItems.length < 2 && memoryMatchBulkUploadImages.length < 2) && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px 15px',
+                background: '#FEF2F2',
+                borderRadius: '10px',
+                border: '2px solid #EF4444',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: '#EF4444',
+                fontWeight: '600'
+              }}>
+                ⚠️ Need at least 2 content items or images to start
+              </div>
+            )}
+
+            {/* Reminder about odd number of images */}
+            {memoryMatchBulkUploadImages.length > 0 && memoryMatchBulkUploadImages.length % 2 !== 0 && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px 15px',
+                background: '#FFFBEB',
+                borderRadius: '10px',
+                border: '2px solid #F59E0B',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: '#92400E',
+                fontWeight: '600'
+              }}>
+                ⚠️ Please upload an even number of images for matching pairs
+              </div>
+            )}
+
+            {/* Gentle Reminder about adding words */}
+            {memoryMatchBulkUploadImages.length > 0 && memoryMatchBulkUploadImages.length % 2 === 0 && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px 15px',
+                background: '#EFF6FF',
+                borderRadius: '10px',
+                border: '2px solid #3B82F6',
+                textAlign: 'center',
+                fontSize: '12px',
+                color: '#1E40AF',
+                fontWeight: '500',
+                lineHeight: '1.5'
+              }}>
+                💡 <strong>Tip:</strong> Add labels to your images to match words with pictures!
+                <br />
+                <span style={{ fontSize: '11px', color: '#6B7280' }}>
+                  Or skip labels and match pictures with pictures.
+                </span>
+              </div>
+            )}
+
+            {/* Content Items Display */}
+            {memoryMatchConfig.contentItems.length > 0 && (
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                maxHeight: '150px',
+                overflowY: 'auto',
+                padding: '8px',
+                background: '#fff',
+                borderRadius: '10px',
+                border: '2px solid #E5E7EB'
+              }}>
+                {memoryMatchConfig.contentItems.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 10px',
+                      background: '#F9FAFB',
+                      borderRadius: '8px',
+                      border: '2px solid #E5E7EB',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      position: 'relative'
+                    }}
+                  >
+                    {item.type === 'image' && (
+                      <img
+                        src={item.src}
+                        alt={item.text}
+                        style={{
+                          width: '30px',
+                          height: '30px',
+                          objectFit: 'cover',
+                          borderRadius: '4px',
+                          border: '1px solid #E5E7EB'
+                        }}
+                      />
+                    )}
+                    <span style={{ color: '#333' }}>{item.text}</span>
+                    <button
+                      onClick={() => removeMemoryMatchItem(index)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 107, 107, 0.9)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Student Selection */}
+          {selectedClass && (
+            <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #8B5CF6' }}>
+              <label style={{
+                color: '#333',
+                fontSize: '14px',
+                fontWeight: '700',
+                display: 'block',
+                marginBottom: '10px'
+              }}>
+                👤 Select Players (1-4):
+              </label>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                gap: '8px',
+                maxHeight: '150px',
+                overflowY: 'auto',
+                padding: '6px'
+              }}>
+                {selectedClass.students.map(student => {
+                  const isSelected = selectedStudents.some(p => p.id === student.id);
+                  const isFull = selectedStudents.length >= 4;
+                  return (
+                    <button
+                      key={student.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
+                        } else if (!isFull) {
+                          setSelectedStudents(prev => [...prev, {
+                            id: student.id,
+                            name: student.name,
+                            color: ['#00d9ff', '#ff00ff', '#00ff00', '#ffff00'][prev.length]
+                          }]);
+                        }
+                      }}
+                      disabled={!isSelected && isFull}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '2px solid',
+                        cursor: !isSelected && isFull ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s ease',
+                        background: isSelected
+                          ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
+                          : 'white',
+                        borderColor: isSelected ? '#8B5CF6' : '#E5E7EB',
+                        color: isSelected ? '#fff' : '#4B5563',
+                        opacity: !isSelected && isFull ? '0.5' : '1',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        position: 'relative',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{student.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{
+                marginTop: '10px',
+                fontSize: '13px',
+                color: selectedStudents.length >= 1 ? '#8B5CF6' : '#6B7280',
+                fontWeight: '600'
+              }}>
+                Selected: {selectedStudents.length}/4 {selectedStudents.length >= 1 ? '✓ Ready' : '(Select 1-4 players)'}
+              </div>
+            </div>
+          )}
+
+          {/* Start Memory Match Game Button */}
+          <button
+            onClick={() => {
+              const canStart = selectedStudents.length >= 1 &&
+                (memoryMatchConfig.contentItems.length >= 2 ||
+                 (memoryMatchBulkUploadImages.length >= 2 && memoryMatchBulkUploadImages.length % 2 === 0));
+
+              if (canStart) {
+                setPlayers(selectedStudents);
+
+                // If using bulk images, add them to content items first
+                if (memoryMatchBulkUploadImages.length > 0 && memoryMatchBulkUploadImages.length % 2 === 0) {
+                  const newContentItems = [...memoryMatchConfig.contentItems];
+                  memoryMatchBulkUploadImages.forEach(imgData => {
+                    newContentItems.push({ text: '', src: imgData.src, type: 'image' });
+                  });
+                  setMemoryMatchConfig(prev => ({ ...prev, contentItems: newContentItems }));
+                  setMemoryMatchBulkUploadImages([]);
+                  // Small delay to ensure state is updated
+                  setTimeout(() => setGameState('playing'), 50);
+                } else {
+                  setGameState('playing');
+                }
+              }
+            }}
+            disabled={selectedStudents.length < 1 ||
+              (memoryMatchConfig.contentItems.length < 2 &&
+               (memoryMatchBulkUploadImages.length < 2 || memoryMatchBulkUploadImages.length % 2 !== 0))}
+            style={{
+              width: '100%',
+              padding: '18px',
+              fontSize: '20px',
+              fontWeight: '900',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: selectedStudents.length >= 1 &&
+                (memoryMatchConfig.contentItems.length >= 2 ||
+                 (memoryMatchBulkUploadImages.length >= 2 && memoryMatchBulkUploadImages.length % 2 === 0))
+                ? 'pointer' : 'not-allowed',
+              transition: 'all 0.3s ease',
+              background: selectedStudents.length >= 1 &&
+                (memoryMatchConfig.contentItems.length >= 2 ||
+                 (memoryMatchBulkUploadImages.length >= 2 && memoryMatchBulkUploadImages.length % 2 === 0))
+                ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
+                : '#ccc',
+              color: '#fff',
+              textShadow: 'none',
+              boxShadow: selectedStudents.length >= 1 &&
+                (memoryMatchConfig.contentItems.length >= 2 ||
+                 (memoryMatchBulkUploadImages.length >= 2 && memoryMatchBulkUploadImages.length % 2 === 0))
+                ? '0 8px 30px rgba(139, 92, 246, 0.4)'
+                : 'none',
+              opacity: selectedStudents.length >= 1 &&
+                (memoryMatchConfig.contentItems.length >= 2 ||
+                 (memoryMatchBulkUploadImages.length >= 2 && memoryMatchBulkUploadImages.length % 2 === 0))
+                ? 1 : 0.5
+            }}
+          >
+            🧠 START MEMORY MATCH 🧠
           </button>
         </div>
       )}
@@ -1981,6 +2629,15 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             setGameState('config');
           }}
           onExitToPortal={onBack}
+        />
+      )}
+
+      {gameState === 'playing' && gameType === 'memorymatch' && (
+        <MemoryMatchGame
+          contentItems={memoryMatchConfig.contentItems}
+          onBack={onBack}
+          classColor="#8B5CF6"
+          players={players}
         />
       )}
 
