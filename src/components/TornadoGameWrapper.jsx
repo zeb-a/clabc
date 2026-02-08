@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import TornadoGame from './TornadoGame';
+import FaceOffGame from './FaceOffGame';
 import api from '../services/api';
 
 const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: externalIsReplay }) => {
@@ -21,7 +22,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   const isReplay = externalIsReplay !== undefined ? externalIsReplay : checkIsReplay();
   const initialGameState = isReplay ? 'select-class' : 'config';
   
-  const [gameState, setGameState] = useState(initialGameState); // select-class, select-students, config, playing, finished
+  // Game type: 'tornado' or 'faceoff'
+  const [gameType, setGameType] = useState(localStorage.getItem('selected_game_type') || 'tornado');
+  
+  const [gameState, setGameState] = useState(initialGameState); // select-game, select-class, select-students, config, playing, finished
   const [classes, setClasses] = useState(externalClasses || []);
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -34,6 +38,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     tornadoCount: 'random',
     decorativeElements: [],
   });
+
+  const [faceOffConfig, setFaceOffConfig] = useState({
+    rounds: 5,
+    wordImagePairs: []
+  });
+  const [bulkUploadImages, setBulkUploadImages] = useState([]);
   const [players, setPlayers] = useState([]);
   const [pixiContainer, setPixiContainer] = useState(null);
   const [prefilled, setPrefilled] = useState(false);
@@ -43,6 +53,20 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   // Helper functions
   const addWord = (word) => {
     setConfig(prev => ({ ...prev, decorativeElements: [...prev.decorativeElements, word] }));
+  };
+
+  const addFaceOffWordImagePair = (word, image) => {
+    setFaceOffConfig(prev => ({ 
+      ...prev, 
+      wordImagePairs: [...prev.wordImagePairs, { word, image }] 
+    }));
+  };
+
+  const removeFaceOffPair = (index) => {
+    setFaceOffConfig(prev => ({
+      ...prev,
+      wordImagePairs: prev.wordImagePairs.filter((_, i) => i !== index)
+    }));
   };
 
   const removeWord = (word) => {
@@ -181,6 +205,147 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
       overflowY: 'auto',
       overflowX: 'hidden'
     }}>
+      {/* Game Selection Screen */}
+      {gameState === 'select-game' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '600px',
+          padding: '40px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '30px',
+          border: '5px solid #4ECDC4',
+          boxShadow: '0 20px 60px rgba(78, 205, 196, 0.3)',
+          marginTop: '100px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '30px'
+          }}>
+            <h2 style={{
+              fontSize: '32px',
+              fontWeight: '900',
+              background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              margin: 0,
+              fontFamily: 'Comic Sans MS, cursive, sans-serif'
+            }}>
+              🎮 Choose a Game
+            </h2>
+            <button
+              onClick={onBack}
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
+              }}
+            >
+              ← Back
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <button
+              onClick={() => {
+                setGameType('tornado');
+                localStorage.setItem('selected_game_type', 'tornado');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: 'linear-gradient(135deg, #4ECDC4, #95E1D3)',
+                color: '#fff',
+                borderColor: '#4ECDC4',
+                boxShadow: '0 6px 25px rgba(78, 205, 196, 0.4)',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 8px 30px rgba(78, 205, 196, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'scale(1.02)';
+                e.target.style.boxShadow = '0 6px 25px rgba(78, 205, 196, 0.4)';
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>🌪️</div>
+              <div>Tornado</div>
+            </button>
+
+            <button
+              onClick={() => {
+                setGameType('faceoff');
+                localStorage.setItem('selected_game_type', 'faceoff');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                borderColor: '#FF6B6B',
+                boxShadow: '0 6px 25px rgba(255, 107, 107, 0.4)',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 8px 30px rgba(255, 107, 107, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'scale(1.02)';
+                e.target.style.boxShadow = '0 6px 25px rgba(255, 107, 107, 0.4)';
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>⚡</div>
+              <div>FaceOff</div>
+            </button>
+          </div>
+
+          <div style={{
+            textAlign: 'center',
+            fontSize: '14px',
+            color: '#666',
+            lineHeight: '1.6',
+            padding: '20px',
+            background: '#F8FAFC',
+            borderRadius: '15px'
+          }}>
+            <div><strong>🌪️ Tornado:</strong> Classic card-flipping game with point challenges</div>
+            <div style={{ marginTop: '10px' }}><strong>⚡ FaceOff:</strong> Fast-paced word-to-picture matching for 2 players</div>
+          </div>
+        </div>
+      )}
+
       {/* Class Selection Screen (Only visible when isReplay=true) */}
       {gameState === 'select-class' && (
         <div style={{
@@ -243,7 +408,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 key={cls.id}
                 onClick={() => {
                   setSelectedClass(cls);
-                  setGameState('select-mode');
+                  // Skip mode selection for FaceOff, go directly to config
+                  if (gameType === 'faceoff') {
+                    setGameState('config');
+                  } else {
+                    setGameState('select-mode');
+                  }
                 }}
                 style={{
                   padding: '20px',
@@ -457,8 +627,538 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         </div>
       )}
 
-      {/* Game Configuration Screen */}
-      {gameState === 'config' && (
+      {/* FaceOff Configuration Screen */}
+      {gameState === 'config' && gameType === 'faceoff' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '700px',
+          padding: '30px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '30px',
+          border: '5px solid #FF6B6B',
+          boxShadow: '0 20px 60px rgba(255, 107, 107, 0.3)',
+          marginTop: '50px',
+          marginBottom: '50px'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            {/* Back Button */}
+            <button
+              onClick={() => {
+                setGameState('select-class');
+                setSelectedStudents([]);
+              }}
+              style={{
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
+              }}
+            >
+              ← Back
+            </button>
+
+            <div style={{
+              textAlign: 'center',
+              flex: 1,
+              margin: '0 15px'
+            }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0,
+                fontFamily: 'Comic Sans MS, cursive, sans-serif'
+              }}>
+                ⚡ FaceOff Configuration
+              </div>
+              {selectedClass && (
+                <div style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  marginTop: '4px'
+                }}>
+                  Class: {selectedClass.name}
+                </div>
+              )}
+            </div>
+
+            <div style={{ width: '80px' }}></div>
+          </div>
+
+          {/* Number of Rounds Selection */}
+          <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #ddd' }}>
+            <label style={{
+              color: '#333',
+              fontSize: '15px',
+              fontWeight: '700',
+              display: 'block',
+              marginBottom: '10px'
+            }}>
+              🎯 Rounds:
+            </label>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[5, 10, 20, 30].map(rounds => (
+                <button
+                  key={rounds}
+                  onClick={() => setFaceOffConfig(prev => ({ ...prev, rounds }))}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    border: '2px solid',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: faceOffConfig.rounds === rounds
+                      ? 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'
+                      : 'white',
+                    borderColor: faceOffConfig.rounds === rounds ? '#FF6B6B' : '#E5E7EB',
+                    color: faceOffConfig.rounds === rounds ? '#fff' : '#4B5563',
+                    boxShadow: faceOffConfig.rounds === rounds
+                      ? '0 3px 12px rgba(255, 107, 107, 0.3)'
+                      : '0 1px 3px rgba(0,0,0,0.05)',
+                    transform: faceOffConfig.rounds === rounds ? 'scale(1.05)' : 'scale(1)'
+                  }}
+                >
+                  {rounds}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Add Word-Image Pairs - Inline and Compact */}
+          <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #ddd' }}>
+            <label style={{
+              color: '#333',
+              fontSize: '15px',
+              fontWeight: '700',
+              display: 'block',
+              marginBottom: '10px'
+            }}>
+              🖼️ Word-Image Pairs ({faceOffConfig.wordImagePairs.length}):
+            </label>
+
+            {/* Bulk Upload Button */}
+            <div style={{ marginBottom: '15px' }}>
+              <button
+                onClick={() => document.getElementById('faceoff-bulk-file-input').click()}
+                style={{
+                  width: '100%',
+                  padding: '12px 20px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  border: '2px dashed #8B5CF6',
+                  borderRadius: '10px',
+                  background: '#fff',
+                  color: '#8B5CF6',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#8B5CF615';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#fff';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span>📸📸📸</span>
+                <span>Upload Multiple Images</span>
+              </button>
+              <input
+                id="faceoff-bulk-file-input"
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+
+                  const imagePromises = Array.from(files).map(file => {
+                    return new Promise((resolve) => {
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        resolve({
+                          id: `bulk_${Date.now()}_${Math.random()}`,
+                          src: reader.result,
+                          name: file.name
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                  });
+
+                  Promise.all(imagePromises).then(images => {
+                    setBulkUploadImages(prev => [...prev, ...images]);
+                    e.target.value = '';
+                  });
+                }}
+              />
+            </div>
+
+            {/* Bulk Uploaded Images - Display with word inputs */}
+            {bulkUploadImages.length > 0 && (
+              <div style={{
+                marginBottom: '15px',
+                padding: '12px',
+                background: '#F0F9FF',
+                borderRadius: '12px',
+                border: '2px solid #3B82F6'
+              }}>
+                <label style={{
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  color: '#1E40AF',
+                  marginBottom: '10px',
+                  display: 'block'
+                }}>
+                  📝 Add words for uploaded images ({bulkUploadImages.length}):
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                  gap: '10px',
+                  maxHeight: '250px',
+                  overflowY: 'auto',
+                  padding: '8px',
+                  background: '#fff',
+                  borderRadius: '8px'
+                }}>
+                  {bulkUploadImages.map((imgData, index) => (
+                    <div key={imgData.id} style={{
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      padding: '8px',
+                      background: '#F9FAFB',
+                      borderRadius: '8px',
+                      border: '1px solid #E5E7EB'
+                    }}>
+                      <img
+                        src={imgData.src}
+                        alt={`Image ${index + 1}`}
+                        style={{
+                          width: '50px',
+                          height: '50px',
+                          objectFit: 'cover',
+                          borderRadius: '6px',
+                          border: '2px solid #3B82F6',
+                          flexShrink: 0
+                        }}
+                      />
+                      <input
+                        type="text"
+                        placeholder={`Word for image ${index + 1}...`}
+                        defaultValue=""
+                        id={`bulk-word-input-${imgData.id}`}
+                        style={{
+                          flex: 1,
+                          padding: '6px 10px',
+                          fontSize: '12px',
+                          border: '2px solid #E5E7EB',
+                          borderRadius: '6px',
+                          background: '#fff',
+                          color: '#333',
+                          outline: 'none',
+                          minWidth: '80px'
+                        }}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            document.getElementById(`bulk-add-btn-${imgData.id}`)?.click();
+                          }
+                        }}
+                      />
+                      <button
+                        id={`bulk-add-btn-${imgData.id}`}
+                        onClick={() => {
+                          const wordInput = document.getElementById(`bulk-word-input-${imgData.id}`);
+                          const word = wordInput?.value?.trim();
+                          if (word) {
+                            addFaceOffWordImagePair(word, imgData.src);
+                            setBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
+                          } else {
+                            alert('Please enter a word for this image!');
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          background: 'linear-gradient(135deg, #3B82F6, #1E40AF)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => {
+                          setBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
+                        }}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          background: 'rgba(239, 68, 68, 0.9)',
+                          color: '#fff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {bulkUploadImages.length > 0 && (
+                  <button
+                    onClick={() => setBulkUploadImages([])}
+                    style={{
+                      marginTop: '10px',
+                      padding: '8px 16px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      background: '#EF4444',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear All Bulk Images
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Reminder Message */}
+            {faceOffConfig.wordImagePairs.length < 5 && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px 15px',
+                background: '#FEF2F2',
+                borderRadius: '10px',
+                border: '2px solid #EF4444',
+                textAlign: 'center',
+                fontSize: '13px',
+                color: '#EF4444',
+                fontWeight: '600'
+              }}>
+                ⚠️ Need at least 5 word-image pairs to start
+              </div>
+            )}
+
+            {/* Compact Inline Word-Image Pairs Display */}
+            {faceOffConfig.wordImagePairs.length > 0 && (
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                maxHeight: '150px',
+                overflowY: 'auto',
+                padding: '8px',
+                background: '#fff',
+                borderRadius: '10px',
+                border: '2px solid #E5E7EB'
+              }}>
+                {faceOffConfig.wordImagePairs.map((pair, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '6px 10px',
+                      background: '#F9FAFB',
+                      borderRadius: '8px',
+                      border: '2px solid #E5E7EB',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      position: 'relative'
+                    }}
+                  >
+                    <img
+                      src={pair.image}
+                      alt={pair.word}
+                      style={{
+                        width: '30px',
+                        height: '30px',
+                        objectFit: 'cover',
+                        borderRadius: '4px',
+                        border: '1px solid #E5E7EB'
+                      }}
+                    />
+                    <span style={{ color: '#333' }}>{pair.word}</span>
+                    <button
+                      onClick={() => removeFaceOffPair(index)}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 107, 107, 0.9)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Student Selection - Exactly 2 players */}
+          {selectedClass && (
+            <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #4CAF50' }}>
+              <label style={{
+                color: '#333',
+                fontSize: '14px',
+                fontWeight: '700',
+                display: 'block',
+                marginBottom: '10px'
+              }}>
+                👤 Select 2 Players:
+              </label>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                gap: '8px',
+                maxHeight: '150px',
+                overflowY: 'auto',
+                padding: '6px'
+              }}>
+                {selectedClass.students.map(student => {
+                  const isSelected = selectedStudents.some(p => p.id === student.id);
+                  const isFull = selectedStudents.length >= 2;
+                  return (
+                    <button
+                      key={student.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
+                        } else if (!isFull) {
+                          setSelectedStudents(prev => [...prev, {
+                            id: student.id,
+                            name: student.name,
+                            color: ['#00d9ff', '#ff00ff'][prev.length]
+                          }]);
+                        }
+                      }}
+                      disabled={!isSelected && isFull}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '2px solid',
+                        cursor: !isSelected && isFull ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s ease',
+                        background: isSelected
+                          ? 'linear-gradient(135deg, #4CAF50, #45a049)'
+                          : 'white',
+                        borderColor: isSelected ? '#4CAF50' : '#E5E7EB',
+                        color: isSelected ? '#fff' : '#4B5563',
+                        opacity: !isSelected && isFull ? '0.5' : '1',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        position: 'relative',
+                        textAlign: 'left'
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{student.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{
+                marginTop: '10px',
+                fontSize: '13px',
+                color: selectedStudents.length === 2 ? '#4CAF50' : '#6B7280',
+                fontWeight: '600'
+              }}>
+                Selected: {selectedStudents.length}/2 {selectedStudents.length === 2 ? '✓ Ready' : '(Select exactly 2)'}
+              </div>
+            </div>
+          )}
+
+          {/* Start FaceOff Game Button */}
+          <button
+            onClick={() => {
+              if (selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5) {
+                setPlayers(selectedStudents);
+                setGameState('playing');
+              }
+            }}
+            disabled={selectedStudents.length !== 2 || faceOffConfig.wordImagePairs.length < 5}
+            style={{
+              width: '100%',
+              padding: '18px',
+              fontSize: '20px',
+              fontWeight: '900',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5 ? 'pointer' : 'not-allowed',
+              transition: 'all 0.3s ease',
+              background: selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5
+                ? 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'
+                : '#ccc',
+              color: '#fff',
+              textShadow: 'none',
+              boxShadow: selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5
+                ? '0 8px 30px rgba(255, 107, 107, 0.4)'
+                : 'none',
+              opacity: selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5 ? 1 : 0.5
+            }}
+          >
+            ⚡ START FACEOFF ⚡
+          </button>
+        </div>
+      )}
+
+      {/* Game Configuration Screen - Tornado Only */}
+      {gameState === 'config' && gameType === 'tornado' && (
         <div style={{
           width: '100%',
           maxWidth: '800px',
@@ -1156,30 +1856,43 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {/* Start Game Button */}
           <button
             onClick={() => {
-              if (isTeamMode) {
-                // Team mode - create teams from selected class students
-                const students = selectedClass.students || [];
-                const teams = [];
-                for (let i = 0; i < playerCount; i++) {
-                  teams.push({
-                    id: i,
-                    name: `Team ${i + 1}`,
-                    color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i]
-                  });
-                }
-                setPlayers(teams);
-                setConfig(prev => ({ ...prev, playerCount: teams.length }));
-                setGameState('playing');
-              } else {
-                // Individual mode - need selected students
-                if (selectedStudents.length >= 2) {
+              if (gameType === 'faceoff') {
+                // FaceOff: exactly 2 players required
+                if (selectedStudents.length === 2) {
                   setPlayers(selectedStudents);
-                  setConfig(prev => ({ ...prev, playerCount: selectedStudents.length }));
                   setGameState('playing');
+                }
+              } else {
+                // Tornado game
+                if (isTeamMode) {
+                  // Team mode - create teams from selected class students
+                  const students = selectedClass.students || [];
+                  const teams = [];
+                  for (let i = 0; i < playerCount; i++) {
+                    teams.push({
+                      id: i,
+                      name: `Team ${i + 1}`,
+                      color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i]
+                    });
+                  }
+                  setPlayers(teams);
+                  setConfig(prev => ({ ...prev, playerCount: teams.length }));
+                  setGameState('playing');
+                } else {
+                  // Individual mode - need selected students
+                  if (selectedStudents.length >= 2) {
+                    setPlayers(selectedStudents);
+                    setConfig(prev => ({ ...prev, playerCount: selectedStudents.length }));
+                    setGameState('playing');
+                  }
                 }
               }
             }}
-            disabled={isTeamMode ? false : selectedStudents.length < 2}
+            disabled={
+              gameType === 'faceoff'
+                ? selectedStudents.length !== 2
+                : (isTeamMode ? false : selectedStudents.length < 2)
+            }
             style={{
               width: '100%',
               padding: '25px',
@@ -1230,7 +1943,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         </div>
       )}
 
-      {gameState === 'playing' && (
+      {gameState === 'playing' && gameType === 'tornado' && (
         <TornadoGame
           config={config}
           players={players.map((p, i) => ({
@@ -1242,13 +1955,30 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           }))}
           onGameEnd={() => setGameState('finished')}
           onBackToSetup={() => {
-            // Set replay flag so we show compact menus on next load
             localStorage.setItem('torenado_is_replay', 'true');
             setGameState('select-class');
             setSelectedClass(null);
             setSelectedStudents([]);
             setIsTeamMode(false);
             setPlayerCount(2);
+          }}
+          onExitToPortal={onBack}
+        />
+      )}
+
+      {gameState === 'playing' && gameType === 'faceoff' && (
+        <FaceOffGame
+          config={faceOffConfig}
+          players={players.map((p, i) => ({
+            id: i,
+            name: typeof p === 'string' ? (p || `Player ${i + 1}`) : (p?.name || `Player ${i + 1}`),
+            score: 0,
+            color: typeof p === 'string' ? ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i] : (p?.color || ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i])
+          }))}
+          onGameEnd={() => setGameState('finished')}
+          onBackToSetup={() => {
+            localStorage.setItem('faceoff_is_replay', 'true');
+            setGameState('config');
           }}
           onExitToPortal={onBack}
         />
