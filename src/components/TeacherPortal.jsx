@@ -243,7 +243,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       if (isSelected) {
         return prev.filter(p => p.id !== studentId);
       } else {
-        if (prev.length >= 4) return prev; // Max 4 players
+        if (prev.length >= 4) return prev; // Max 4 players - disable further selections
         const student = torenadoSelectedClass.students.find(s => s.id === studentId);
         return [...prev, {
           id: student.id,
@@ -655,11 +655,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {showTorenadoModal && (
         <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
           <div style={{ ...styles.deleteModal, maxWidth: '600px', width: '90%' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs}>
+              <X size={20} />
+            </button>
             <div style={styles.deleteModalTitle}>
               <span>🌪️ Torenado Game Setup</span>
-              <button onClick={() => setShowTorenadoModal(false)} style={styles.modalCloseAbs}>
-                <X size={20} />
-              </button>
             </div>
 
             {/* Class Selection - Grid of Cards */}
@@ -873,29 +873,53 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     <div style={{ display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                       {torenadoSelectedClass.students.map(student => {
                         const isSelected = torenadoPlayers.some(p => p.id === student.id);
+                        const isMaxReached = torenadoPlayers.length >= 4;
                         return (
                           <button
                             key={student.id}
                             onClick={() => toggleStudentForTorenado(student.id)}
-                            disabled={!isSelected && torenadoPlayers.length >= 4}
+                            disabled={!isSelected && isMaxReached}
                             style={{
                               padding: '10px 14px',
                               borderRadius: '8px',
                               border: '2px solid',
-                              cursor: !isSelected && torenadoPlayers.length >= 4 ? 'not-allowed' : 'pointer',
+                              cursor: !isSelected && isMaxReached ? 'not-allowed' : 'pointer',
                               transition: 'all 0.2s ease',
                               background: isSelected
                                 ? 'linear-gradient(135deg, #10B981, #059669)'
                                 : '#fff',
                               borderColor: isSelected ? '#10B981' : '#E5E7EB',
                               color: isSelected ? '#fff' : '#4B5563',
-                              opacity: !isSelected && torenadoPlayers.length >= 4 ? '0.5' : '1',
+                              opacity: !isSelected && isMaxReached ? '0.5' : '1',
                               textAlign: 'left',
                               fontSize: '14px',
-                              fontWeight: '500'
+                              fontWeight: '500',
+                              position: 'relative'
                             }}
+                            title={isMaxReached && !isSelected ? "Maximum 4 players allowed" : ""}
                           >
                             {isSelected ? '✓ ' : ''}{student.name}
+                            {/* Show max limit indicator */}
+                            {isMaxReached && !isSelected && (
+                              <span style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                background: '#EF4444',
+                                color: '#fff',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+                              }}>
+                                4
+                              </span>
+                            )}
                           </button>
                         );
                       })}
@@ -1012,6 +1036,9 @@ const styles = {
   },
 
   deleteModalTitle: { position: 'absolute', top: 24, left: 32, fontSize: '20px', fontWeight: 'bold', color: '#111827' },
+
+  // Torenado Modal Close Button (positioned at top right)
+  torenadoModalCloseAbs: { position: 'absolute', top: 24, right: 24, background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' },
 
   // Avatar Selector Grid
   themeGrid: {

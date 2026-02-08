@@ -29,12 +29,13 @@ const KID_COLORS = {
 };
 
 class TornadoScene extends Phaser.Scene {
-  constructor(gameConfig, players, onGameEnd, onBackToSetup, gameStateRef, setGameState) {
+  constructor(gameConfig, players, onGameEnd, onBackToSetup, onExitToPortal, gameStateRef, setGameState) {
     super({ key: 'TornadoScene' });
     this.gameConfig = gameConfig;
     this.players = players;
     this.onGameEnd = onGameEnd;
     this.onBackToSetup = onBackToSetup;
+    this.onExitToPortal = onExitToPortal;
     this.gameStateRef = gameStateRef;
     this.setGameState = setGameState;
     this.soundManager = null;
@@ -44,6 +45,7 @@ class TornadoScene extends Phaser.Scene {
     this.leftPlayerPanel = null;
     this.rightPlayerPanel = null;
     this.flippedCount = 0;
+    this.totalTurnsTaken = 0;
   }
 
   async create() {
@@ -51,6 +53,9 @@ class TornadoScene extends Phaser.Scene {
 
     // Kid-friendly gradient background
     this.createKidFriendlyBackground();
+
+    // Create UI buttons (back and close)
+    this.createUIButtons();
 
     // Create player panels on left and right
     this.createPlayerPanels();
@@ -113,14 +118,324 @@ class TornadoScene extends Phaser.Scene {
     }
   }
 
+  createUIButtons() {
+    const { width, height } = this.scale;
+    const buttonPadding = 5;
+    const buttonSize = 50;
+
+    // Back Button (Top Left)
+    const backButton = this.add.container(buttonPadding, buttonPadding);
+    const backBg = this.add.graphics();
+    backBg.fillStyle(0x4ECDC4, 1);
+    backBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+    backBg.lineStyle(3, 0xFFFFFF, 1);
+    backBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+    backButton.add(backBg);
+
+    const backText = this.add.text(buttonSize / 2, buttonSize / 2, '←', {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontStyle: 'bold'
+    });
+    backText.setOrigin(0.5);
+    backButton.add(backText);
+
+    backButton.setSize(buttonSize, buttonSize);
+    backButton.setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.onBackToSetup();
+      })
+      .on('pointerover', () => {
+        backBg.setScale(1.1);
+        backBg.clear();
+        backBg.fillStyle(0x3DB8B0, 1);
+        backBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+        backBg.lineStyle(3, 0xFFFFFF, 1);
+        backBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+      })
+      .on('pointerout', () => {
+        backBg.setScale(1);
+        backBg.clear();
+        backBg.fillStyle(0x4ECDC4, 1);
+        backBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+        backBg.lineStyle(3, 0xFFFFFF, 1);
+        backBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+      });
+
+    this.backButton = backButton;
+
+    // Close Button (Top Right)
+    const closeButton = this.add.container(width - buttonSize - buttonPadding, buttonPadding);
+    const closeBg = this.add.graphics();
+    closeBg.fillStyle(0xFF6B6B, 1);
+    closeBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+    closeBg.lineStyle(3, 0xFFFFFF, 1);
+    closeBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+    closeButton.add(closeBg);
+
+    const closeText = this.add.text(buttonSize / 2, buttonSize / 2, '✕', {
+      fontSize: '28px',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontStyle: 'bold'
+    });
+    closeText.setOrigin(0.5);
+    closeButton.add(closeText);
+
+    closeButton.setSize(buttonSize, buttonSize);
+    closeButton.setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.showExitConfirmation();
+      })
+      .on('pointerover', () => {
+        closeBg.setScale(1.1);
+        closeBg.clear();
+        closeBg.fillStyle(0xE85555, 1);
+        closeBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+        closeBg.lineStyle(3, 0xFFFFFF, 1);
+        closeBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+      })
+      .on('pointerout', () => {
+        closeBg.setScale(1);
+        closeBg.clear();
+        closeBg.fillStyle(0xFF6B6B, 1);
+        closeBg.fillRoundedRect(0, 0, buttonSize, buttonSize, 12);
+        closeBg.lineStyle(3, 0xFFFFFF, 1);
+        closeBg.strokeRoundedRect(0, 0, buttonSize, buttonSize, 12);
+      });
+
+    this.closeButton = closeButton;
+    this.exitDialogVisible = false;
+  }
+
+  showExitConfirmation() {
+    if (this.exitDialogVisible) return;
+    this.exitDialogVisible = true;
+
+    const { width, height } = this.scale;
+    const dialogWidth = 400;
+    const dialogHeight = 260;
+
+    // Create overlay
+    const overlay = this.add.graphics();
+    overlay.fillStyle(0x000000, 0.7);
+    overlay.fillRect(0, 0, width, height);
+    overlay.setDepth(3000);
+
+    // Create dialog container
+    const dialogContainer = this.add.container(width / 2, height / 2);
+    dialogContainer.setDepth(3001);
+
+    // Dialog background
+    const dialogBg = this.add.graphics();
+    dialogBg.fillStyle(0xFFFFFF, 0.98);
+    dialogBg.fillRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 25);
+    dialogBg.lineStyle(4, 0xFF6B6B, 1);
+    dialogBg.strokeRoundedRect(-dialogWidth / 2, -dialogHeight / 2, dialogWidth, dialogHeight, 25);
+    dialogContainer.add(dialogBg);
+
+    // Warning icon
+    const warningText = this.add.text(0, -dialogHeight / 2 + 70, '⚠️', {
+      fontSize: '48px'
+    });
+    warningText.setOrigin(0.5);
+    dialogContainer.add(warningText);
+
+    // Dialog title
+    const titleText = this.add.text(0, -dialogHeight / 2 + 120, 'Exit Game?', {
+      fontSize: '24px',
+      fontWeight: 'bold',
+      color: '#FF6B6B',
+      fontStyle: 'bold',
+      fontFamily: 'Comic Sans MS, cursive, sans-serif'
+    });
+    titleText.setOrigin(0.5);
+    dialogContainer.add(titleText);
+
+
+    // Buttons container
+    const buttonsContainer = this.add.container(0, 50);
+    dialogContainer.add(buttonsContainer);
+
+    // OK Button (Exit)
+    const okBtn = this.add.container(-90, 0);
+    const okBg = this.add.graphics();
+    okBg.fillStyle(0xFF6B6B, 1);
+    okBg.fillRoundedRect(-70, -20, 140, 40, 12);
+    okBg.lineStyle(2, 0xFFFFFF, 1);
+    okBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+    okBtn.add(okBg);
+
+    const okText = this.add.text(0, 0, 'OK', {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      fontFamily: 'Comic Sans MS, cursive, sans-serif'
+    });
+    okText.setOrigin(0.5);
+    okBtn.add(okText);
+
+    okBtn.setSize(140, 40);
+    okBtn.setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.hideExitConfirmation();
+        this.onExitToPortal && this.onExitToPortal();
+      })
+      .on('pointerover', () => {
+        okBg.clear();
+        okBg.fillStyle(0xE85555, 1);
+        okBg.fillRoundedRect(-70, -20, 140, 40, 12);
+        okBg.lineStyle(2, 0xFFFFFF, 1);
+        okBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+      })
+      .on('pointerout', () => {
+        okBg.clear();
+        okBg.fillStyle(0xFF6B6B, 1);
+        okBg.fillRoundedRect(-70, -20, 140, 40, 12);
+        okBg.lineStyle(2, 0xFFFFFF, 1);
+        okBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+      });
+
+    buttonsContainer.add(okBtn);
+
+    // Stay Button
+    const stayBtn = this.add.container(90, 0);
+    const stayBg = this.add.graphics();
+    stayBg.fillStyle(0x4ECDC4, 1);
+    stayBg.fillRoundedRect(-70, -20, 140, 40, 12);
+    stayBg.lineStyle(2, 0xFFFFFF, 1);
+    stayBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+    stayBtn.add(stayBg);
+
+    const stayText = this.add.text(0, 0, 'Stay', {
+      fontSize: '18px',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      fontStyle: 'bold',
+      fontFamily: 'Comic Sans MS, cursive, sans-serif'
+    });
+    stayText.setOrigin(0.5);
+    stayBtn.add(stayText);
+
+    stayBtn.setSize(140, 40);
+    stayBtn.setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.hideExitConfirmation();
+      })
+      .on('pointerover', () => {
+        stayBg.clear();
+        stayBg.fillStyle(0x3DB8B0, 1);
+        stayBg.fillRoundedRect(-70, -20, 140, 40, 12);
+        stayBg.lineStyle(2, 0xFFFFFF, 1);
+        stayBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+      })
+      .on('pointerout', () => {
+        stayBg.clear();
+        stayBg.fillStyle(0x4ECDC4, 1);
+        stayBg.fillRoundedRect(-70, -20, 140, 40, 12);
+        stayBg.lineStyle(2, 0xFFFFFF, 1);
+        stayBg.strokeRoundedRect(-70, -20, 140, 40, 12);
+      });
+
+    buttonsContainer.add(stayBtn);
+
+    // Animate in
+    dialogContainer.setScale(0);
+    this.tweens.add({
+      targets: dialogContainer,
+      scale: 1,
+      duration: 300,
+      ease: 'Back.easeOut'
+    });
+
+    // Store references
+    this.exitOverlay = overlay;
+    this.exitDialog = dialogContainer;
+  }
+
+  hideExitConfirmation() {
+    if (!this.exitDialogVisible) return;
+
+    // Animate out
+    this.tweens.add({
+      targets: this.exitDialog,
+      scale: 0,
+      duration: 200,
+      ease: 'Back.easeIn',
+      onComplete: () => {
+        if (this.exitOverlay) {
+          this.exitOverlay.destroy();
+          this.exitOverlay = null;
+        }
+        if (this.exitDialog) {
+          this.exitDialog.destroy();
+          this.exitDialog = null;
+        }
+        this.exitDialogVisible = false;
+      }
+    });
+  }
+
   createPlayerPanels() {
     const { width, height } = this.scale;
+    const numPlayers = this.players.length;
 
-    // Left panel for Player 1 - shifted more to the left
-    this.leftPlayerPanel = this.createPlayerPanel(0, 10, (height / 2) - 220, true);
+    // Panel dimensions - consistent across all player counts
+    const panelWidth = 180;
+    const panelHeight = 280;
+    const gap = 15;
+    const sidePadding = 15;
 
-    // Right panel for Player 2 - shifted more to the right
-    this.rightPlayerPanel = this.createPlayerPanel(1, width - 210, (height / 2) - 220, false);
+    if (numPlayers === 2) {
+      // 2 players: vertically centered, one on left, one on right
+      const leftX = sidePadding;
+      const rightX = width - panelWidth - sidePadding;
+      const centerY = (height - panelHeight) / 2;
+
+      this.leftPlayerPanel = this.createPlayerPanel(0, leftX, centerY, true);
+      this.rightPlayerPanel = this.createPlayerPanel(1, rightX, centerY, false);
+    } else if (numPlayers === 3) {
+      // 3 players: 1 on left (centered), 2 on right (stacked vertically)
+      const leftX = sidePadding;
+      const rightX = width - panelWidth - sidePadding;
+
+      // Left side - single panel centered vertically
+      const leftY = (height - panelHeight) / 2;
+      this.leftPlayerPanel = this.createPlayerPanel(0, leftX, leftY, true);
+
+      // Right side - 2 panels stacked
+      const rightTotalHeight = (2 * panelHeight) + gap;
+      const rightStartY = (height - rightTotalHeight) / 2;
+      this.rightPlayerPanel = this.createPlayerPanel(1, rightX, rightStartY, false);
+
+      // Extra panel for player 2 on right
+      this.extraPanels = [];
+      const panel2 = this.createPlayerPanel(2, rightX, rightStartY + panelHeight + gap, false);
+      this.extraPanels.push(panel2);
+    } else if (numPlayers === 4) {
+      // 4 players: 2 on left (stacked), 2 on right (stacked)
+      const leftX = sidePadding;
+      const rightX = width - panelWidth - sidePadding;
+
+      // Calculate total height needed for 2 stacked panels
+      const sideTotalHeight = (2 * panelHeight) + gap;
+      const startY = (height - sideTotalHeight) / 2;
+
+      // Left side - 2 panels
+      this.leftPlayerPanel = this.createPlayerPanel(0, leftX, startY, true);
+
+      this.extraPanels = [];
+      const panel2 = this.createPlayerPanel(2, leftX, startY + panelHeight + gap, true);
+      this.extraPanels.push(panel2);
+
+      // Right side - 2 panels
+      this.rightPlayerPanel = this.createPlayerPanel(1, rightX, startY, false);
+
+      const panel3 = this.createPlayerPanel(3, rightX, startY + panelHeight + gap, false);
+      this.extraPanels.push(panel3);
+    }
   }
 
   createPlayerPanel(playerIndex, x, y, isLeft) {
@@ -128,28 +443,32 @@ class TornadoScene extends Phaser.Scene {
     const player = this.players[playerIndex];
     const playerColor = KID_COLORS.players[playerIndex] || 0x32CD32;
 
+    // Panel dimensions
+    const panelWidth = 180;
+    const panelHeight = 280;
+
     // Panel background with kid-friendly colors
     const panelBg = this.add.graphics();
     panelBg.fillStyle(0xFFFFFF, 0.95);
-    panelBg.fillRoundedRect(0, 0, 200, 440, 25);
+    panelBg.fillRoundedRect(0, 0, panelWidth, panelHeight, 20);
 
     // Colorful border
-    panelBg.lineStyle(5, playerColor, 1);
-    panelBg.strokeRoundedRect(0, 0, 200, 440, 25);
+    panelBg.lineStyle(4, playerColor, 1);
+    panelBg.strokeRoundedRect(0, 0, panelWidth, panelHeight, 20);
 
     container.add(panelBg);
 
     // Player avatar circle with fun color
     const avatarBg = this.add.graphics();
     avatarBg.fillStyle(playerColor, 0.4);
-    avatarBg.fillCircle(100, 90, 55);
-    avatarBg.lineStyle(4, playerColor, 1);
-    avatarBg.strokeCircle(100, 90, 55);
+    avatarBg.fillCircle(panelWidth / 2, 50, 40);
+    avatarBg.lineStyle(3, playerColor, 1);
+    avatarBg.strokeCircle(panelWidth / 2, 50, 40);
     container.add(avatarBg);
 
     // Player initial with fun font
-    const initial = this.add.text(100, 90, (player?.name || 'P')[0]?.toUpperCase() || 'P', {
-      fontSize: '52px',
+    const initial = this.add.text(panelWidth / 2, 50, (player?.name || 'P')[0]?.toUpperCase() || 'P', {
+      fontSize: '38px',
       fontWeight: 'bold',
       color: '#' + playerColor.toString(16).padStart(6, '0'),
       fontStyle: 'bold',
@@ -158,9 +477,9 @@ class TornadoScene extends Phaser.Scene {
     initial.setOrigin(0.5);
     container.add(initial);
 
-    // Player name
-    const nameText = this.add.text(100, 160, player?.name || `Player ${playerIndex + 1}`, {
-      fontSize: '22px',
+    // Player name - increased spacing from avatar (from 50 to 100)
+    const nameText = this.add.text(panelWidth / 2, 115, player?.name || `Player ${playerIndex + 1}`, {
+      fontSize: '18px',
       fontWeight: 'bold',
       color: '#333333',
       fontStyle: 'bold',
@@ -171,33 +490,22 @@ class TornadoScene extends Phaser.Scene {
 
     // Decorative line
     const line = this.add.graphics();
-    line.lineStyle(3, playerColor, 0.5);
-    line.moveTo(20, 180);
-    line.lineTo(180, 180);
+    line.lineStyle(2, playerColor, 0.5);
+    line.moveTo(15, 135);
+    line.lineTo(panelWidth - 15, 135);
     container.add(line);
 
-    // Points label with star
-    const pointsLabel = this.add.text(100, 205, '⭐ POINTS ⭐', {
-      fontSize: '16px',
-      fontWeight: 'bold',
-      color: playerColor,
-      fontStyle: 'bold',
-      fontFamily: 'Comic Sans MS, cursive, sans-serif'
-    });
-    pointsLabel.setOrigin(0.5);
-    container.add(pointsLabel);
-
     // Decrease button
-    const minusBtn = this.add.container(40, 260);
+    const minusBtn = this.add.container(35, 180);
     const minusBg = this.add.graphics();
     minusBg.fillStyle(0xFF6B6B, 1);
-    minusBg.fillCircle(0, 0, 25);
-    minusBg.lineStyle(3, 0xFFFFFF, 1);
-    minusBg.strokeCircle(0, 0, 25);
+    minusBg.fillCircle(0, 0, 20);
+    minusBg.lineStyle(2, 0xFFFFFF, 1);
+    minusBg.strokeCircle(0, 0, 20);
     minusBtn.add(minusBg);
 
     const minusText = this.add.text(0, 0, '-', {
-      fontSize: '32px',
+      fontSize: '26px',
       fontWeight: 'bold',
       color: '#FFFFFF',
       fontStyle: 'bold'
@@ -205,7 +513,7 @@ class TornadoScene extends Phaser.Scene {
     minusText.setOrigin(0.5);
     minusBtn.add(minusText);
 
-    minusBtn.setSize(50, 50);
+    minusBtn.setSize(40, 40);
     minusBtn.setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.adjustPoints(playerIndex, -1))
       .on('pointerover', () => minusBg.setScale(1.1))
@@ -214,8 +522,8 @@ class TornadoScene extends Phaser.Scene {
     container.add(minusBtn);
 
     // Points counter
-    const pointsText = this.add.text(100, 265, '0', {
-      fontSize: '48px',
+    const pointsText = this.add.text(panelWidth / 2, 182, '0', {
+      fontSize: '38px',
       fontWeight: 'bold',
       color: '#' + playerColor.toString(16).padStart(6, '0'),
       fontStyle: 'bold',
@@ -225,16 +533,16 @@ class TornadoScene extends Phaser.Scene {
     container.add(pointsText);
 
     // Increase button
-    const plusBtn = this.add.container(160, 260);
+    const plusBtn = this.add.container(panelWidth - 35, 180);
     const plusBg = this.add.graphics();
     plusBg.fillStyle(0x4ECDC4, 1);
-    plusBg.fillCircle(0, 0, 25);
-    plusBg.lineStyle(3, 0xFFFFFF, 1);
-    plusBg.strokeCircle(0, 0, 25);
+    plusBg.fillCircle(0, 0, 20);
+    plusBg.lineStyle(2, 0xFFFFFF, 1);
+    plusBg.strokeCircle(0, 0, 20);
     plusBtn.add(plusBg);
 
     const plusText = this.add.text(0, 0, '+', {
-      fontSize: '32px',
+      fontSize: '26px',
       fontWeight: 'bold',
       color: '#FFFFFF',
       fontStyle: 'bold'
@@ -242,7 +550,7 @@ class TornadoScene extends Phaser.Scene {
     plusText.setOrigin(0.5);
     plusBtn.add(plusText);
 
-    plusBtn.setSize(50, 50);
+    plusBtn.setSize(40, 40);
     plusBtn.setInteractive({ useHandCursor: true })
       .on('pointerdown', () => this.adjustPoints(playerIndex, 1))
       .on('pointerover', () => plusBg.setScale(1.1))
@@ -253,7 +561,7 @@ class TornadoScene extends Phaser.Scene {
     // Turn indicator
     const turnIndicator = this.add.graphics();
     turnIndicator.fillStyle(playerColor, 0.2);
-    turnIndicator.fillRoundedRect(10, 10, 180, 420, 20);
+    turnIndicator.fillRoundedRect(8, 8, panelWidth - 16, panelHeight - 16, 16);
     turnIndicator.setVisible(false);
     container.add(turnIndicator);
 
@@ -263,8 +571,8 @@ class TornadoScene extends Phaser.Scene {
     container.playerIndex = playerIndex;
 
     // Active badge
-    const activeBadge = this.add.text(100, 400, '🎯 YOUR TURN! 🎯', {
-      fontSize: '18px',
+    const activeBadge = this.add.text(panelWidth / 2, 255, '🎯 YOUR TURN! 🎯', {
+      fontSize: '14px',
       fontWeight: 'bold',
       color: playerColor,
       fontStyle: 'bold',
@@ -572,8 +880,21 @@ class TornadoScene extends Phaser.Scene {
     if (card.isRevealed) return;
 
     const currentPlayerIndex = this.gameStateRef.current.currentPlayerIndex;
+
+    // Validate turn order - this is a HARD RULE
+    const expectedPlayer = this.totalTurnsTaken % this.players.length;
+    if (currentPlayerIndex !== expectedPlayer) {
+      console.error(`TURN VIOLATION! Current player: ${currentPlayerIndex}, Expected: ${expectedPlayer}, Total turns: ${this.totalTurnsTaken}`);
+      // Force correct turn
+      this.setGameState(prev => ({ ...prev, currentPlayerIndex: expectedPlayer }));
+      return;
+    }
+
     card.isRevealed = true;
     this.flippedCount++;
+    this.totalTurnsTaken++;
+
+    console.log(`Turn #${this.totalTurnsTaken}: Player ${currentPlayerIndex + 1} clicked card`);
 
     // Flip animation
     await this.flipCard(card);
@@ -599,7 +920,7 @@ class TornadoScene extends Phaser.Scene {
       return;
     }
 
-    // Next turn
+    // Next turn - always move to next player regardless of outcome
     this.nextTurn();
   }
 
@@ -786,7 +1107,7 @@ class TornadoScene extends Phaser.Scene {
     this.soundManager?.playSound('tornado');
 
     const player = this.players[playerIndex];
-    const panel = playerIndex === 0 ? this.leftPlayerPanel : this.rightPlayerPanel;
+    const panel = this.getPlayerPanel(playerIndex);
 
     // Get card position for animation start
     const startX = card.x;
@@ -817,8 +1138,8 @@ class TornadoScene extends Phaser.Scene {
     // Animate to panel and destroy points - slower
     this.tweens.add({
       targets: tornado,
-      x: panel.x + 100,
-      y: panel.y + 265,
+      x: panel.x + 90,
+      y: panel.y + 182,
       scale: { from: 1.3, to: 0.4 },
       duration: 1200,
       ease: 'Bounce.easeOut',
@@ -861,79 +1182,13 @@ class TornadoScene extends Phaser.Scene {
     });
   }
 
-  async handlePoints(playerIndex, points, card) {
-    this.soundManager?.playSound('tornado');
-
-    const player = this.players[playerIndex];
-    const panel = playerIndex === 0 ? this.leftPlayerPanel : this.rightPlayerPanel;
-
-    // Create tornado sprite
-    const tornado = this.add.text(panel.x + 100, panel.y, '🌪️', {
-      fontSize: '120px'
-    });
-    tornado.setOrigin(0.5);
-    tornado.setDepth(1000);
-
-    // Animate tornado swirling - slower speed
-    this.tweens.add({
-      targets: tornado,
-      rotation: Math.PI * 4,
-      scale: { from: 0, to: 1.3 },
-      duration: 1000,
-      ease: 'Back.easeOut'
-    });
-
-    // Particle explosion
-    this.spawnParticles(panel.x + 100, panel.y + 220, 0x00CED1, 40);
-
-    // Wait a bit before animation
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Animate to panel and destroy points - slower
-    this.tweens.add({
-      targets: tornado,
-      x: panel.x + 100,
-      y: panel.y + 265,
-      scale: { from: 1.3, to: 0.4 },
-      duration: 1200,
-      ease: 'Bounce.easeOut',
-      onComplete: () => {
-        tornado.destroy();
-      }
-    });
-
-    // Count down points to zero - slower speed
-    const currentPoints = player.score || 0;
-    if (currentPoints > 0) {
-      for (let i = currentPoints; i >= 0; i -= 5) {
-        panel.pointsText.setText(Math.max(0, i));
-        await new Promise(resolve => setTimeout(resolve, 80));
-      }
+  getPlayerPanel(playerIndex) {
+    if (playerIndex === 0) return this.leftPlayerPanel;
+    if (playerIndex === 1) return this.rightPlayerPanel;
+    if (this.extraPanels && playerIndex >= 2) {
+      return this.extraPanels[playerIndex - 2];
     }
-
-    // Update player score
-    player.score = 0;
-
-    const newPlayers = [...this.players];
-    this.players = newPlayers;
-
-    const newScores = [...this.gameStateRef.current.scores];
-    newScores[playerIndex] = 0;
-    this.setGameState(prev => ({ ...prev, scores: newScores, players: newPlayers }));
-
-    // Screen shake
-    this.cameras.main.shake(800, 0.008);
-
-    // Flash effect
-    const flash = this.add.graphics();
-    flash.fillStyle(0x00CED1, 0.4);
-    flash.fillRect(0, 0, this.scale.width, this.scale.height);
-    this.tweens.add({
-      targets: flash,
-      alpha: 0,
-      duration: 800,
-      onComplete: () => flash.destroy()
-    });
+    return this.leftPlayerPanel;
   }
 
   async handlePoints(playerIndex, points, card) {
@@ -945,9 +1200,9 @@ class TornadoScene extends Phaser.Scene {
     this.soundManager?.playSound('points');
 
     const player = this.players[playerIndex];
-    const panel = playerIndex === 0 ? this.leftPlayerPanel : this.rightPlayerPanel;
+    const panel = this.getPlayerPanel(playerIndex);
 
-    // Use the clicked card position for animation
+    // Use the clicked card position for animation start
     const startX = card.x;
     const startY = card.y;
 
@@ -970,8 +1225,8 @@ class TornadoScene extends Phaser.Scene {
     // Animate points flying to player panel - slower
     this.tweens.add({
       targets: pointsText,
-      x: panel.x + 100,
-      y: panel.y + 265,
+      x: panel.x + 90,
+      y: panel.y + 182,
       duration: 1200,
       ease: 'Back.easeOut',
       onComplete: () => {
@@ -999,11 +1254,22 @@ class TornadoScene extends Phaser.Scene {
     const newScores = [...this.gameStateRef.current.scores];
     newScores[playerIndex] = newScore;
     this.setGameState(prev => ({ ...prev, scores: newScores, players: newPlayers }));
+
+    // Flash effect only (no screen shake for regular points)
+    const flash = this.add.graphics();
+    flash.fillStyle(0xFFD700, 0.3);
+    flash.fillRect(0, 0, this.scale.width, this.scale.height);
+    this.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: 600,
+      onComplete: () => flash.destroy()
+    });
   }
 
   adjustPoints(playerIndex, amount) {
     const player = this.players[playerIndex];
-    const panel = playerIndex === 0 ? this.leftPlayerPanel : this.rightPlayerPanel;
+    const panel = this.getPlayerPanel(playerIndex);
     const oldScore = player.score || 0;
     const newScore = oldScore + amount;
     const playerColor = KID_COLORS.players[playerIndex] || 0x32CD32;
@@ -1023,7 +1289,7 @@ class TornadoScene extends Phaser.Scene {
     panel.pointsText.setText(newScore);
 
     // Visual feedback
-    const feedback = this.add.text(panel.x + 100, panel.y + 340, amount > 0 ? '+' + amount : amount, {
+    const feedback = this.add.text(panel.x + 90, panel.y + 230, amount > 0 ? '+' + amount : amount, {
       fontSize: '32px',
       fontWeight: 'bold',
       color: amount > 0 ? '#4ECDC4' : '#FF6B6B',
@@ -1095,10 +1361,23 @@ class TornadoScene extends Phaser.Scene {
       this.rightPlayerPanel.turnIndicator?.setVisible(currentPlayerIndex === 1);
       this.rightPlayerPanel.activeBadge?.setVisible(currentPlayerIndex === 1);
     }
+
+    // Update extra panels for 3-4 players
+    if (this.extraPanels && this.extraPanels.length > 0) {
+      this.extraPanels.forEach((panel, index) => {
+        const playerIndex = index + 2; // Starts from 2 (leftPlayerPanel=0, rightPlayerPanel=1)
+        panel.turnIndicator?.setVisible(currentPlayerIndex === playerIndex);
+        panel.activeBadge?.setVisible(currentPlayerIndex === playerIndex);
+      });
+    }
   }
 
   nextTurn() {
-    const nextPlayerIndex = (this.gameStateRef.current.currentPlayerIndex + 1) % this.gameConfig.playerCount;
+    // Calculate next player using total turns taken - this is UNBREAKABLE
+    const nextPlayerIndex = (this.totalTurnsTaken) % this.players.length;
+
+    console.log(`Advancing to Player ${nextPlayerIndex + 1} (turn #${this.totalTurnsTaken + 1})`);
+
     this.setGameState(prev => ({
       ...prev,
       currentPlayerIndex: nextPlayerIndex
@@ -1108,7 +1387,7 @@ class TornadoScene extends Phaser.Scene {
   }
 }
 
-const TornadoGame = ({ config, players, onGameEnd, onBackToSetup }) => {
+const TornadoGame = ({ config, players, onGameEnd, onBackToSetup, onExitToPortal }) => {
   const gameContainerRef = useRef(null);
   const gameRef = useRef(null);
 
@@ -1144,6 +1423,7 @@ const TornadoGame = ({ config, players, onGameEnd, onBackToSetup }) => {
         players,
         onGameEnd,
         onBackToSetup,
+        onExitToPortal,
         gameStateRef,
         setGameState
       )
