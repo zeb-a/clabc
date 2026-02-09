@@ -1126,7 +1126,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
                       }}
                     >
-                      ⚡ Start FaceOff
+                      ⚡ Continue →
                     </button>
                   </div>
                 )}
@@ -1249,7 +1249,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
                       }}
                     >
-                      🧠 Start Memory Match
+                      🧠 Continue →
                     </button>
                   </div>
                 )}
@@ -1371,7 +1371,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)'
                       }}
                     >
-                      🎯 Start Quiz
+                      🎯 Continue →
                     </button>
                   </div>
                 )}
@@ -1493,7 +1493,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)'
                       }}
                     >
-                      🏍️ Start MotoRace
+                      🏍️ Continue →
                     </button>
                   </div>
                 )}
@@ -1522,7 +1522,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
                   }}
                 >
-           🚀 Start Game
+          Continue →
                 </button>
               </div>
             )}
