@@ -404,7 +404,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
       {/* --- NAV --- */}
       <nav className="safe-area-top" style={{ ...styles.nav }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 8 }}>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button onClick={(e) => { e.stopPropagation(); onEditProfile && onEditProfile(); }} title={t('teacher_portal.edit_profile')} style={styles.navAvatarBtn}>
@@ -419,33 +419,39 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               </div>
             </div>
           )}
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button
-            onClick={() => {
-              localStorage.setItem('selected_game_type', 'tornado');
-              setTorenadoSelectedClass(null);
-              setTorenadoPlayers([]);
-              setShowTorenadoModal(true);
-            }}
-            style={{
-              ...styles.logoutBtn,
-              background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-              border: '2px solid #A78BFA',
-              color: '#fff',
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.4)'
-            }}
-            title="Play Games"
-          >
-            <Zap size={14} />
-            <span style={{ marginLeft: 4, fontWeight: 600 }}>Play Games</span>
-          </button>
-          <InlineHelpButton pageId="teacher-portal" />
-          <button onClick={() => setLogoutConfirm(true)} title={t('teacher_portal.logout')} style={styles.logoutBtn}>
-            <LogOut size={14} />
-            <span style={{ marginLeft: 4, fontWeight: 600 }}>{t('teacher_portal.logout')}</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                localStorage.setItem('selected_game_type', 'tornado');
+                setTorenadoSelectedClass(null);
+                setTorenadoPlayers([]);
+                setShowTorenadoModal(true);
+              }}
+              style={{
+                ...styles.logoutBtn,
+                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
+                border: '2px solid #A78BFA',
+                color: '#fff',
+                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                padding: '14px 20px',
+                fontSize: '18px',
+                fontWeight: 800
+              }}
+              title="Play Games"
+            >
+              <Zap size={18} />
+              <span style={{ marginLeft: 6, fontWeight: 700, fontSize: '16px' }}>Play Games</span>
+            </button>
+            <InlineHelpButton pageId="teacher-portal" />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => setLogoutConfirm(true)} title={t('teacher_portal.logout')} style={styles.logoutBtn}>
+              <LogOut size={14} />
+              <span style={{ marginLeft: 4, fontWeight: 600 }}>{t('teacher_portal.logout')}</span>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -669,20 +675,83 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {/* --- TORENADO GAME MODAL --- */}
       {showTorenadoModal && (
         <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
-          <div style={{ ...styles.deleteModal, maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{
+            ...styles.deleteModal,
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            paddingTop: '16px',
+            paddingBottom: '32px',
+            border: '3px solid transparent',
+            background: 'white',
+            backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'padding-box, border-box'
+          }} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs}>
               <X size={20} />
             </button>
-            <div style={styles.deleteModalTitle}>
-              <span>🎮 Choose a Game</span>
+            <div style={{
+              textAlign: 'left',
+              padding: '4px 0',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '13px',
+                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)',
+                position: 'relative',
+                overflow: 'hidden',
+                zIndex: 1
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
+                }}></div>
+                <span style={{
+                  fontSize: '18px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                  position: 'relative',
+                  zIndex: 1,
+                  animation: 'bounce 2s infinite'
+                }}>🎮</span>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  position: 'relative',
+                  zIndex: 1
+                }}>Choose a Game</span>
+              </div>
             </div>
 
+            {/* Decorative border */}
+            <div style={{
+              marginTop: '20px',
+              marginBottom: '16px',
+              padding: '16px',
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+              borderRadius: '16px',
+              border: '2px solid',
+              borderImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1',
+              position: 'relative'
+            }}>
+
             {/* Game Selection */}
-            <div style={{ marginTop: 20 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
-                🎯 Select Game Type:
-              </label>
-              <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ marginTop: 0 }}>
+              <div style={{ display: 'flex', gap: '12px' }}>
                 <button
                   onClick={() => {
                     localStorage.setItem('selected_game_type', 'tornado');
@@ -835,22 +904,34 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 </button>
               </div>
             </div>
+            </div>
 
             {/* Only show class selection for Tornado (FaceOff, Memory Match, Quiz, MotoRace handle this separately) */}
             {localStorage.getItem('selected_game_type') !== 'faceoff' && localStorage.getItem('selected_game_type') !== 'memorymatch' && localStorage.getItem('selected_game_type') !== 'quiz' && localStorage.getItem('selected_game_type') !== 'motorace' && (
               <>
             {/* Class Selection - Grid of Cards */}
             <div style={{ marginTop: 15 }}>
-              <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
+              <label style={{
+                fontSize: '16px',
+                fontWeight: '700',
+                color: '#ffffff',
+                marginBottom: '10px',
+                display: 'inline-block',
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.25)',
+                letterSpacing: '0.3px'
+              }}>
                 📚 Select a Class:
               </label>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                gap: '8px',
-                maxHeight: '150px',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                gap: '12px',
+                maxHeight: '400px',
                 overflowY: 'auto',
-                padding: '6px'
+                padding: '10px'
               }}>
                 {classes.map(cls => (
                   <div
@@ -860,8 +941,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       setTorenadoPlayers([]);
                     }}
                     style={{
-                      padding: '10px',
-                      borderRadius: '10px',
+                      padding: '16px',
+                      borderRadius: '14px',
                       border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#E5E7EB'}`,
                       background: torenadoSelectedClass?.id === cls.id
                         ? 'linear-gradient(135deg, #8B5CF615, #EC489915)'
@@ -925,157 +1006,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               </div>
             </div>
 
-            {/* Game Mode Toggle */}
-            {torenadoSelectedClass && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
-                  🎮 Game Mode:
-                </label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button
-                    onClick={() => { setIsTeamMode(false); setPlayerCount(2); setTorenadoPlayers([]); }}
-                    style={{
-                      ...styles.logoutBtn,
-                      flex: 1,
-                      minWidth: '90px',
-                      padding: '10px 12px',
-                      fontSize: '13px',
-                      background: isTeamMode ? '#F3F4F6' : 'linear-gradient(135deg, #3B82F6, #10B981)',
-                      color: isTeamMode ? '#6B7280' : '#fff',
-                      border: isTeamMode ? '2px solid #E5E7EB' : '2px solid #059669',
-                      boxShadow: isTeamMode ? 'none' : '0 3px 10px rgba(16, 185, 129, 0.3)'
-                    }}
-                  >
-                    👤 Individual
-                  </button>
-                  <button
-                    onClick={() => { setIsTeamMode(true); setPlayerCount(2); setTorenadoPlayers([]); }}
-                    style={{
-                      ...styles.logoutBtn,
-                      flex: 1,
-                      minWidth: '90px',
-                      padding: '10px 12px',
-                      fontSize: '13px',
-                      background: isTeamMode ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : '#F3F4F6',
-                      color: isTeamMode ? '#fff' : '#6B7280',
-                      border: isTeamMode ? '2px solid #A78BFA' : '2px solid #E5E7EB',
-                      boxShadow: isTeamMode ? '0 3px 10px rgba(139, 92, 246, 0.3)' : 'none'
-                    }}
-                  >
-                    👥 Teams
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Player Count */}
-            {torenadoSelectedClass && isTeamMode && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
-                  👥 Teams:
-                </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[2, 3, 4].map(count => (
-                    <button
-                      key={count}
-                      onClick={() => setPlayerCount(count)}
-                      style={{
-                        padding: '10px 18px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        border: '2px solid',
-                        borderRadius: '10px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background: playerCount === count
-                          ? 'linear-gradient(135deg, #F59E0B, #EF4444)'
-                          : 'rgba(255, 255, 255, 0.8)',
-                        borderColor: playerCount === count ? '#F59E0B' : '#E5E7EB',
-                        color: playerCount === count ? '#fff' : '#4B5563',
-                        boxShadow: playerCount === count
-                          ? '0 3px 10px rgba(245, 158, 11, 0.3)'
-                          : 'none',
-                        transform: playerCount === count ? 'scale(1.05)' : 'scale(1)'
-                      }}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Student/Team Selection Display */}
-            {torenadoSelectedClass && (
-              <div style={{ marginTop: 15, maxHeight: '200px', overflowY: 'auto', padding: '8px', background: '#F9FAFB', borderRadius: '10px' }}>
-                {isTeamMode ? (
-                  <div style={{ fontSize: '12px', color: '#6B7280', lineHeight: '1.5' }}>
-                    <p style={{ marginBottom: '8px', fontWeight: '600' }}>
-                      Teams:
-                    </p>
-                    <div style={{ display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                      {Array.from({ length: playerCount }).map((_, i) => {
-                        const teamMembers = (torenadoSelectedClass.students || []).filter((_, idx) => idx % playerCount === i);
-                        const teamColor = ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i];
-                        return (
-                          <div key={i} style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            background: teamColor + '20',
-                            border: `2px solid ${teamColor}`
-                          }}>
-                            <strong style={{ color: teamColor, fontSize: '12px' }}>Team {i + 1}</strong>
-                            <ul style={{ margin: '6px 0 0 12px', paddingLeft: '16px', fontSize: '11px' }}>
-                              {teamMembers.map(student => (
-                                <li key={student.id}>{student.name}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px', fontWeight: '600' }}>
-                      Select students (Max 4):
-                    </p>
-                    <div style={{ display: 'grid', gap: '6px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                      {torenadoSelectedClass.students.map(student => {
-                        const isSelected = torenadoPlayers.some(p => p.id === student.id);
-                        const isMaxReached = torenadoPlayers.length >= 4;
-                        return (
-                          <button
-                            key={student.id}
-                            onClick={() => toggleStudentForTorenado(student.id)}
-                            disabled={!isSelected && isMaxReached}
-                            style={{
-                              padding: '8px 10px',
-                              borderRadius: '6px',
-                              border: '2px solid',
-                              cursor: !isSelected && isMaxReached ? 'not-allowed' : 'pointer',
-                              transition: 'all 0.2s ease',
-                              background: isSelected
-                                ? 'linear-gradient(135deg, #10B981, #059669)'
-                                : '#fff',
-                              borderColor: isSelected ? '#10B981' : '#E5E7EB',
-                              color: isSelected ? '#fff' : '#4B5563',
-                              opacity: !isSelected && isMaxReached ? '0.5' : '1',
-                              textAlign: 'left',
-                              fontSize: '12px',
-                              fontWeight: '500',
-                              position: 'relative'
-                            }}
-                          >
-                            {isSelected ? '✓ ' : ''}{student.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             </>
             )}
@@ -1083,16 +1013,27 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             {/* FaceOff-specific: Show class selection and start button */}
             {localStorage.getItem('selected_game_type') === 'faceoff' && (
               <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
+                <label style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  marginBottom: '10px',
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.25)',
+                  letterSpacing: '0.3px'
+                }}>
                   📚 Select a Class:
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                  gap: '8px',
-                  maxHeight: '150px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '400px',
                   overflowY: 'auto',
-                  padding: '6px'
+                  padding: '10px'
                 }}>
                   {classes.map(cls => (
                     <div
@@ -1102,8 +1043,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         setTorenadoPlayers([]);
                       }}
                       style={{
-                        padding: '10px',
-                        borderRadius: '10px',
+                        padding: '16px',
+                        borderRadius: '14px',
                         border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#FF6B6B' : '#E5E7EB'}`,
                         background: torenadoSelectedClass?.id === cls.id
                           ? 'linear-gradient(135deg, #FF6B6B15, #FF8E8E15)'
@@ -1195,16 +1136,27 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             {/* Memory Match-specific: Show class selection and start button */}
             {localStorage.getItem('selected_game_type') === 'memorymatch' && (
               <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
+                <label style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  marginBottom: '10px',
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.25)',
+                  letterSpacing: '0.3px'
+                }}>
                   📚 Select a Class:
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                  gap: '8px',
-                  maxHeight: '150px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '400px',
                   overflowY: 'auto',
-                  padding: '6px'
+                  padding: '10px'
                 }}>
                   {classes.map(cls => (
                     <div
@@ -1214,8 +1166,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         setTorenadoPlayers([]);
                       }}
                       style={{
-                        padding: '10px',
-                        borderRadius: '10px',
+                        padding: '16px',
+                        borderRadius: '14px',
                         border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#E5E7EB'}`,
                         background: torenadoSelectedClass?.id === cls.id
                           ? 'linear-gradient(135deg, #8B5CF615, #A78BFA15)'
@@ -1307,16 +1259,27 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             {/* Quiz-specific: Show class selection and start button */}
             {localStorage.getItem('selected_game_type') === 'quiz' && (
               <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
+                <label style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  marginBottom: '10px',
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%)',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 15px rgba(14, 165, 233, 0.25)',
+                  letterSpacing: '0.3px'
+                }}>
                   📚 Select a Class:
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                  gap: '8px',
-                  maxHeight: '150px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '400px',
                   overflowY: 'auto',
-                  padding: '6px'
+                  padding: '10px'
                 }}>
                   {classes.map(cls => (
                     <div
@@ -1326,8 +1289,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         setTorenadoPlayers([]);
                       }}
                       style={{
-                        padding: '10px',
-                        borderRadius: '10px',
+                        padding: '16px',
+                        borderRadius: '14px',
                         border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#0EA5E9' : '#E5E7EB'}`,
                         background: torenadoSelectedClass?.id === cls.id
                           ? 'linear-gradient(135deg, #0EA5E915, #06B6D415)'
@@ -1418,16 +1381,27 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             {/* MotoRace-specific: Show class selection and start button */}
             {localStorage.getItem('selected_game_type') === 'motorace' && (
               <div style={{ marginTop: 15 }}>
-                <label style={{ fontSize: '14px', fontWeight: '600', color: '#4B5563', marginBottom: '8px', display: 'block' }}>
+                <label style={{
+                  fontSize: '16px',
+                  fontWeight: '700',
+                  color: '#ffffff',
+                  marginBottom: '10px',
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 15px rgba(249, 115, 22, 0.25)',
+                  letterSpacing: '0.3px'
+                }}>
                   📚 Select a Class:
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-                  gap: '8px',
-                  maxHeight: '150px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '400px',
                   overflowY: 'auto',
-                  padding: '6px'
+                  padding: '10px'
                 }}>
                   {classes.map(cls => (
                     <div
@@ -1437,8 +1411,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                         setTorenadoPlayers([]);
                       }}
                       style={{
-                        padding: '10px',
-                        borderRadius: '10px',
+                        padding: '16px',
+                        borderRadius: '14px',
                         border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#F97316' : '#E5E7EB'}`,
                         background: torenadoSelectedClass?.id === cls.id
                           ? 'linear-gradient(135deg, #F9731615, #EA580C15)'
@@ -1534,7 +1508,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               <div style={{ marginTop: 15 }}>
                 <button
                   onClick={handleTorenadoStartGame}
-                  disabled={isTeamMode ? false : torenadoPlayers.length < 2}
                   style={{
                     width: '100%',
                     padding: '12px 20px',
@@ -1546,9 +1519,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     transition: 'all 0.3s ease',
                     background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
                     color: '#fff',
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
-                    opacity: isTeamMode ? 1 : torenadoPlayers.length >= 2 ? 1 : 0.5,
-                    pointerEvents: isTeamMode ? 'auto' : torenadoPlayers.length >= 2 ? 'auto' : 'none'
+                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
                   }}
                 >
            🚀 Start Game
@@ -1640,7 +1611,7 @@ const styles = {
   deleteModalTitle: { position: 'absolute', top: 24, left: 32, fontSize: '20px', fontWeight: 'bold', color: '#111827' },
 
   // Torenado Modal Close Button (positioned at top right)
-  torenadoModalCloseAbs: { position: 'absolute', top: 24, right: 24, background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' },
+  torenadoModalCloseAbs: { position: 'absolute', top: 12, right: 16, background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', zIndex: 1000 },
 
   // Avatar Selector Grid
   themeGrid: {

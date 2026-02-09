@@ -2751,8 +2751,66 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             <div style={{ width: '100px' }}></div>
           </div>
 
-          {/* Team/Player Count Selection (Only when replay mode) */}
-          {isReplay && selectedClass && isTeamMode && (
+          {/* Mode Tabs (Individual / Teams) */}
+          {selectedClass && (
+            <div style={{ marginBottom: '25px' }}>
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                padding: '6px',
+                background: '#F3F4F6',
+                borderRadius: '16px'
+              }}>
+                <button
+                  onClick={() => {
+                    setIsTeamMode(false);
+                    setPlayerCount(2);
+                    setSelectedStudents([]);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '14px 24px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: !isTeamMode ? 'linear-gradient(135deg, #3B82F6, #10B981)' : 'transparent',
+                    color: !isTeamMode ? '#fff' : '#6B7280',
+                    boxShadow: !isTeamMode ? '0 4px 15px rgba(16, 185, 129, 0.3)' : 'none'
+                  }}
+                >
+                  👤 Individual
+                </button>
+                <button
+                  onClick={() => {
+                    setIsTeamMode(true);
+                    setPlayerCount(2);
+                    setSelectedStudents([]);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '14px 24px',
+                    fontSize: '16px',
+                    fontWeight: '700',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: isTeamMode ? 'linear-gradient(135deg, #8B5CF6, #EC4899)' : 'transparent',
+                    color: isTeamMode ? '#fff' : '#6B7280',
+                    boxShadow: isTeamMode ? '0 4px 15px rgba(139, 92, 246, 0.3)' : 'none'
+                  }}
+                >
+                  👥 Teams
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Team/Player Count Selection (Only when replay mode and team mode) */}
+          {isReplay && isTeamMode && (
             <div style={{ marginBottom: '25px', padding: '20px', background: '#F8FAFC', borderRadius: '18px', border: '3px solid #8B5CF6' }}>
               <label style={{
                 color: '#333',
@@ -2767,7 +2825,17 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 {[2, 3, 4].map(count => (
                   <button
                     key={count}
-                    onClick={() => setPlayerCount(count)}
+                    onClick={() => {
+                      setPlayerCount(count);
+                      // Divide students evenly among teams
+                      if (selectedClass?.students) {
+                        const teams = Array.from({ length: count }, (_, i) =>
+                          selectedClass.students.filter((_, idx) => idx % count === i)
+                        );
+                        // You can store this or use it as needed
+                        console.log('Teams divided:', teams);
+                      }
+                    }}
                     style={{
                       padding: '15px 30px',
                       fontSize: '20px',
@@ -2790,6 +2858,42 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     {count} Teams
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Team Display (Show teams with their members) */}
+          {isReplay && isTeamMode && selectedClass && playerCount > 0 && (
+            <div style={{ marginBottom: '25px', padding: '20px', background: '#F8FAFC', borderRadius: '18px', border: '3px solid #8B5CF6' }}>
+              <label style={{
+                color: '#333',
+                fontSize: '18px',
+                fontWeight: '700',
+                display: 'block',
+                marginBottom: '15px'
+              }}>
+                👥 Teams:
+              </label>
+              <div style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                {Array.from({ length: playerCount }).map((_, i) => {
+                  const teamMembers = (selectedClass.students || []).filter((_, idx) => idx % playerCount === i);
+                  const teamColor = ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i];
+                  return (
+                    <div key={i} style={{
+                      padding: '12px',
+                      borderRadius: '10px',
+                      background: teamColor + '20',
+                      border: `2px solid ${teamColor}`
+                    }}>
+                      <strong style={{ color: teamColor, fontSize: '14px' }}>Team {i + 1}</strong>
+                      <ul style={{ margin: '8px 0 0 16px', paddingLeft: '20px', fontSize: '13px' }}>
+                        {teamMembers.map(student => (
+                          <li key={student.id}>{student.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -3358,14 +3462,17 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               } else {
                 // Tornado game
                 if (isTeamMode) {
-                  // Team mode - create teams from selected class students
+                  // Team mode - create teams from selected class students divided evenly
                   const students = selectedClass.students || [];
                   const teams = [];
                   for (let i = 0; i < playerCount; i++) {
+                    // Divide students evenly among teams using modulo
+                    const teamMembers = students.filter((_, idx) => idx % playerCount === i);
                     teams.push({
                       id: i,
                       name: `Team ${i + 1}`,
-                      color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i]
+                      color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i],
+                      members: teamMembers
                     });
                   }
                   setPlayers(teams);
