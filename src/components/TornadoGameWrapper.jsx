@@ -3,7 +3,11 @@ import * as PIXI from 'pixi.js';
 import TornadoGame from './TornadoGame';
 import FaceOffGame from './FaceOffGame';
 import MemoryMatchGame from './MemoryMatchGame';
+import QuizGame from './QuizGame';
+import MotoRaceGame from './MotoRaceGame';
 import api from '../services/api';
+
+const OPTIONS = ['A', 'B', 'C', 'D'];
 
 const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: externalIsReplay }) => {
   // Check if this is a replay (coming back from game) or fresh start (from portal)
@@ -50,6 +54,14 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     contentItems: []
   });
   const [memoryMatchBulkUploadImages, setMemoryMatchBulkUploadImages] = useState([]);
+  const [quizConfig, setQuizConfig] = useState({
+    questions: [] // { id, question, image?, options: [a,b,c,d], correct: 0-3 }
+  });
+  const [motoRaceConfig, setMotoRaceConfig] = useState({
+    contentType: 'text', // 'text' | 'images'
+    items: [], // strings (words) or image data URLs
+    playerCount: 2
+  });
   const [players, setPlayers] = useState([]);
   const [pixiContainer, setPixiContainer] = useState(null);
   const [prefilled, setPrefilled] = useState(false);
@@ -86,6 +98,36 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     setFaceOffConfig(prev => ({
       ...prev,
       wordImagePairs: prev.wordImagePairs.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addQuizQuestion = () => {
+    setQuizConfig(prev => ({
+      ...prev,
+      questions: [...prev.questions, { id: Date.now(), question: '', image: null, options: ['', ''], correct: 0 }]
+    }));
+  };
+  const addQuizOption = (questionId) => {
+    setQuizConfig(prev => ({
+      ...prev,
+      questions: prev.questions.map(q => {
+        if (q.id !== questionId) return q;
+        const opts = q.options || ['', ''];
+        if (opts.length >= 4) return q;
+        return { ...q, options: [...opts, ''] };
+      })
+    }));
+  };
+  const updateQuizQuestion = (id, updates) => {
+    setQuizConfig(prev => ({
+      ...prev,
+      questions: prev.questions.map(q => q.id === id ? { ...q, ...updates } : q)
+    }));
+  };
+  const removeQuizQuestion = (id) => {
+    setQuizConfig(prev => ({
+      ...prev,
+      questions: prev.questions.filter(q => q.id !== id)
     }));
   };
 
@@ -390,6 +432,110 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               <div style={{ fontSize: '48px' }}>🧠</div>
               <div>Memory Match</div>
             </button>
+
+            <button
+              onClick={() => {
+                setGameType('quiz');
+                localStorage.setItem('selected_game_type', 'quiz');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: gameType === 'quiz' ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)' : 'rgba(255,255,255,0.3)',
+                color: gameType === 'quiz' ? '#fff' : '#1E293B',
+                borderColor: gameType === 'quiz' ? '#0EA5E9' : 'rgba(255,255,255,0.5)',
+                boxShadow: gameType === 'quiz' ? '0 6px 25px rgba(14, 165, 233, 0.4)' : 'none',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.background = 'linear-gradient(135deg, #0EA5E9, #06B6D4)';
+                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.borderColor = '#0EA5E9';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(14, 165, 233, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+                if (gameType !== 'quiz') {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                  e.currentTarget.style.color = '#1E293B';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                  e.currentTarget.style.boxShadow = 'none';
+                } else {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #0EA5E9, #06B6D4)';
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.borderColor = '#0EA5E9';
+                  e.currentTarget.style.boxShadow = '0 6px 25px rgba(14, 165, 233, 0.4)';
+                }
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>🎯</div>
+              <div>Quiz</div>
+            </button>
+
+            <button
+              onClick={() => {
+                setGameType('motorace');
+                localStorage.setItem('selected_game_type', 'motorace');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: gameType === 'motorace' ? 'linear-gradient(135deg, #F97316, #EA580C)' : 'rgba(255,255,255,0.3)',
+                color: gameType === 'motorace' ? '#fff' : '#1E293B',
+                borderColor: gameType === 'motorace' ? '#F97316' : 'rgba(255,255,255,0.5)',
+                boxShadow: gameType === 'motorace' ? '0 6px 25px rgba(249, 115, 22, 0.4)' : 'none',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.background = 'linear-gradient(135deg, #F97316, #EA580C)';
+                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.borderColor = '#F97316';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(249, 115, 22, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+                if (gameType !== 'motorace') {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                  e.currentTarget.style.color = '#1E293B';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                  e.currentTarget.style.boxShadow = 'none';
+                } else {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #F97316, #EA580C)';
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.borderColor = '#F97316';
+                  e.currentTarget.style.boxShadow = '0 6px 25px rgba(249, 115, 22, 0.4)';
+                }
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>🏍️</div>
+              <div>MotoRace</div>
+            </button>
           </div>
 
           <div style={{
@@ -404,6 +550,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             <div><strong>🌪️ Tornado:</strong> Classic card-flipping game with point challenges</div>
             <div style={{ marginTop: '10px' }}><strong>⚡ FaceOff:</strong> Fast-paced word-to-picture matching for 2 players</div>
             <div style={{ marginTop: '10px' }}><strong>🧠 Memory Match:</strong> Match pairs of cards with images or text</div>
+            <div style={{ marginTop: '10px' }}><strong>🎯 Quiz:</strong> Two players, same A/B/C/D options—first correct answer wins the point</div>
+            <div style={{ marginTop: '10px' }}><strong>🏍️ MotoRace:</strong> 2–4 players race 10 steps; review words or images in a slideshow</div>
           </div>
         </div>
       )}
@@ -470,8 +618,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 key={cls.id}
                 onClick={() => {
                   setSelectedClass(cls);
-                  // Skip mode selection for FaceOff and Memory Match, go directly to config
-                  if (gameType === 'faceoff' || gameType === 'memorymatch') {
+                  // Skip mode selection for FaceOff, Memory Match, Quiz, MotoRace — go directly to config
+                  if (gameType === 'faceoff' || gameType === 'memorymatch' || gameType === 'quiz' || gameType === 'motorace') {
                     setGameState('config');
                   } else {
                     setGameState('select-mode');
@@ -1805,6 +1953,650 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         </div>
       )}
 
+      {/* Quiz Configuration Screen - Advanced 2026 style */}
+      {gameState === 'config' && gameType === 'quiz' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '720px',
+          padding: '28px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '28px',
+          border: '4px solid #0EA5E9',
+          boxShadow: '0 24px 56px rgba(14, 165, 233, 0.25), 0 0 0 1px rgba(14, 165, 233, 0.08)',
+          marginTop: '44px',
+          marginBottom: '44px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <button
+              onClick={() => { setGameState('select-class'); setSelectedStudents([]); }}
+              style={{
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
+              }}
+            >
+              ← Back
+            </button>
+            <div style={{ textAlign: 'center', flex: 1, minWidth: '160px' }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0,
+                fontFamily: 'Comic Sans MS, cursive, sans-serif'
+              }}>
+                🎯 Quiz Configuration
+              </div>
+              {selectedClass && (
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Class: {selectedClass.name}</div>
+              )}
+            </div>
+            <div style={{ width: '80px' }} />
+          </div>
+
+          {/* Questions count & add */}
+          <div style={{ marginBottom: '18px', padding: '14px 18px', background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)', borderRadius: '16px', border: '2px solid #0EA5E940' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '700', color: '#0C4A6E' }}>
+                📝 Questions: {quizConfig.questions.length}
+              </span>
+              <button
+                onClick={addQuizQuestion}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px solid #0EA5E9',
+                  borderRadius: '12px',
+                  background: '#fff',
+                  color: '#0EA5E9',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                + Add question
+              </button>
+            </div>
+          </div>
+
+          {/* Question list - scrollable */}
+          <div style={{ maxHeight: '42vh', overflowY: 'auto', marginBottom: '18px', paddingRight: '6px' }}>
+            {quizConfig.questions.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '24px', color: '#94A3B8', fontSize: '14px' }}>
+                Add at least one question with text and 4 options (mark the correct one).
+              </div>
+            )}
+            {quizConfig.questions.map((q, idx) => (
+              <div
+                key={q.id}
+                style={{
+                  marginBottom: '14px',
+                  padding: '14px 16px',
+                  background: '#fff',
+                  borderRadius: '14px',
+                  border: '2px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: '#0EA5E9' }}>Q{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeQuizQuestion(q.id)}
+                    style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <input
+                  placeholder="Question text"
+                  value={q.question}
+                  onChange={e => updateQuizQuestion(q.id, { question: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid #E2E8F0',
+                    fontSize: '14px',
+                    marginBottom: '10px',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <div style={{ marginBottom: '10px' }}>
+                  {q.image ? (
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <img src={q.image} alt="" style={{ maxWidth: '120px', maxHeight: '80px', objectFit: 'cover', borderRadius: '8px' }} />
+                      <button
+                        type="button"
+                        onClick={() => updateQuizQuestion(q.id, { image: null })}
+                        style={{ position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 6, background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px' }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '8px', border: '2px dashed #CBD5E1', cursor: 'pointer', fontSize: '12px', color: '#64748B' }}>
+                      📷 Image
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = () => updateQuizQuestion(q.id, { image: reader.result });
+                          reader.readAsDataURL(file);
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(q.options || ['', '']).map((_, i) => (
+                    <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => updateQuizQuestion(q.id, { correct: i })}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '8px',
+                          border: '2px solid',
+                          borderColor: q.correct === i ? '#0EA5E9' : '#E2E8F0',
+                          background: q.correct === i ? '#0EA5E9' : '#F8FAFC',
+                          color: q.correct === i ? '#fff' : '#64748B',
+                          fontWeight: '800',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}
+                        title="Correct answer"
+                      >
+                        {OPTIONS[i]}
+                      </button>
+                      <input
+                        placeholder={`Option ${OPTIONS[i]}`}
+                        value={q.options[i] ?? ''}
+                        onChange={e => {
+                          const opts = [...(q.options || ['', ''])];
+                          opts[i] = e.target.value;
+                          updateQuizQuestion(q.id, { options: opts });
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          fontSize: '13px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                  ))}
+                  {(q.options || ['', '']).length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() => addQuizOption(q.id)}
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        border: '2px dashed #0EA5E9',
+                        borderRadius: '8px',
+                        background: '#F0F9FF',
+                        color: '#0EA5E9',
+                        cursor: 'pointer',
+                        alignSelf: 'flex-start'
+                      }}
+                    >
+                      + Add option
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Select 2 players */}
+          {selectedClass && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #0EA5E940' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#0C4A6E', display: 'block', marginBottom: '10px' }}>
+                👤 Select 2 players
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+                {(selectedClass.students || []).map(student => {
+                  const isSelected = selectedStudents.some(p => p.id === student.id);
+                  const isFull = selectedStudents.length >= 2;
+                  return (
+                    <button
+                      key={student.id}
+                      onClick={() => {
+                        if (isSelected) setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
+                        else if (!isFull) setSelectedStudents(prev => [...prev, { id: student.id, name: student.name, color: ['#00d9ff', '#ff00ff'][prev.length] }]);
+                      }}
+                      disabled={!isSelected && isFull}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        border: '2px solid',
+                        borderColor: isSelected ? '#0EA5E9' : '#E2E8F0',
+                        background: isSelected ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)' : '#fff',
+                        color: isSelected ? '#fff' : '#475569',
+                        cursor: !isSelected && isFull ? 'not-allowed' : 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        opacity: !isSelected && isFull ? 0.5 : 1,
+                        textAlign: 'left'
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{student.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === 2 ? '#0EA5E9' : '#64748B', fontWeight: '600' }}>
+                Selected: {selectedStudents.length}/2 {selectedStudents.length === 2 ? '✓ Ready' : '(Select exactly 2)'}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              if (selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1) {
+                setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff'][i] })));
+                setGameState('playing');
+              }
+            }}
+            disabled={selectedStudents.length !== 2 || quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length < 1}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '18px',
+              fontWeight: '900',
+              border: 'none',
+              borderRadius: '14px',
+              cursor: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1 ? 'pointer' : 'not-allowed',
+              background: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1
+                ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
+                : '#ccc',
+              color: '#fff',
+              boxShadow: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1
+                ? '0 6px 24px rgba(14, 165, 233, 0.4)'
+                : 'none',
+              opacity: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1 ? 1 : 0.6
+            }}
+          >
+            🎯 START QUIZ
+          </button>
+        </div>
+      )}
+
+      {/* MotoRace Configuration Screen */}
+      {gameState === 'config' && gameType === 'motorace' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '720px',
+          padding: '28px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '28px',
+          border: '4px solid #F97316',
+          boxShadow: '0 24px 56px rgba(249, 115, 22, 0.25)',
+          marginTop: '44px',
+          marginBottom: '44px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <button
+              onClick={() => { setGameState('select-class'); setSelectedStudents([]); }}
+              style={{
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
+              }}
+            >
+              ← Back
+            </button>
+            <div style={{ textAlign: 'center', flex: 1, minWidth: '160px' }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #F97316, #EA580C)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0,
+                fontFamily: 'Comic Sans MS, cursive, sans-serif'
+              }}>
+                🏍️ MotoRace Configuration
+              </div>
+              {selectedClass && (
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Class: {selectedClass.name}</div>
+              )}
+            </div>
+            <div style={{ width: '80px' }} />
+          </div>
+
+          {/* Content type: Text OR Images only */}
+          <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFF7ED', borderRadius: '16px', border: '2px solid #F9731640' }}>
+            <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '10px' }}>
+              📋 Content type (choose one)
+            </label>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setMotoRaceConfig(prev => ({ ...prev, contentType: 'text', items: prev.contentType === 'text' ? prev.items : [] }))}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px solid',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  background: motoRaceConfig.contentType === 'text' ? 'linear-gradient(135deg, #F97316, #EA580C)' : '#fff',
+                  color: motoRaceConfig.contentType === 'text' ? '#fff' : '#78716c',
+                  borderColor: motoRaceConfig.contentType === 'text' ? '#F97316' : '#E7E5E4'
+                }}
+              >
+                ✏️ Words (comma-separated)
+              </button>
+              <button
+                type="button"
+                onClick={() => setMotoRaceConfig(prev => ({ ...prev, contentType: 'images', items: prev.contentType === 'images' ? prev.items : [] }))}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px solid',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  background: motoRaceConfig.contentType === 'images' ? 'linear-gradient(135deg, #F97316, #EA580C)' : '#fff',
+                  color: motoRaceConfig.contentType === 'images' ? '#fff' : '#78716c',
+                  borderColor: motoRaceConfig.contentType === 'images' ? '#F97316' : '#E7E5E4'
+                }}
+              >
+                🖼️ Images (bulk upload)
+              </button>
+            </div>
+          </div>
+
+          {motoRaceConfig.contentType === 'text' && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F9731640' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
+                ✏️ Add words for review (comma-separated)
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="e.g. apple, banana, cat, dog"
+                  id="motorace-words-input"
+                  style={{
+                    flex: 1,
+                    minWidth: '200px',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '2px solid #E7E5E4',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const input = document.getElementById('motorace-words-input');
+                      const text = (input?.value || '').trim();
+                      if (!text) return;
+                      const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
+                      if (words.length) {
+                        setMotoRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                        if (input) input.value = '';
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = document.getElementById('motorace-words-input');
+                    const text = (input?.value || '').trim();
+                    if (!text) return;
+                    const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
+                    if (words.length) {
+                      setMotoRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                      if (input) input.value = '';
+                    }
+                  }}
+                  style={{
+                    padding: '10px 18px',
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    border: '2px solid #F97316',
+                    borderRadius: '10px',
+                    background: '#fff',
+                    color: '#F97316',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Add
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', maxHeight: '120px', overflowY: 'auto' }}>
+                {motoRaceConfig.items.map((word, idx) => (
+                  <button
+                    key={`${word}-${idx}`}
+                    type="button"
+                    onClick={() => setMotoRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '2px solid #F97316',
+                      background: '#FFF7ED',
+                      color: '#9A3412',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {word} ✕
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {motoRaceConfig.contentType === 'images' && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F9731640' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
+                🖼️ Upload images (bulk)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                id="motorace-bulk-images"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files?.length) return;
+                  const readers = Array.from(files).map(file => {
+                    return new Promise(resolve => {
+                      const r = new FileReader();
+                      r.onload = () => resolve(r.result);
+                      r.readAsDataURL(file);
+                    });
+                  });
+                  Promise.all(readers).then(urls => {
+                    setMotoRaceConfig(prev => ({ ...prev, items: [...prev.items, ...urls] }));
+                    e.target.value = '';
+                  });
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById('motorace-bulk-images').click()}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px dashed #F97316',
+                  borderRadius: '10px',
+                  background: '#fff',
+                  color: '#F97316',
+                  cursor: 'pointer',
+                  marginBottom: '12px'
+                }}
+              >
+                📸 Select images
+              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+                {motoRaceConfig.items.map((src, idx) => (
+                  <div key={idx} style={{ position: 'relative', aspectRatio: 1, borderRadius: '8px', overflow: 'hidden', border: '2px solid #F97316' }}>
+                    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={() => setMotoRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                      style={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: 'rgba(239,68,68,0.9)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        lineHeight: 1
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Players: 2, 3, or 4 */}
+          {selectedClass && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFF7ED', borderRadius: '16px', border: '2px solid #F9731640' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
+                👥 Number of players
+              </label>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                {[2, 3, 4].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      setSelectedStudents([]);
+                      setMotoRaceConfig(prev => ({ ...prev, playerCount: n }));
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      border: '2px solid',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      background: (motoRaceConfig.playerCount || 2) === n ? 'linear-gradient(135deg, #F97316, #EA580C)' : '#fff',
+                      color: (motoRaceConfig.playerCount || 2) === n ? '#fff' : '#78716c',
+                      borderColor: (motoRaceConfig.playerCount || 2) === n ? '#F97316' : '#E7E5E4'
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <label style={{ fontSize: '13px', fontWeight: '600', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
+                Select {(motoRaceConfig.playerCount || 2)} players
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+                {(selectedClass.students || []).map(student => {
+                  const isSelected = selectedStudents.some(p => p.id === student.id);
+                  const maxP = motoRaceConfig.playerCount || 2;
+                  const isFull = selectedStudents.length >= maxP;
+                  return (
+                    <button
+                      key={student.id}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
+                        else if (!isFull) setSelectedStudents(prev => [...prev, { id: student.id, name: student.name, color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][prev.length] }]);
+                      }}
+                      disabled={!isSelected && isFull}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        border: '2px solid',
+                        borderColor: isSelected ? '#F97316' : '#E2E8F0',
+                        background: isSelected ? 'linear-gradient(135deg, #F97316, #EA580C)' : '#fff',
+                        color: isSelected ? '#fff' : '#475569',
+                        cursor: !isSelected && isFull ? 'not-allowed' : 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        opacity: !isSelected && isFull ? 0.5 : 1,
+                        textAlign: 'left'
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{student.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === (motoRaceConfig.playerCount || 2) ? '#F97316' : '#64748B', fontWeight: '600' }}>
+                Selected: {selectedStudents.length}/{motoRaceConfig.playerCount || 2}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              const count = motoRaceConfig.playerCount || 2;
+              if (selectedStudents.length === count && motoRaceConfig.items.length >= 10) {
+                setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i] })));
+                setGameState('playing');
+              }
+            }}
+            disabled={selectedStudents.length !== (motoRaceConfig.playerCount || 2) || motoRaceConfig.items.length < 10}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '18px',
+              fontWeight: '900',
+              border: 'none',
+              borderRadius: '14px',
+              cursor: selectedStudents.length === (motoRaceConfig.playerCount || 2) && motoRaceConfig.items.length >= 10 ? 'pointer' : 'not-allowed',
+              background: selectedStudents.length === (motoRaceConfig.playerCount || 2) && motoRaceConfig.items.length >= 10
+                ? 'linear-gradient(135deg, #F97316, #EA580C)'
+                : '#ccc',
+              color: '#fff',
+              boxShadow: selectedStudents.length === (motoRaceConfig.playerCount || 2) && motoRaceConfig.items.length >= 10 ? '0 6px 24px rgba(249, 115, 22, 0.4)' : 'none',
+              opacity: selectedStudents.length === (motoRaceConfig.playerCount || 2) && motoRaceConfig.items.length >= 10 ? 1 : 0.6
+            }}
+          >
+            🏍️ START MOTORACE (need at least 10 items)
+          </button>
+        </div>
+      )}
+
       {/* Game Configuration Screen - Tornado Only */}
       {gameState === 'config' && gameType === 'tornado' && (
         <div style={{
@@ -2638,6 +3430,25 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           onBack={onBack}
           classColor="#8B5CF6"
           players={players}
+        />
+      )}
+
+      {gameState === 'playing' && gameType === 'quiz' && (
+        <QuizGame
+          questions={quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim())}
+          onBack={() => setGameState('config')}
+          classColor="#0EA5E9"
+          players={players}
+          autoStart={true}
+        />
+      )}
+
+      {gameState === 'playing' && gameType === 'motorace' && (
+        <MotoRaceGame
+          items={motoRaceConfig.items}
+          contentType={motoRaceConfig.contentType}
+          players={players}
+          onBack={() => setGameState('config')}
         />
       )}
 
