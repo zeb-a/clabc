@@ -2316,7 +2316,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'text' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                ✏️ Words (comma-separated)
+                ✏️ Words
               </button>
               <button
                 type="button"
@@ -2333,7 +2333,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'images' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                🖼️ Images (bulk upload)
+                🖼️ Cards (bulk upload)
               </button>
             </div>
           </div>
