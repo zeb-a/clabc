@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import * as PIXI from 'pixi.js';
 import TornadoGame from './TornadoGame';
 import FaceOffGame from './FaceOffGame';
 import MemoryMatchGame from './MemoryMatchGame';
@@ -143,6 +142,60 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
       ...prev,
       decorativeElements: prev.decorativeElements.filter(e => e !== image)
     }));
+  };
+
+  // Handle giving points to game winners
+  const handleGivePoints = async (studentsArray, points = 1) => {
+    if (!selectedClass || !selectedClass.students) return;
+
+    const userEmail = user?.email || JSON.parse(localStorage.getItem('classABC_logged_in') || '{}')?.email || 'anonymous';
+
+    // Find the student objects in the class
+    const studentsToUpdate = studentsArray.map(playerData => {
+      return selectedClass.students.find(s => s.id === playerData.id);
+    }).filter(s => s !== null);
+
+    if (studentsToUpdate.length === 0) {
+      console.warn('[TornadoGameWrapper] No valid students found to give points');
+      return;
+    }
+
+    // Update each student's score and history
+    const updatedStudents = selectedClass.students.map(student => {
+      const shouldUpdate = studentsToUpdate.find(s => s.id === student.id);
+      if (!shouldUpdate) return student;
+
+      const historyEntry = {
+        label: 'Game Winner',
+        pts: points,
+        type: 'wow',
+        timestamp: new Date().toISOString()
+      };
+
+      return {
+        ...student,
+        score: (student.score || 0) + points,
+        history: [...(student.history || []), historyEntry]
+      };
+    });
+
+    // Update the class
+    const updatedClass = {
+      ...selectedClass,
+      students: updatedStudents
+    };
+
+    // Update local state
+    setSelectedClass(updatedClass);
+    setClasses(prev => prev.map(c => c.id === updatedClass.id ? updatedClass : c));
+
+    // Save to backend
+    try {
+      await api.saveClasses(userEmail, [updatedClass]);
+      console.log('[TornadoGameWrapper] Points given successfully:', { students: studentsToUpdate, points });
+    } catch (error) {
+      console.error('[TornadoGameWrapper] Error saving points:', error);
+    }
   };
 
   // Load user and classes
@@ -2316,7 +2369,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'text' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                ✏️ Words
+                ✏️ Words (comma-separated)
               </button>
               <button
                 type="button"
@@ -2333,7 +2386,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'images' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                🖼️ Cards (bulk upload)
+                🖼️ Images (bulk upload)
               </button>
             </div>
           </div>
@@ -3387,7 +3440,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         <TornadoGame
           config={config}
           players={players.map((p, i) => ({
-            id: i,
+            id: typeof p === 'string' ? i : (p?.id || i),
             name: typeof p === 'string' ? (p || `Player ${i + 1}`) : (p?.name || `Player ${i + 1}`),
             score: typeof p === 'string' ? 0 : (p?.score || 0),
             position: typeof p === 'string' ? 0 : (p?.position || 0),
@@ -3403,6 +3456,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             setPlayerCount(2);
           }}
           onExitToPortal={onBack}
+          selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
         />
       )}
 
@@ -3410,7 +3465,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         <FaceOffGame
           config={faceOffConfig}
           players={players.map((p, i) => ({
-            id: i,
+            id: typeof p === 'string' ? i : (p?.id || i),
             name: typeof p === 'string' ? (p || `Player ${i + 1}`) : (p?.name || `Player ${i + 1}`),
             score: 0,
             color: typeof p === 'string' ? ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i] : (p?.color || ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i])
@@ -3421,6 +3476,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             setGameState('config');
           }}
           onExitToPortal={onBack}
+          selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
         />
       )}
 
@@ -3430,6 +3487,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           onBack={onBack}
           classColor="#8B5CF6"
           players={players}
+          selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
         />
       )}
 
@@ -3449,6 +3508,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           contentType={motoRaceConfig.contentType}
           players={players}
           onBack={() => setGameState('config')}
+          selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
         />
       )}
 

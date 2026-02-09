@@ -535,7 +535,7 @@ class MotoRaceScene extends Phaser.Scene {
   }
 }
 
-export default function MotoRaceGame({ items = [], players = [], onBack, contentType = 'text' }) {
+export default function MotoRaceGame({ items = [], players = [], onBack, contentType = 'text', selectedClass, onGivePoints }) {
   const gameRef = useRef(null);
   const containerRef = useRef(null);
   const [slideshowOpen, setSlideshowOpen] = useState(false);
@@ -543,6 +543,8 @@ export default function MotoRaceGame({ items = [], players = [], onBack, content
   const [showWinnerModal, setShowWinnerModal] = useState(false);
   const [winner, setWinner] = useState(null);
   const [confettiActive, setConfettiActive] = useState(false);
+  const [pointsToGive, setPointsToGive] = useState(1);
+  const [pointsGiven, setPointsGiven] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || !items.length) return;
@@ -771,6 +773,98 @@ export default function MotoRaceGame({ items = [], players = [], onBack, content
               <div style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 600, color: '#374151', textAlign: 'center' }}>
                 Congratulations! You completed the race!
               </div>
+
+              {/* Give Points Section */}
+              {selectedClass && onGivePoints && !pointsGiven && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <div style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 600, color: '#374151' }}>
+                    Give points to winner:
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    {[1, 2, 3, 5].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setPointsToGive(val)}
+                        style={{
+                          padding: '12px 20px',
+                          fontSize: 18,
+                          fontWeight: '800',
+                          background: pointsToGive === val
+                            ? 'linear-gradient(135deg, #10B981, #059669)'
+                            : 'linear-gradient(135deg, #E5E7EB, #D1D5DB)',
+                          color: pointsToGive === val ? '#fff' : '#374151',
+                          border: 'none',
+                          borderRadius: 12,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                          transition: 'transform 0.2s, box-shadow 0.2s',
+                          minWidth: '50px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.1)';
+                          if (pointsToGive !== val) {
+                            e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                          if (pointsToGive !== val) {
+                            e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                          }
+                        }}
+                      >
+                        +{val}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const winnerPlayer = players[winner.index];
+                      if (winnerPlayer && onGivePoints) {
+                        onGivePoints([winnerPlayer], pointsToGive);
+                        setPointsGiven(true);
+                      }
+                    }}
+                    style={{
+                      padding: '12px 32px',
+                      fontSize: 16,
+                      fontWeight: '800',
+                      background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 24px rgba(245,158,11,0.4)',
+                      transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'scale(1.05)';
+                      e.target.style.boxShadow = '0 8px 32px rgba(245,158,11,0.6)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'scale(1)';
+                      e.target.style.boxShadow = '0 6px 24px rgba(245,158,11,0.4)';
+                    }}
+                  >
+                    🎁 Give {pointsToGive} Point{pointsToGive !== 1 ? 's' : ''} to {winner.name}
+                  </button>
+                </div>
+              )}
+
+              {pointsGiven && (
+                <div style={{
+                  fontSize: 'clamp(16px, 2vw, 20px)',
+                  fontWeight: 700,
+                  color: '#10B981',
+                  textAlign: 'center',
+                  padding: '12px 24px',
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  borderRadius: 12,
+                  border: '2px solid #10B981'
+                }}>
+                  ✅ {pointsToGive} point{pointsToGive !== 1 ? 's' : ''} given to {winner.name}!
+                </div>
+              )}
 
               {/* Exit Button */}
               <button

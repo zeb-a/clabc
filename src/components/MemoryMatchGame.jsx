@@ -241,7 +241,7 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
   return <div ref={hostRef} style={{ width: '100%', height: '100%' }} />;
 }
 
-export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8B5CF6', players = [] }) {
+export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8B5CF6', players = [], selectedClass, onGivePoints }) {
   const [flipped, setFlipped] = useState(new Set());
   const [matched, setMatched] = useState(new Set());
   const [lastFlipped, setLastFlipped] = useState(null);
@@ -249,6 +249,9 @@ export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8
   const [soundOn, setSoundOn] = useState(true);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [scores, setScores] = useState({});
+  const [pointsToGive, setPointsToGive] = useState(1);
+  const [pointsGiven, setPointsGiven] = useState(false);
+  const [winnerData, setWinnerData] = useState(null);
 
   // Initialize scores
   useEffect(() => {
@@ -371,6 +374,9 @@ export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8
     const initialScores = {};
     players.forEach((p, i) => initialScores[i] = 0);
     setScores(initialScores);
+    setPointsGiven(false);
+    setPointsToGive(1);
+    setWinnerData(null);
   };
 
   useEffect(() => {
@@ -578,7 +584,7 @@ export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8
           <button onClick={() => setSoundOn(s => !s)} style={styles.iconBtn} title={soundOn ? 'Mute sounds' : 'Sounds on'}>
             {soundOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
-          <button onClick={reset} style={{ ...styles.iconBtn, padding: '10px 18px', width: 'auto', background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)', borderColor: '#FF6B6B', color: '#fff' }}>
+          <button onClick={onBack} style={{ ...styles.iconBtn, padding: '10px 18px', width: 'auto', background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)', borderColor: '#FF6B6B', color: '#fff' }} title="Back to Game Config">
             <RotateCcw size={18} style={{ marginRight: 6 }} />
             New game
           </button>
@@ -635,6 +641,112 @@ export default function MemoryMatchGame({ contentItems, onBack, classColor = '#8
                   ))}
                 </div>
               )}
+
+              {/* Give Points Section for single player or show winner for multiplayer */}
+              {selectedClass && onGivePoints && (
+                <>
+                  {!pointsGiven && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 16 }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#6B7280' }}>
+                        {players.length === 1 ? `Give points to ${players[0].name}:` : 'Give points to winner:'}
+                      </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        {[1, 2, 3, 5].map((val) => (
+                          <button
+                            key={val}
+                            onClick={() => setPointsToGive(val)}
+                            style={{
+                              padding: '10px 18px',
+                              fontSize: 16,
+                              fontWeight: '800',
+                              background: pointsToGive === val
+                                ? 'linear-gradient(135deg, #10B981, #059669)'
+                                : 'linear-gradient(135deg, #E5E7EB, #D1D5DB)',
+                              color: pointsToGive === val ? '#fff' : '#374151',
+                              border: 'none',
+                              borderRadius: 12,
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                              transition: 'transform 0.2s, box-shadow 0.2s',
+                              minWidth: '45px'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = 'scale(1.1)';
+                              if (pointsToGive !== val) {
+                                e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = 'scale(1)';
+                              if (pointsToGive !== val) {
+                                e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                              }
+                            }}
+                          >
+                            +{val}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Find winner(s) based on scores
+                          const maxScore = Math.max(...Object.values(scores));
+                          const winnerIndices = Object.entries(scores)
+                            .filter(([_, score]) => score === maxScore)
+                            .map(([idx]) => parseInt(idx));
+                          const winners = winnerIndices.map(idx => players[idx]);
+                          if (winners.length > 0 && onGivePoints) {
+                            onGivePoints(winners, pointsToGive);
+                            setWinnerData(winners.length === 1 ? winners[0] : winners);
+                            setPointsGiven(true);
+                          }
+                        }}
+                        style={{
+                          padding: '10px 28px',
+                          fontSize: 15,
+                          fontWeight: '800',
+                          background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 12,
+                          cursor: 'pointer',
+                          boxShadow: '0 6px 24px rgba(245,158,11,0.4)',
+                          transition: 'transform 0.2s, box-shadow 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = 'scale(1.05)';
+                          e.target.style.boxShadow = '0 8px 32px rgba(245,158,11,0.6)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'scale(1)';
+                          e.target.style.boxShadow = '0 6px 24px rgba(245,158,11,0.4)';
+                        }}
+                      >
+                        🎁 Give {pointsToGive} Point{pointsToGive !== 1 ? 's' : ''}
+                      </button>
+                    </div>
+                  )}
+
+                  {pointsGiven && (
+                    <div style={{
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: '#10B981',
+                      textAlign: 'center',
+                      padding: '10px 20px',
+                      background: 'rgba(16, 185, 129, 0.1)',
+                      borderRadius: 12,
+                      border: '2px solid #10B981',
+                      marginTop: 12
+                    }}>
+                      ✅ {pointsToGive} point{pointsToGive !== 1 ? 's' : ''} given{Array.isArray(winnerData) && winnerData.length > 1
+                        ? ' to all winners!'
+                        : ` to ${winnerData?.name || 'winner'}!`}
+                    </div>
+                  )}
+                </>
+              )}
+
               <button
                 onClick={reset}
                 style={{

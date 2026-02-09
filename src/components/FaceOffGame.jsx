@@ -24,13 +24,14 @@ const KID_COLORS = {
 };
 
 class FaceOffScene extends Phaser.Scene {
-  constructor(gameConfig, players, onGameEnd, onBackToSetup, onExitToPortal) {
+  constructor(gameConfig, players, onGameEnd, onBackToSetup, onExitToPortal, onWinner) {
     super({ key: 'FaceOffScene' });
     this.gameConfig = gameConfig;
     this.players = players;
     this.onGameEnd = onGameEnd;
     this.onBackToSetup = onBackToSetup;
     this.onExitToPortal = onExitToPortal;
+    this.onWinner = onWinner;
     this.soundManager = null;
     this.currentRound = 0;
     this.totalRounds = gameConfig.rounds || 5;
@@ -559,23 +560,26 @@ class FaceOffScene extends Phaser.Scene {
   }
 
   enableImageClicks() {
-    // Enable clicks for both sides - make the IMAGE CONTENT clickable
+    // Enable clicks for both sides - make entire image clickable
     [...this.leftImageContainers, ...this.rightImageContainers].forEach(container => {
-      // We target the sprite (container.content) instead of the container
-      const sprite = container.content;
-      
-      if (sprite) {
-        // The sprite handles its own hit area perfectly based on its size/origin
-        sprite.setInteractive({ useHandCursor: true });
-
-        // Forward the events to your existing logic, passing the 'container'
-        sprite
+      if (container.content) {
+        // Make the entire container interactive with proper hit area
+        container.setSize(container.size, container.size);
+        container.setInteractive({ 
+          useHandCursor: true,
+          hitArea: new Phaser.Geom.Rectangle(-container.size / 2, -container.size / 2, container.size, container.size),
+          hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+          draggable: false,
+          pixelPerfect: false
+        })
+          .setDepth(100) // Ensure container is above other elements
           .on('pointerdown', (pointer, localX, localY, event) => {
+            // Stop event from bubbling
             if (event) event.stopPropagation();
             this.handleImageClick(container);
           })
           .on('pointerover', () => {
-            // Add subtle hover effect (targeting the parent container's bg)
+            // Add subtle hover effect for better feedback
             if (container.bg) {
               container.bg.clear();
               container.bg.fillStyle(0xE8F4F8, 1);
@@ -703,68 +707,59 @@ class FaceOffScene extends Phaser.Scene {
       await new Promise(resolve => setTimeout(resolve, 1800));
       this.nextRound();
     } else {
-        // Wrong answer - playful shake animation
-        this.soundManager?.playSound('hover');
-  
-        // Mark container as wrong clicked
-        container.wrongClicked = true;
-  
-        // Shake animation
-        this.tweens.add({
-          targets: container,
-          x: container.x + 10,
-          duration: 50,
-          ease: 'Linear.easeNone',
-          yoyo: true,
-          repeat: 3,
-          onComplete: () => {
-            container.x = container.originalX || container.x;
-          }
-        });
-  
-        // Gentle fade out with wiggle
-        this.tweens.add({
-          targets: container,
-          alpha: 0,
-          rotation: 0.2,
-          scaleX: 0.7,
-          scaleY: 0.7,
-          duration: 400,
-          ease: 'Sine.easeOut',
-          delay: 150,
-          onComplete: () => {
-            // IMPORTANT: Properly destroy and NULL the reference
-            if (container.content) {
-              container.content.destroy();
-              container.content = null; // This prevents the "undefined" error later
-            }
-            
-            container.bg.clear();
-            container.bg.fillStyle(KID_COLORS.cards.wrong, 0.7);
-            container.bg.fillRoundedRect(-container.size / 2, -container.size / 2, container.size, container.size, 15);
-            container.bg.lineStyle(2, 0xFF9999, 1);
-            container.bg.strokeRoundedRect(-container.size / 2, -container.size / 2, container.size, container.size, 15);
-          }
-        });
-  
-        // Remove from interactive - TARGET THE SPRITE NOW
-        if (container.content && container.content.scene) {
-          container.content.disableInteractive();
+      // Wrong answer - playful shake animation
+      this.soundManager?.playSound('hover');
+
+      // Mark container as wrong clicked to restore correct hover state
+      container.wrongClicked = true;
+
+      // Shake animation
+      this.tweens.add({
+        targets: container,
+        x: container.x + 10,
+        duration: 50,
+        ease: 'Linear.easeNone',
+        yoyo: true,
+        repeat: 3,
+        onComplete: () => {
+          container.x = container.originalX || container.x;
         }
-  
-        // Other player gets a chance
-        this.firstClickSide = null;
-      }
+      });
+
+      // Gentle fade out with wiggle
+      this.tweens.add({
+        targets: container,
+        alpha: 0,
+        rotation: 0.2,
+        scaleX: 0.7,
+        scaleY: 0.7,
+        duration: 400,
+        ease: 'Sine.easeOut',
+        delay: 150,
+        onComplete: () => {
+          container.content?.destroy();
+          container.bg.clear();
+          container.bg.fillStyle(KID_COLORS.cards.wrong, 0.7);
+          container.bg.fillRoundedRect(-container.size / 2, -container.size / 2, container.size, container.size, 15);
+          container.bg.lineStyle(2, 0xFF9999, 1);
+          container.bg.strokeRoundedRect(-container.size / 2, -container.size / 2, container.size, container.size, 15);
+        }
+      });
+
+      // Remove from interactive
+      container.disableInteractive();
+
+      // Other player gets a chance
+      this.firstClickSide = null;
+    }
   }
 
   disableAllImages() {
     [...this.leftImageContainers, ...this.rightImageContainers].forEach(container => {
-      // SAFE CHECK: Only disable if content exists AND is still active in the scene
-      if (container.content && container.content.scene) {
-        container.content.disableInteractive();
-      }
+      container.disableInteractive();
     });
   }
+
   nextRound() {
     this.currentRound++;
     this.roundComplete = false;
@@ -806,6 +801,12 @@ class FaceOffScene extends Phaser.Scene {
     const p2Score = this.players[1].score || 0;
     const winnerIndex = p1Score >= p2Score ? 0 : 1;
     const isTie = p1Score === p2Score;
+
+    // Call the winner callback to notify React component (only if not a tie)
+    if (this.onWinner && !isTie) {
+      const winner = this.players[winnerIndex];
+      this.onWinner(winner, winnerIndex);
+    }
 
     // Create confetti
     this.createConfetti();
@@ -1204,12 +1205,21 @@ class FaceOffScene extends Phaser.Scene {
   }
 }
 
-const FaceOffGame = ({ config, players, onGameEnd, onBackToSetup, onExitToPortal }) => {
+const FaceOffGame = ({ config, players, onGameEnd, onBackToSetup, onExitToPortal, selectedClass, onGivePoints }) => {
   const gameContainerRef = useRef(null);
   const gameRef = useRef(null);
+  const [pointsToGive, setPointsToGive] = useState(1);
+  const [pointsGiven, setPointsGiven] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+  const [winnerData, setWinnerData] = useState(null);
 
   useEffect(() => {
     if (!gameContainerRef.current) return;
+
+    const handleWinner = (winner, winnerIndex) => {
+      setWinnerData({ ...winner, index: winnerIndex });
+      setShowWinnerModal(true);
+    };
 
     const phaserConfig = {
       type: Phaser.AUTO,
@@ -1226,7 +1236,8 @@ const FaceOffGame = ({ config, players, onGameEnd, onBackToSetup, onExitToPortal
         players,
         onGameEnd,
         onBackToSetup,
-        onExitToPortal
+        onExitToPortal,
+        handleWinner
       )
     };
 
@@ -1239,16 +1250,229 @@ const FaceOffGame = ({ config, players, onGameEnd, onBackToSetup, onExitToPortal
     };
   }, []);
 
+  const handleGivePointsToWinner = () => {
+    if (winnerData && onGivePoints) {
+      onGivePoints([winnerData], pointsToGive);
+      setPointsGiven(true);
+    }
+  };
+
+  const handleWinnerModalClose = () => {
+    setShowWinnerModal(false);
+    setWinnerData(null);
+    setPointsGiven(false);
+    setPointsToGive(1);
+    onBackToSetup();
+  };
+
   return (
-    <div
-      ref={gameContainerRef}
-      style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #FFF5E6 0%, #FFB6C1 50%, #E6E6FA 100%)'
-      }}
-    />
+    <>
+      <div
+        ref={gameContainerRef}
+        style={{
+          width: '100vw',
+          height: '100vh',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, #FFF5E6 0%, #FFB6C1 50%, #E6E6FA 100%)'
+        }}
+      />
+
+      {/* Winner Modal */}
+      {showWinnerModal && winnerData && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10003,
+            padding: 24,
+            animation: 'fadeIn 0.3s ease-out'
+          }}
+        >
+          <div
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '85vh',
+              background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+              borderRadius: 32,
+              padding: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 28,
+              boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
+              border: '6px solid #fff',
+              animation: 'bounceIn 0.5s ease-out',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Trophy Icon */}
+            <div
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: '50%',
+                background: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                animation: 'pulse 1.5s infinite'
+              }}
+            >
+              <span style={{ fontSize: 60 }}>🏆</span>
+            </div>
+
+            {/* Winner Text */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 'clamp(32px, 6vw, 56px)', fontWeight: 900, color: '#1f2937', textShadow: '2px 2px 4px rgba(255,255,255,0.5)', marginBottom: 8 }}>
+                🎉 WINNER! 🎉
+              </div>
+              <div style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, color: '#1f2937' }}>
+                {winnerData.name}
+              </div>
+              <div style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 600, color: '#374151', marginTop: 8 }}>
+                ⭐ {winnerData.score || 0} points ⭐
+              </div>
+            </div>
+
+            {/* Give Points Section */}
+            {selectedClass && onGivePoints && !pointsGiven && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 600, color: '#374151' }}>
+                  Give points to winner:
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {[1, 2, 3, 5].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setPointsToGive(val)}
+                      style={{
+                        padding: '12px 20px',
+                        fontSize: 18,
+                        fontWeight: '800',
+                        background: pointsToGive === val
+                          ? 'linear-gradient(135deg, #10B981, #059669)'
+                          : 'linear-gradient(135deg, #E5E7EB, #D1D5DB)',
+                        color: pointsToGive === val ? '#fff' : '#374151',
+                        border: 'none',
+                        borderRadius: 12,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        minWidth: '50px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.transform = 'scale(1.1)';
+                        if (pointsToGive !== val) {
+                          e.target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'scale(1)';
+                        if (pointsToGive !== val) {
+                          e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                        }
+                      }}
+                    >
+                      +{val}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={handleGivePointsToWinner}
+                  style={{
+                    padding: '12px 32px',
+                    fontSize: 16,
+                    fontWeight: '800',
+                    background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 24px rgba(245,158,11,0.4)',
+                    transition: 'transform 0.2s, box-shadow 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.boxShadow = '0 8px 32px rgba(245,158,11,0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                    e.target.style.boxShadow = '0 6px 24px rgba(245,158,11,0.4)';
+                  }}
+                >
+                  🎁 Give {pointsToGive} Point{pointsToGive !== 1 ? 's' : ''} to {winnerData.name}
+                </button>
+              </div>
+            )}
+
+            {pointsGiven && (
+              <div style={{
+                fontSize: 'clamp(16px, 2vw, 20px)',
+                fontWeight: 700,
+                color: '#10B981',
+                textAlign: 'center',
+                padding: '12px 24px',
+                background: 'rgba(16, 185, 129, 0.1)',
+                borderRadius: 12,
+                border: '2px solid #10B981'
+              }}>
+                ✅ {pointsToGive} point{pointsToGive !== 1 ? 's' : ''} given to {winnerData.name}!
+              </div>
+            )}
+
+            {/* Exit Button */}
+            <button
+              onClick={handleWinnerModalClose}
+              style={{
+                padding: '16px 40px',
+                fontSize: 20,
+                fontWeight: '800',
+                background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 16,
+                cursor: 'pointer',
+                boxShadow: '0 6px 24px rgba(78,205,196,0.5)',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.boxShadow = '0 8px 32px rgba(78,205,196,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.boxShadow = '0 6px 24px rgba(78,205,196,0.5)';
+              }}
+            >
+              🎮 Play Again
+            </button>
+          </div>
+
+          <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes bounceIn {
+              0% { transform: scale(0.3); opacity: 0; }
+              50% { transform: scale(1.05); }
+              70% { transform: scale(0.9); }
+              100% { transform: scale(1); opacity: 1; }
+            }
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.1); }
+            }
+          `}</style>
+        </div>
+      )}
+    </>
   );
 };
 
