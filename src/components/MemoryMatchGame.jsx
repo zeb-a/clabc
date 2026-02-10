@@ -93,11 +93,33 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
           }
         }
 
-        const cols = Math.min(4, Math.ceil(Math.sqrt(localPairs.length)) || 1);
-        const rows = Math.ceil(localPairs.length / cols) || 1;
-        const cellSize = Math.min((width * 0.9) / cols, (height * 0.95) / rows);
-        const startX = (width - cellSize * cols) / 2;
-        const startY = (height - cellSize * rows) / 2;
+        // Adjust columns for larger card counts to improve space utilization
+        let cols, rows;
+        if (localPairs.length > 16) {
+          // Use more columns (5 or 6) for larger card counts
+          cols = Math.min(6, Math.ceil(Math.sqrt(localPairs.length * 1.5)) || 1);
+        } else {
+          cols = Math.min(4, Math.ceil(Math.sqrt(localPairs.length)) || 1);
+        }
+        rows = Math.ceil(localPairs.length / cols) || 1;
+
+        // Calculate optimal cell size with better space utilization
+        const paddingX = width * 0.04; // Reduced padding for larger grids
+        const paddingY = height * 0.03;
+        const usableWidth = width - (paddingX * 2);
+        const usableHeight = height - (paddingY * 2);
+
+        const gapRatio = localPairs.length > 16 ? 0.02 : 0.03; // Smaller gaps for more cards
+        const cellSize = Math.min(
+          (usableWidth - (cols - 1) * gapRatio * usableWidth) / cols,
+          (usableHeight - (rows - 1) * gapRatio * usableHeight) / rows
+        );
+
+        // Calculate start positions for centering
+        const totalGridWidth = cols * cellSize + (cols - 1) * cellSize * gapRatio;
+        const totalGridHeight = rows * cellSize + (rows - 1) * cellSize * gapRatio;
+        const startX = (width - totalGridWidth) / 2;
+        const startY = (height - totalGridHeight) / 2;
 
         localPairs.forEach((card, idx) => {
           // Check if app is still valid
@@ -105,16 +127,17 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
 
           const row = Math.floor(idx / cols);
           const col = idx % cols;
-          const x = startX + col * cellSize;
-          const y = startY + row * cellSize;
+          const x = startX + col * (cellSize * (1 + gapRatio));
+          const y = startY + row * (cellSize * (1 + gapRatio));
           const isFlipped = localFlipped.has(card.id) || localMatched.has(card.id);
 
           const tile = new PIXI.Graphics();
           const isBlue = idx % 2 === 1;
           const baseColor = isBlue ? 0x0b1f7a : 0x7c0a0a;
+          const cardPadding = Math.max(4, cellSize * 0.08);
           tile.beginFill(isFlipped ? 0xf2f2f2 : baseColor, 1);
-          tile.lineStyle(3, 0xffffff, 0.45);
-          tile.drawRoundedRect(x, y, cellSize - 8, cellSize - 8, 14);
+          tile.lineStyle(Math.max(2, cellSize * 0.03), 0xffffff, 0.45);
+          tile.drawRoundedRect(x, y, cellSize - cardPadding, cellSize - cardPadding, Math.max(8, cellSize * 0.12));
           tile.endFill();
           tile.eventMode = isFlipped ? 'none' : 'static';
           tile.cursor = isFlipped ? 'default' : 'pointer';
@@ -131,8 +154,9 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
               fill: 0xffffff,
               fontWeight: '800'
             });
-            q.x = x + (cellSize - 8) / 2 - q.width / 2;
-            q.y = y + (cellSize - 8) / 2 - q.height / 2;
+            const contentAreaSize = cellSize - cardPadding;
+            q.x = x + contentAreaSize / 2 - q.width / 2;
+            q.y = y + contentAreaSize / 2 - q.height / 2;
             if (app.stage) {
               app.stage.addChild(q);
             }
@@ -168,14 +192,15 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
                 sprite.texture = texture;
               }
 
-              const pad = 12;
+              const pad = Math.max(8, cellSize * 0.12);
               sprite.width = cellSize - pad * 2;
               sprite.height = cellSize - pad * 2;
 
               // Set anchor to center
               sprite.anchor.set(0.5);
-              sprite.x = x + (cellSize - 8) / 2;
-              sprite.y = y + (cellSize - 8) / 2;
+              const contentAreaSize = cellSize - cardPadding;
+              sprite.x = x + contentAreaSize / 2;
+              sprite.y = y + contentAreaSize / 2;
               sprite.roundPixels = true;
 
               if (app.stage) {
@@ -201,11 +226,12 @@ function MemoryMatchPixiBoard({ pairs, flipped, matched, onSelect }) {
               fill: 0x111827,
               fontWeight: '700',
               wordWrap: true,
-              wordWrapWidth: cellSize - 16,
+              wordWrapWidth: cellSize - (Math.max(8, cellSize * 0.12) * 2),
               align: 'center'
             });
-            text.x = x + (cellSize - 8) / 2 - text.width / 2;
-            text.y = y + (cellSize - 8) / 2 - text.height / 2;
+            const contentAreaSize = cellSize - cardPadding;
+            text.x = x + contentAreaSize / 2 - text.width / 2;
+            text.y = y + contentAreaSize / 2 - text.height / 2;
             if (app.stage) {
               app.stage.addChild(text);
             }
@@ -252,9 +278,19 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
   const [pointsToGive, setPointsToGive] = useState(1);
   const [pointsGiven, setPointsGiven] = useState(false);
   const [winnerData, setWinnerData] = useState(null);
+  const [displayError, setDisplayError] = useState(null);
 
-  // Initialize scores
+  // Initialize scores and validate player count
   useEffect(() => {
+    if (!Array.isArray(players) || players.length === 0) {
+      setDisplayError('No players available. Please add players to start the game.');
+      return;
+    }
+    if (players.length > 8) {
+      setDisplayError('Maximum 8 players supported. Please reduce the number of players.');
+      return;
+    }
+    setDisplayError(null);
     const initialScores = {};
     players.forEach((p, i) => initialScores[i] = 0);
     setScores(initialScores);
@@ -427,42 +463,31 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
     gameArea: {
       flex: 1,
       display: 'flex',
-      gap: 15,
-      padding: '10px',
+      alignItems: 'stretch',
+      gap: 'clamp(8px, 1.2vw, 12px)',
+      padding: 'clamp(6px, 0.8vw, 10px)',
       position: 'relative',
-      zIndex: 1
+      zIndex: 1,
+      minWidth: 0,
+      maxWidth: '100%',
+      overflow: 'hidden'
     },
-    leftSidebar: {
-      width: '140px',
-      maxHeight: '160px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 10,
-      padding: '10px',
-      background: 'rgba(255, 255, 255, 0.7)',
-      borderRadius: '16px',
-      border: '3px solid #8B5CF6',
-      boxShadow: '0 8px 30px rgba(139, 92, 246, 0.2)'
-    },
-    rightSidebar: {
-      width: '140px',
-     maxHeight: '160px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 10,
-      padding: '10px',
-      background: 'rgba(255, 255, 255, 0.7)',
-      borderRadius: '16px',
-      border: '3px solid #8B5CF6',
-      boxShadow: '0 8px 30px rgba(139, 92, 246, 0.2)'
-    },
+// NEW: A container specifically for the player list
+playerListContainer: {
+  display: 'flex',
+  
+  // 2. STACKING FIX: Wrap horizontally on mobile instead of strictly vertical
+  flexWrap: 'wrap', 
+  justifyContent: 'center',
+  gap: '10px',
+  width: '100%',
+  marginBottom: '10px'
+},
     playerCard: (index) => ({
-      width: '100%',
+      width: '140px',
       padding: '8px',
-      height: '100%',
       borderRadius: '10px',
+      marginTop: '15px',
       background: index === currentPlayerIndex
         ? `linear-gradient(135deg, ${playerColors[index % playerColors.length]}40, ${playerColors[index % playerColors.length]}30)`
         : 'rgba(255, 255, 255, 0.9)',
@@ -470,14 +495,13 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
       boxShadow: index === currentPlayerIndex
         ? `0 6px 20px ${playerColors[index % playerColors.length]}60, 0 0 0 2px ${playerColors[index % playerColors.length]}30`
         : '0 3px 10px rgba(0, 0, 0, 0.1)',
-      transition: 'all 0.3s ease',
-      transform: index === currentPlayerIndex ? 'scale(1.05)' : 'scale(1)',
       position: 'relative',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center'
     }),
+  
     playerAvatar: {
       width: '32px',
       height: '32px',
@@ -486,11 +510,12 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '16px',
+      fontSize: '14px',
       fontWeight: 'bold',
       marginBottom: '4px',
       border: '2px solid #E5E7EB'
     },
+  
     playerName: {
       fontSize: '12px',
       fontWeight: 'bold',
@@ -502,8 +527,9 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
       textOverflow: 'ellipsis',
       width: '100%'
     },
+  
     playerScore: {
-      fontSize: '20px',
+      fontSize: '18px',
       fontWeight: '900',
       textAlign: 'center',
       background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
@@ -511,36 +537,46 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
       WebkitTextFillColor: 'transparent',
       textShadow: '2px 2px 4px rgba(139, 92, 246, 0.3)'
     },
+  
     turnBadge: {
       position: 'absolute',
       bottom: '6px',
       right: '1px',
       background: 'linear-gradient(135deg, #FFD700, #FFA500)',
       color: '#fff',
-      padding: '4px 8px',
+      
+      // RESPONSIVE UPDATE: Smaller padding and font on mobile
+      padding: 'clamp(2px, 1vw, 4px) clamp(4px, 1.5vw, 8px)',
+      fontSize: 'clamp(8px, 2vw, 10px)',
+      
       borderRadius: '12px',
-      fontSize: '10px',
       fontWeight: 'bold',
       boxShadow: '0 4px 15px rgba(255, 215, 0, 0.5)',
-      animation: 'pulse 1.5s infinite'
+      animation: 'pulse 1.5s infinite',
+      zIndex: 10
     },
     boardContainer: {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      padding: '10px 20px'
+      // justifyContent: 'stretch',
+      padding: 0,
+      minWidth: 0,
+      position: 'relative',
+    
     },
     boardWrap: {
       width: '100%',
-      maxWidth: 620,
+      maxWidth: 'min(100%, 1000px)',
       aspectRatio: '1 / 1',
-      borderRadius: '20px',
+      borderRadius: 'clamp(12px, 2vw, 20px)',
       overflow: 'hidden',
       background: 'rgba(255, 255, 255, 0.9)',
-      border: '4px solid #8B5CF6',
-      boxShadow: '0 14px 35px rgba(139, 92, 246, 0.3)'
+      border: 'clamp(3px, 0.5vw, 4px) solid #8B5CF6',
+      boxShadow: '0 14px 35px rgba(139, 92, 246, 0.3)',
+      margin: 0,
+ 
     },
     iconBtn: {
       display: 'flex',
@@ -555,8 +591,36 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       boxShadow: '0 4px 15px rgba(139, 92, 246, 0.2)'
-    }
+    },
+   
   };
+
+  if (displayError) {
+    return (
+      <div data-game-screen style={styles.container}>
+        <PixiBackdrop classColor={classColor} variant="light" />
+        <nav style={styles.nav}>
+          <button onClick={onBack} style={styles.backBtn}><ChevronLeft size={22} /> Back</button>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#374151' }}>Memory Match</h2>
+        </nav>
+        <main style={{ textAlign: 'center', paddingTop: 60, position: 'relative', zIndex: 1 }}>
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '3px solid #EF4444',
+            borderRadius: 16,
+            padding: '24px 32px',
+            maxWidth: 400,
+            margin: '0 auto'
+          }}>
+            <p style={{ color: '#EF4444', fontSize: 16, fontWeight: 'bold', margin: 0 }}>
+              ⚠️ {displayError}
+            </p>
+          </div>
+          <button onClick={onBack} style={{ marginTop: 20, padding: '12px 24px', borderRadius: 12, border: `2px solid ${classColor}`, background: 'transparent', color: classColor, fontWeight: 700, cursor: 'pointer' }}>Back to Games</button>
+        </main>
+      </div>
+    );
+  }
 
   if (pairs.length < 2) {
     return (
@@ -591,31 +655,37 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
         </div>
       </nav>
       <div style={styles.gameArea}>
-        {/* Left Player Panel */}
+        {/* Left Player Panel - Display first half of players */}
         {players.length >= 1 && (
-          <div style={styles.leftSidebar}>
-            <div
-              style={styles.playerCard(0)}
-              onMouseEnter={(e) => {
-                if (currentPlayerIndex !== 0) {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentPlayerIndex !== 0) {
-                  e.currentTarget.style.transform = 'scale(1)';
-                }
-              }}
-            >
-              {currentPlayerIndex === 0 && (
-                <div style={styles.turnBadge}>🎯 YOUR TURN!</div>
-              )}
-              <div style={{ ...styles.playerAvatar, borderColor: playerColors[0], color: playerColors[0] }}>
-                {(players[0]?.name || 'P')[0]?.toUpperCase() || 'P'}
-              </div>
-              <div style={styles.playerName}>{players[0]?.name || 'Player 1'}</div>
-              <div style={styles.playerScore}>{scores[0] || 0}</div>
-            </div>
+          <div style={styles.playerPanel}>
+            {players.slice(0, Math.ceil(players.length / 2)).map((player, idx) => {
+              const actualIndex = idx;
+              return (
+                <div
+                  key={actualIndex}
+                  style={styles.playerCard(actualIndex)}
+                  onMouseEnter={(e) => {
+                    if (currentPlayerIndex !== actualIndex) {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPlayerIndex !== actualIndex) {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }
+                  }}
+                >
+                  {currentPlayerIndex === actualIndex && (
+                    <div style={styles.turnBadge}>🎯 YOUR TURN!</div>
+                  )}
+                  <div style={{ ...styles.playerAvatar, borderColor: playerColors[actualIndex % playerColors.length], color: playerColors[actualIndex % playerColors.length] }}>
+                    {(player?.name || 'P')[0]?.toUpperCase() || 'P'}
+                  </div>
+                  <div style={styles.playerName}>{player?.name || `Player ${actualIndex + 1}`}</div>
+                  <div style={styles.playerScore}>{scores[actualIndex] || 0}</div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -631,34 +701,42 @@ export default function MemoryMatchGame({ contentItems, onBack, onReset, classCo
           </div>
         </div>
 
-        {/* Right Player Panel */}
+        {/* Right Player Panel - Display second half of players */}
         {players.length >= 2 && (
-          <div style={styles.rightSidebar}>
-            <div
-              style={styles.playerCard(1)}
-              onMouseEnter={(e) => {
-                if (currentPlayerIndex !== 1) {
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (currentPlayerIndex !== 1) {
-                  e.currentTarget.style.transform = 'scale(1)';
-                }
-              }}
-            >
-              {currentPlayerIndex === 1 && (
-                <div style={styles.turnBadge}>🎯 YOUR TURN!</div>
-              )}
-              <div style={{ ...styles.playerAvatar, borderColor: playerColors[1], color: playerColors[1] }}>
-                {(players[1]?.name || 'P')[0]?.toUpperCase() || 'P'}
-              </div>
-              <div style={styles.playerName}>{players[1]?.name || 'Player 2'}</div>
-              <div style={styles.playerScore}>{scores[1] || 0}</div>
-            </div>
+          <div style={styles.playerPanel}>
+            {players.slice(Math.ceil(players.length / 2)).map((player, idx) => {
+              const actualIndex = Math.ceil(players.length / 2) + idx;
+              return (
+                <div
+                  key={actualIndex}
+                  style={styles.playerCard(actualIndex)}
+                  onMouseEnter={(e) => {
+                    if (currentPlayerIndex !== actualIndex) {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPlayerIndex !== actualIndex) {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }
+                  }}
+                >
+                  {currentPlayerIndex === actualIndex && (
+                    <div style={styles.turnBadge}>🎯 YOUR TURN!</div>
+                  )}
+                  <div style={{ ...styles.playerAvatar, borderColor: playerColors[actualIndex % playerColors.length], color: playerColors[actualIndex % playerColors.length] }}>
+                    {(player?.name || 'P')[0]?.toUpperCase() || 'P'}
+                  </div>
+                  <div style={styles.playerName}>{player?.name || `Player ${actualIndex + 1}`}</div>
+                  <div style={styles.playerScore}>{scores[actualIndex] || 0}</div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+
+
 
       {/* Full-screen Win Overlay */}
       {matched.size === pairs.length && pairs.length > 0 && (
