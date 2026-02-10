@@ -5,10 +5,12 @@ import MemoryMatchGame from './MemoryMatchGame';
 import QuizGame from './QuizGame';
 import MotoRaceGame from './MotoRaceGame';
 import api from '../services/api';
+import { useTranslation } from '../i18n';
 
 const OPTIONS = ['A', 'B', 'C', 'D'];
 
 const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: externalIsReplay }) => {
+  const { t } = useTranslation();
   // Check if this is a replay (coming back from game) or fresh start (from portal)
   // We use localStorage to track this state
   const checkIsReplay = () => {
@@ -405,7 +407,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
             >
               <div style={{ fontSize: '48px' }}>🌪️</div>
-              <div>Tornado</div>
+              <div>{t('games.tornado')}</div>
             </button>
 
             <button
@@ -444,7 +446,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
             >
               <div style={{ fontSize: '48px' }}>⚡</div>
-              <div>FaceOff</div>
+              <div>{t('games.faceoff')}</div>
             </button>
 
             <button
@@ -483,7 +485,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
             >
               <div style={{ fontSize: '48px' }}>🧠</div>
-              <div>Memory Match</div>
+              <div>{t('games.memorymatch')}</div>
             </button>
 
             <button
@@ -535,7 +537,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
             >
               <div style={{ fontSize: '48px' }}>🎯</div>
-              <div>Quiz</div>
+              <div>{t('games.quiz')}</div>
             </button>
 
             <button
@@ -587,7 +589,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
             >
               <div style={{ fontSize: '48px' }}>🏍️</div>
-              <div>MotoRace</div>
+              <div>{t('games.motorace')}</div>
             </button>
           </div>
 
@@ -600,11 +602,11 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             background: '#F8FAFC',
             borderRadius: '15px'
           }}>
-            <div><strong>🌪️ Tornado:</strong> Classic card-flipping game with point challenges</div>
-            <div style={{ marginTop: '10px' }}><strong>⚡ FaceOff:</strong> Fast-paced word-to-picture matching for 2 players</div>
-            <div style={{ marginTop: '10px' }}><strong>🧠 Memory Match:</strong> Match pairs of cards with images or text</div>
-            <div style={{ marginTop: '10px' }}><strong>🎯 Quiz:</strong> Two players, same A/B/C/D options—first correct answer wins the point</div>
-            <div style={{ marginTop: '10px' }}><strong>🏍️ MotoRace:</strong> 2–4 players race 10 steps; review words or images in a slideshow</div>
+            <div><strong>🌪️ {t('games.tornado')}:</strong> {t('games.tornado.desc')}</div>
+            <div style={{ marginTop: '10px' }}><strong>⚡ {t('games.faceoff')}:</strong> {t('games.faceoff.desc')}</div>
+            <div style={{ marginTop: '10px' }}><strong>🧠 {t('games.memorymatch')}:</strong> {t('games.memorymatch.desc')}</div>
+            <div style={{ marginTop: '10px' }}><strong>🎯 {t('games.quiz')}:</strong> {t('games.quiz.desc_short')}</div>
+            <div style={{ marginTop: '10px' }}><strong>🏍️ {t('games.motorace')}:</strong> {t('games.motorace.desc')}</div>
           </div>
         </div>
       )}
@@ -638,7 +640,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               margin: 0,
               fontFamily: 'Comic Sans MS, cursive, sans-serif'
             }}>
-              📚 Select Class
+              📚 {t('games.select_class')}
             </h2>
             <button
               onClick={onBack}
@@ -654,7 +656,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
           </div>
 
@@ -804,10 +806,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               🎮 Game Mode
             </h2>
             <button
-              onClick={() => {
-                setSelectedClass(null);
-                setGameState('select-class');
-              }}
+              onClick={onBack}
               style={{
                 padding: '10px 20px',
                 fontSize: '14px',
@@ -912,10 +911,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           }}>
             {/* Back Button */}
             <button
-              onClick={() => {
-                setGameState('select-class');
-                setSelectedStudents([]);
-              }}
+              onClick={onBack}
               style={{
                 padding: '8px 16px',
                 fontSize: '13px',
@@ -1442,10 +1438,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           }}>
             {/* Back Button */}
             <button
-              onClick={() => {
-                setGameState('select-class');
-                setSelectedStudents([]);
-              }}
+              onClick={onBack}
               style={{
                 padding: '8px 16px',
                 fontSize: '13px',
@@ -1475,7 +1468,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 margin: 0,
                 fontFamily: 'Comic Sans MS, cursive, sans-serif'
               }}>
-                🧠 Memory Match Configuration
+                🧠 {t('games.memory_match_config')}
               </div>
               {selectedClass && (
                 <div style={{
@@ -2022,7 +2015,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <button
-              onClick={() => { setGameState('select-class'); setSelectedStudents([]); }}
+              onClick={onBack}
               style={{
                 padding: '10px 18px',
                 fontSize: '13px',
@@ -2047,7 +2040,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 margin: 0,
                 fontFamily: 'Comic Sans MS, cursive, sans-serif'
               }}>
-                🎯 Quiz Configuration
+                🎯 {t('games.quiz_config')}
               </div>
               {selectedClass && (
                 <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Class: {selectedClass.name}</div>
@@ -2314,7 +2307,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <button
-              onClick={() => { setGameState('select-class'); setSelectedStudents([]); }}
+              onClick={onBack}
               style={{
                 padding: '10px 18px',
                 fontSize: '13px',
@@ -2672,14 +2665,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           }}>
             {/* Back Button */}
             <button
-              onClick={() => {
-                if (isReplay) {
-                  setSelectedClass(null);
-                  setGameState('select-class');
-                } else {
-                  onBack();
-                }
-              }}
+              onClick={onBack}
               style={{
                 padding: '10px 20px',
                 fontSize: '14px',
@@ -2701,7 +2687,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.4)';
               }}
             >
-              ← {isReplay ? 'Back' : 'Back to Portal'}
+              ← Back to Portal
             </button>
             
             {selectedClass && (
@@ -3607,6 +3593,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           classColor="#0EA5E9"
           players={players}
           autoStart={true}
+          selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
         />
       )}
 
@@ -3643,7 +3631,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             marginBottom: '30px',
             animation: 'pulse 1s ease-in-out infinite'
           }}>
-            🏆 GAME OVER! 🏆
+            🏆 {t('games.game_over')}! 🏆
           </h1>
 
           <div style={{ marginBottom: '40px' }}>
@@ -3716,7 +3704,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               boxShadow: '0 10px 40px rgba(0, 217, 255, 0.5)'
             }}
           >
-            🔄 PLAY AGAIN
+            🔄 {t('games.play_again')}
           </button>
 
           <style>{`

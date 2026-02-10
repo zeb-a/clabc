@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronLeft, Plus, Trash2, Image as ImageIcon, Play, Maximize2, Minimize2 } from 'lucide-react';
 import { sounds } from '../utils/gameSounds';
 import PixiBackdrop from './PixiBackdrop';
+import { useTranslation } from '../i18n';
 
 const OPTIONS = ['A', 'B', 'C', 'D'];
 
@@ -11,7 +12,8 @@ const RIGHT_COLOR = '#FF69B4';  // Hot pink (player 2)
 const DIVIDER_COLOR = '#2D3748';
 const DIVIDER_ACCENT = '#4ECDC4';
 
-export default function QuizGame({ questions: initialQuestions, onBack, onEditQuestions, classColor = '#4CAF50', players = [], autoStart = false }) {
+export default function QuizGame({ questions: initialQuestions, onBack, onEditQuestions, classColor = '#4CAF50', players = [], autoStart = false, selectedClass = null, onGivePoints = null }) {
+  const { t } = useTranslation();
   const [questions, setQuestions] = useState(initialQuestions?.length ? initialQuestions : [{ id: Date.now(), question: '', image: null, options: ['', '', '', ''], correct: 0 }]);
   const [playing, setPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,6 +31,13 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
   const [wrongAnswerIndexLeft, setWrongAnswerIndexLeft] = useState(null);
   const [wrongAnswerIndexRight, setWrongAnswerIndexRight] = useState(null);
   const [showGameOver, setShowGameOver] = useState(false);
+
+  // Single-player game over (score summary + points awarding)
+  const [showSinglePlayerGameOver, setShowSinglePlayerGameOver] = useState(false);
+  const [singlePlayerFinalScore, setSinglePlayerFinalScore] = useState(0);
+  const [pointsToGive, setPointsToGive] = useState(1);
+  const [pointsGiven, setPointsGiven] = useState(false);
+  const [winnerData, setWinnerData] = useState(null);
 
   const validQuestions = questions.filter(q => {
     const opts = q.options || [];
@@ -122,8 +131,18 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
       setWrongLeft(false);
       setWrongRight(false);
     } else {
-      setPlaying(false);
-      if (players.length >= 2) sounds.win();
+      sounds.win();
+      if (players.length >= 2) {
+        // FaceOff: handled via showGameOver in handleSideAnswer
+        setPlaying(false);
+      } else {
+        // Single-player: show points-awarding game-over modal (include last question's result)
+        const q = validQuestions[currentIndex];
+        const lastCorrect = selected === q?.correct;
+        setSinglePlayerFinalScore(score + (lastCorrect ? 1 : 0));
+        setShowSinglePlayerGameOver(true);
+        setPlaying(false);
+      }
     }
   };
 
@@ -272,7 +291,7 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
 
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 400 }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: isTie ? '#4ECDC4' : '#FFD700', marginBottom: 8, textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-            {isTie ? "🏆 It's a Tie! 🏆" : '🏆 Winner! 🏆'}
+            {isTie ? `🏆 ${t('games.its_a_tie')} 🏆` : `🏆 ${t('games.winner')} 🏆`}
           </h1>
           <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#fff', marginBottom: 24 }}>
             {winnerName}
@@ -287,18 +306,169 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
               <div style={{ fontSize: '1.75rem', fontWeight: '800', color: RIGHT_COLOR }}>{scoreRight}</div>
             </div>
           </div>
+          {/* Points awarding (FaceOff): give points to winner */}
+          {selectedClass && onGivePoints && (
+            <>
+              {!pointsGiven ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#94a3b8' }}>
+                    {players.length >= 2 ? t('games.give_points_to_winner') : `${t('games.give_points_to')} ${players[0]?.name || 'Player'}:`}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    {[1, 2, 3, 5].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setPointsToGive(val)}
+                        style={{
+                          padding: '12px 20px',
+                          fontSize: 18,
+                          fontWeight: 800,
+                          background: pointsToGive === val ? 'linear-gradient(135deg, #10B981, #059669)' : 'rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          border: `2px solid ${pointsToGive === val ? '#10B981' : 'rgba(255,255,255,0.4)'}`,
+                          borderRadius: 12,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        +{val}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      const isTie = scoreLeft === scoreRight;
+                      const winners = isTie ? [players[0], players[1]].filter(Boolean) : [scoreLeft >= scoreRight ? players[0] : players[1]].filter(Boolean);
+                      if (winners.length > 0 && onGivePoints) {
+                        onGivePoints(winners, pointsToGive);
+                        setWinnerData(winners.length === 1 ? winners[0] : winners);
+                        setPointsGiven(true);
+                      }
+                    }}
+                    style={{
+                      padding: '12px 32px',
+                      fontSize: 16,
+                      fontWeight: 800,
+                      background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 24px rgba(245,158,11,0.4)'
+                    }}
+                  >
+                    🎁 {t('games.give_points_btn').replace('{points}', pointsToGive)}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#10B981', marginBottom: 20, padding: '12px 24px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: 12, border: '2px solid #10B981' }}>
+                  ✅ {Array.isArray(winnerData) && winnerData.length > 1 ? t('games.points_given_winners').replace('{points}', pointsToGive) : t('games.points_given').replace('{points}', pointsToGive).replace('{name}', winnerData?.name || 'winner')}
+                </div>
+              )}
+            </>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button
-              onClick={() => { setShowGameOver(false); setCurrentIndex(0); setScoreLeft(0); setScoreRight(0); setRoundAnswered(null); setWrongLeft(false); setWrongRight(false); setWrongAnswerIndexLeft(null); setWrongAnswerIndexRight(null); }}
+              onClick={() => { setShowGameOver(false); setPointsGiven(false); setWinnerData(null); setCurrentIndex(0); setScoreLeft(0); setScoreRight(0); setRoundAnswered(null); setWrongLeft(false); setWrongRight(false); setWrongAnswerIndexLeft(null); setWrongAnswerIndexRight(null); }}
               style={{ padding: '14px 28px', fontSize: '1.1rem', fontWeight: '700', background: 'linear-gradient(135deg, #0EA5E9, #06B6D4)', color: '#fff', border: 'none', borderRadius: 14, cursor: 'pointer', boxShadow: '0 4px 20px rgba(14,165,233,0.4)' }}
             >
-              🔄 Play Again
+              🔄 {t('games.play_again')}
             </button>
             <button
               onClick={() => onBack && onBack()}
               style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: '600', background: 'rgba(255,255,255,0.2)', color: '#fff', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, cursor: 'pointer' }}
             >
-              ← Back to Config
+              ← {t('games.back_to_config')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ——— Single-player game over: points awarding modal ———
+  if (showSinglePlayerGameOver) {
+    const totalQuestions = validQuestions.length;
+    const singlePlayer = players[0];
+    return (
+      <div style={{ ...styles.container, background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <PixiBackdrop classColor={classColor} variant="dark" />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', maxWidth: 420, background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', borderRadius: 24, padding: 32, border: '2px solid rgba(255,255,255,0.15)', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#FFD700', marginBottom: 8, textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+            🏆 {t('games.quiz_complete')}
+          </h1>
+          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff', marginBottom: 8 }}>
+            {t('games.your_score')}: {singlePlayerFinalScore} / {totalQuestions}
+          </p>
+          {selectedClass && onGivePoints && singlePlayer && (
+            <>
+              {!pointsGiven ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 20, marginBottom: 20 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: '#94a3b8' }}>
+                    {t('games.give_points_to')} {singlePlayer.name || 'Player'}:
+                  </div>
+                  <div style={{ display: 'flex', gap: 12 }}>
+                    {[1, 2, 3, 5].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => setPointsToGive(val)}
+                        style={{
+                          padding: '12px 20px',
+                          fontSize: 18,
+                          fontWeight: 800,
+                          background: pointsToGive === val ? 'linear-gradient(135deg, #10B981, #059669)' : 'rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          border: `2px solid ${pointsToGive === val ? '#10B981' : 'rgba(255,255,255,0.4)'}`,
+                          borderRadius: 12,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        +{val}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (onGivePoints) {
+                        onGivePoints([singlePlayer], pointsToGive);
+                        setPointsGiven(true);
+                        setWinnerData(singlePlayer);
+                      }
+                    }}
+                    style={{
+                      padding: '12px 32px',
+                      fontSize: 16,
+                      fontWeight: 800,
+                      background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 12,
+                      cursor: 'pointer',
+                      boxShadow: '0 6px 24px rgba(245,158,11,0.4)'
+                    }}
+                  >
+                    🎁 {t('games.give_points_btn').replace('{points}', pointsToGive)}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#10B981', marginTop: 16, marginBottom: 16, padding: '12px 24px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: 12, border: '2px solid #10B981' }}>
+                  ✅ {t('games.points_given').replace('{points}', pointsToGive).replace('{name}', singlePlayer.name || 'Player')}
+                </div>
+              )}
+            </>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button
+              onClick={() => { setShowSinglePlayerGameOver(false); setPointsGiven(false); setWinnerData(null); setCurrentIndex(0); setScore(0); setSelected(null); setShowResult(false); startGame(); }}
+              style={{ padding: '14px 28px', fontSize: '1.1rem', fontWeight: '700', background: 'linear-gradient(135deg, #0EA5E9, #06B6D4)', color: '#fff', border: 'none', borderRadius: 14, cursor: 'pointer', boxShadow: '0 4px 20px rgba(14,165,233,0.4)' }}
+            >
+              🔄 {t('games.play_again')}
+            </button>
+            <button
+              onClick={() => onBack && onBack()}
+              style={{ padding: '12px 24px', fontSize: '1rem', fontWeight: '600', background: 'rgba(255,255,255,0.2)', color: '#fff', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, cursor: 'pointer' }}
+            >
+              ← {t('games.back_to_config')}
             </button>
           </div>
         </div>

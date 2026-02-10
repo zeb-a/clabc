@@ -708,6 +708,91 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         </div>
       </section>
 
+      {/* --- GAMES SECTION --- */}
+      <section style={{
+        padding: isMobile ? '56px 20px 64px' : '80px 24px 96px',
+        maxWidth: 1200,
+        margin: '0 auto',
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: isMobile ? 32 : 48 }}>
+          <h2 style={{
+            fontSize: isMobile ? 28 : 36,
+            fontWeight: 900,
+            margin: 0,
+            marginBottom: 12,
+            ...(isDark ? { color: '#fff' } : { color: '#0f172a' }),
+          }}>
+            {t('landing.games.title')}
+          </h2>
+          <p style={{
+            fontSize: isMobile ? 15 : 17,
+            margin: 0,
+            maxWidth: 560,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            lineHeight: 1.5,
+            ...(isDark ? { color: '#94a3b8' } : { color: '#64748b' }),
+          }}>
+            {t('landing.games.subtitle')}
+          </p>
+        </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: isMobile ? 20 : 24,
+          alignItems: 'stretch',
+        }}>
+          {[
+            { id: 'tornado', emoji: '🌪️', gradient: 'linear-gradient(135deg, #4ECDC4, #95E1D3)', nameKey: 'games.tornado', descKey: 'games.tornado.desc' },
+            { id: 'faceoff', emoji: '⚡', gradient: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)', nameKey: 'games.faceoff', descKey: 'games.faceoff.desc' },
+            { id: 'memory', emoji: '🧠', gradient: 'linear-gradient(135deg, #8B5CF6, #A78BFA)', nameKey: 'games.memorymatch', descKey: 'games.memorymatch.desc' },
+            { id: 'quiz', emoji: '🎯', gradient: 'linear-gradient(135deg, #0EA5E9, #06B6D4)', nameKey: 'games.quiz', descKey: 'games.quiz.desc' },
+            { id: 'motorace', emoji: '🏍️', gradient: 'linear-gradient(135deg, #F97316, #EA580C)', nameKey: 'games.motorace', descKey: 'games.motorace.desc' },
+          ].map((game) => (
+            <MotionCard
+              key={game.id}
+              className="lp-game-card"
+              style={{
+                borderRadius: 20,
+                overflow: 'hidden',
+                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #E2E8F0',
+                background: isDark ? 'rgba(24,24,27,0.8)' : '#fff',
+                boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.3)' : '0 10px 40px rgba(0,0,0,0.08)',
+              }}
+            >
+              <div style={{
+                aspectRatio: '16/10',
+                background: game.gradient,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+              }}>
+                <span style={{ fontSize: 64, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))' }}>{game.emoji}</span>
+              </div>
+              <div style={{ padding: '20px 18px' }}>
+                <h3 style={{
+                  margin: '0 0 8px',
+                  fontSize: 18,
+                  fontWeight: 800,
+                  ...(isDark ? { color: '#fff' } : { color: '#0f172a' }),
+                }}>
+                  {t(game.nameKey)}
+                </h3>
+                <p style={{
+                  margin: 0,
+                  fontSize: 14,
+                  lineHeight: 1.45,
+                  ...(isDark ? { color: '#94a3b8' } : { color: '#64748b' }),
+                }}>
+                  {t(game.descKey)}
+                </p>
+              </div>
+            </MotionCard>
+          ))}
+        </div>
+      </section>
+
       {/* --- FEATURES --- */}
       <div style={{ ...modernStyles.bentoGrid, ...(isMobile ? modernStyles.bentoGridMobile : {}) }}>
         <MotionCard className="lp-bento-card" style={{ ...modernStyles.bentoCard, background: 'linear-gradient(135deg, #F0FDF4 0%, #fff 100%)', ...(isDark ? modernStyles.bentoCardDark : {}) }}>
