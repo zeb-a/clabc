@@ -487,11 +487,11 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
       <div data-game-screen style={styles.container}>
         <PixiBackdrop classColor={classColor} variant="dark" />
         <nav style={{ ...styles.nav, color: navColor }}>
-          <button onClick={() => (onBack ? onBack() : setPlaying(false))} style={styles.backBtn}><ChevronLeft size={22} /> Exit</button>
+          <button onClick={() => (onBack ? onBack() : setPlaying(false))} style={styles.backBtn}><ChevronLeft size={22} /> {t('games.exit')}</button>
           <span style={{ fontWeight: 700, fontSize: '14px' }}>
-            Question {currentIndex + 1} / {validQuestions.length}
+            {t('games.question_num').replace('{current}', currentIndex + 1).replace('{total}', validQuestions.length)}
           </span>
-          <button onClick={() => setFullScreen(f => !f)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 8, color: navColor, cursor: 'pointer' }} title={fullScreen ? 'Exit full screen' : 'Full screen'}>{fullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
+          <button onClick={() => setFullScreen(f => !f)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 8, color: navColor, cursor: 'pointer' }} title={fullScreen ? t('games.exit_full_screen') : t('games.full_screen')}>{fullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
         </nav>
 
         {/* Score panels - same layout as FaceOff */}
@@ -653,9 +653,9 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
       <div data-game-screen style={styles.container}>
         <PixiBackdrop classColor={classColor} variant="dark" />
         <nav style={styles.nav}>
-          <button onClick={() => setPlaying(false)} style={styles.backBtn}><ChevronLeft size={22} /> Exit</button>
-          <span style={{ fontWeight: 700, color: '#e0e0e0' }}>Question {currentIndex + 1} / {validQuestions.length} • Score: {score}</span>
-          <button onClick={() => setFullScreen(f => !f)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 8, color: '#e0e0e0', cursor: 'pointer' }} title={fullScreen ? 'Exit full screen' : 'Full screen'}>{fullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
+          <button onClick={() => setPlaying(false)} style={styles.backBtn}><ChevronLeft size={22} /> {t('games.exit')}</button>
+          <span style={{ fontWeight: 700, color: '#e0e0e0' }}>{t('games.question_num').replace('{current}', currentIndex + 1).replace('{total}', validQuestions.length)} • {t('games.score')}: {score}</span>
+          <button onClick={() => setFullScreen(f => !f)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 8, color: '#e0e0e0', cursor: 'pointer' }} title={fullScreen ? t('games.exit_full_screen') : t('games.full_screen')}>{fullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
         </nav>
         <main style={styles.main}>
           <div style={styles.card}>
@@ -680,10 +680,10 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
             </div>
             <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
               {!showResult ? (
-                <button style={styles.primaryBtn} onClick={submitAnswer} disabled={selected === null}>Submit</button>
+                <button style={styles.primaryBtn} onClick={submitAnswer} disabled={selected === null}>{t('games.submit')}</button>
               ) : (
                 <button style={styles.primaryBtn} onClick={() => { if (isLast) sounds.win(); nextQuestion(); }}>
-                  {currentIndex < validQuestions.length - 1 ? 'Next' : 'Finish'}
+                  {currentIndex < validQuestions.length - 1 ? t('games.next') : t('games.finish')}
                 </button>
               )}
             </div>
@@ -698,14 +698,14 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
     <div style={styles.container}>
       <PixiBackdrop classColor={classColor} variant="light" />
       <nav style={styles.nav}>
-        <button onClick={onBack} style={styles.backBtn}><ChevronLeft size={22} /> Back</button>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Quiz</h2>
+        <button onClick={onBack} style={styles.backBtn}><ChevronLeft size={22} /> {t('games.back')}</button>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{t('games.quiz')}</h2>
         <button onClick={startGame} style={styles.primaryBtn} disabled={validQuestions.length < 1}>
-          <Play size={18} /> Play
+          <Play size={18} /> {t('games.play')}
         </button>
       </nav>
       <main style={styles.main}>
-        <p style={{ color: '#6B7280', marginBottom: 20 }}>Add questions with 2–4 options (A, B, and optionally C, D). Mark the correct answer.</p>
+        <p style={{ color: '#6B7280', marginBottom: 20 }}>{t('games.no_questions')}</p>
         {questions.map(q => (
           <div key={q.id} style={styles.card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -752,17 +752,17 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
               </div>
             ))}
             {(q.options || ['', '']).length < 4 && (
-              <button type="button" onClick={() => addOption(q.id)} style={{ ...styles.secondaryBtn, marginTop: 8, padding: '8px 14px', fontSize: 13 }}>+ Add option</button>
+              <button type="button" onClick={() => addOption(q.id)} style={{ ...styles.secondaryBtn, marginTop: 8, padding: '8px 14px', fontSize: 13 }}>+ {t('games.add')}</button>
             )}
           </div>
         ))}
         <button onClick={addQuestion} style={{ ...styles.secondaryBtn, width: '100%', justifyContent: 'center', marginTop: 8 }}>
-          <Plus size={18} /> Add question
+          <Plus size={18} /> {t('games.add_question')}
         </button>
         <div style={{ marginTop: 24, display: 'flex', gap: 12 }}>
-          <button onClick={onBack} style={styles.secondaryBtn}>Back to Games</button>
+          <button onClick={onBack} style={styles.secondaryBtn}>{t('games.back_to_config')}</button>
           <button onClick={startGame} style={styles.primaryBtn} disabled={validQuestions.length < 1}>
-            <Play size={18} /> Play ({validQuestions.length} questions)
+            <Play size={18} /> {t('games.play')} ({validQuestions.length} {t('games.questions_count').replace('{count}', validQuestions.length)})
           </button>
         </div>
       </main>

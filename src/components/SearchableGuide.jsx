@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Search, X, Home, GraduationCap, Clock, Award, Gift, Settings, FileText, Users, BarChart3, Zap, ChevronRight, BookOpen, Menu, Sun, Moon } from 'lucide-react';
+import { Search, X, Home, UserPlus, ClipboardCheck, GraduationCap, Clock, Award, Gift, Settings, FileText, Brush, Users, BarChart3, Zap, ChevronRight, BookOpen, Menu, ArrowLeft, Sun, Moon } from 'lucide-react';
 import { useTranslation } from '../i18n';
 import useWindowSize from '../hooks/useWindowSize';
 import useDarkMode from '../hooks/useDarkMode';
@@ -1389,7 +1389,6 @@ export default function SearchableGuide({ onClose, onTriggerAction }) {
                               e.preventDefault();
                               e.stopPropagation();
                               const action = props.href.split(':')[1];
-                              console.log('Triggering action:', action);
                               if (onTriggerAction) {
                                 onTriggerAction(action);
                               }

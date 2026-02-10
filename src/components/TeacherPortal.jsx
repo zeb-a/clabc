@@ -286,13 +286,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     setTorenadoPlayers(players);
     setShowTorenadoModal(false);
 
-    console.log('[TeacherPortal] Saving torenado players to localStorage:', players);
-    console.log('[TeacherPortal] Saving torenado config:', {
-      playerCount: playerCount,
-      isTeamMode: isTeamMode,
-      classId: torenadoSelectedClass.id
-    });
-
     // Store in localStorage for TornadoGameWrapper
     localStorage.setItem('torenado_players', JSON.stringify(players));
     localStorage.setItem('torenado_config', JSON.stringify({
@@ -466,13 +459,14 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const getSelectedGameName = () => {
     const type = localStorage.getItem('selected_game_type');
     const names = {
-      'tornado': 'Tornado',
-      'faceoff': 'FaceOff',
-      'memorymatch': 'Memory Match',
-      'quiz': 'Quiz',
-      'motorace': 'MotoRace'
+      'tornado': t('games.tornado'),
+      'faceoff': t('games.faceoff'),
+      'memorymatch': t('games.memorymatch'),
+      'quiz': t('games.quiz'),
+      'motorace': t('games.motorace'),
+      'horserace': t('games.horserace')
     };
-    return names[type] || 'Select a Game';
+    return names[type] || t('games.choose');
   };
 
   const getSelectedGameEmoji = () => {
@@ -482,7 +476,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       'faceoff': '⚡',
       'memorymatch': '🧠',
       'quiz': '🎯',
-      'motorace': '🏍️'
+      'motorace': '🏍️',
+      'horserace': '🐴'
     };
     return emojis[type] || '🎮';
   };
@@ -494,7 +489,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       'faceoff': 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
       'memorymatch': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
       'quiz': 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
-      'motorace': 'linear-gradient(135deg, #F97316, #EA580C)'
+      'motorace': 'linear-gradient(135deg, #F97316, #EA580C)',
+      'horserace': 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
     };
     return colors[type] || 'linear-gradient(135deg, #667eea, #764ba2)';
   };
@@ -543,10 +539,10 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 fontSize: '18px',
                 fontWeight: 800
               }}
-              title="Play Games"
+              title={t('teacher_portal.play_games')}
             >
               <Zap size={18} />
-              <span style={{ marginLeft: 6, fontWeight: 700, fontSize: '16px' }}>Play Games</span>
+              <span style={{ marginLeft: 6, fontWeight: 700, fontSize: '16px' }}>{t('teacher_portal.play_games')}</span>
             </button>
             <InlineHelpButton pageId="teacher-portal" />
           </div>
@@ -835,7 +831,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🌪️</span>
-                    <span style={styles.gameCardText}>Tornado</span>
+                    <span style={styles.gameCardText}>{t('games.tornado')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -854,7 +850,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>⚡</span>
-                    <span style={styles.gameCardText}>FaceOff</span>
+                    <span style={styles.gameCardText}>{t('games.faceoff')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -873,7 +869,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🧠</span>
-                    <span style={styles.gameCardText}>Memory Match</span>
+                    <span style={styles.gameCardText}>{t('games.memorymatch')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -892,7 +888,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🎯</span>
-                    <span style={styles.gameCardText}>Quiz</span>
+                    <span style={styles.gameCardText}>{t('games.quiz')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -911,7 +907,26 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🏍️</span>
-                    <span style={styles.gameCardText}>MotoRace</span>
+                    <span style={styles.gameCardText}>{t('games.motorace')}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'horserace');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'horserace'
+                        ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'horserace' ? '#8B5CF6' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'horserace' ? '0 4px 15px rgba(139, 92, 246, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>🐴</span>
+                    <span style={styles.gameCardText}>{t('games.horserace')}</span>
                   </button>
                 </div>
               ) : (
@@ -925,7 +940,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       'faceoff': 2,
                       'memorymatch': 2,
                       'quiz': 0,
-                      'motorace': 1
+                      'motorace': 1,
+                      'horserace': 2
                     }[selectedGameType] || 2;
                     const hasEnoughPlayers = studentCount >= minPlayers;
 

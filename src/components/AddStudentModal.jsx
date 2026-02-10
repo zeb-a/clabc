@@ -62,7 +62,6 @@ export default function AddStudentModal({ onClose, onSave }) {
 
   const handleAvatarClick = (e) => {
     e.stopPropagation();
-    console.log('Avatar clicked, current state:', showAvatarPicker);
     setShowAvatarPicker(!showAvatarPicker);
   };
 

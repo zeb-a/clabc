@@ -4,6 +4,7 @@ import FaceOffGame from './FaceOffGame';
 import MemoryMatchGame from './MemoryMatchGame';
 import QuizGame from './QuizGame';
 import MotoRaceGame from './MotoRaceGame';
+import HorseRaceGame from './HorseRaceGame';
 import api from '../services/api';
 import { useTranslation } from '../i18n';
 
@@ -59,6 +60,11 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     questions: [] // { id, question, image?, options: [a,b,c,d], correct: 0-3 }
   });
   const [motoRaceConfig, setMotoRaceConfig] = useState({
+    contentType: 'text', // 'text' | 'images'
+    items: [], // strings (words) or image data URLs
+    playerCount: 2
+  });
+  const [horseRaceConfig, setHorseRaceConfig] = useState({
     contentType: 'text', // 'text' | 'images'
     items: [], // strings (words) or image data URLs
     playerCount: 2
@@ -194,7 +200,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     // Save to backend
     try {
       await api.saveClasses(userEmail, [updatedClass]);
-      console.log('[TornadoGameWrapper] Points given successfully:', { students: studentsToUpdate, points });
+
     } catch (error) {
       console.error('[TornadoGameWrapper] Error saving points:', error);
     }
@@ -214,21 +220,21 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         const token = localStorage.getItem('classABC_pb_token') || localStorage.getItem('classABC_token');
         if (token) api.setToken(token);
 
-        console.log('[TornadoGameWrapper] Loading classes for user:', userEmail);
+
 
         let remote = await api.getClasses(userEmail);
-        console.log('[TornadoGameWrapper] Remote classes:', remote);
+
         if (Array.isArray(remote) && remote.length > 0) {
           setClasses(remote);
         } else {
           // Fallback to localStorage if remote is empty
           const key = `classABC_data_${userEmail}`;
           const localClasses = JSON.parse(localStorage.getItem(key)) || [];
-          console.log('[TornadoGameWrapper] Local classes from', key, ':', localClasses);
+
           setClasses(localClasses);
         }
       } catch (e) {
-        console.log('[TornadoGameWrapper] Error loading classes:', e);
+
         // Fallback to localStorage
         try {
           const storedUser = localStorage.getItem('classABC_logged_in');
@@ -236,7 +242,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           const userEmail = parsedUser?.email || 'anonymous';
           const key = `classABC_data_${userEmail}`;
           const localClasses = JSON.parse(localStorage.getItem(key)) || [];
-          console.log('[TornadoGameWrapper] Fallback local classes from', key, ':', localClasses);
+
           setClasses(localClasses);
         } catch (fallbackError) {
           console.error('[TornadoGameWrapper] Fallback error:', fallbackError);
@@ -261,12 +267,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           const players = JSON.parse(savedPlayers);
           const configData = JSON.parse(savedConfig);
 
-          console.log('[TornadoGameWrapper] Found saved selections:', { players, configData });
+
 
           // Find the class
           const targetClass = classes.find(c => c.id === configData.classId);
           if (targetClass) {
-            console.log('[TornadoGameWrapper] Found class:', targetClass.name);
+
             setSelectedClass(targetClass);
             
             // Set team mode if applicable
@@ -286,7 +292,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               };
             }).filter(s => s !== null);
 
-            console.log('[TornadoGameWrapper] Selected students:', students);
+
             setSelectedStudents(students);
             setPrefilled(true);
 
@@ -304,7 +310,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   // When classes are passed externally, use them directly
   useEffect(() => {
     if (externalClasses && externalClasses.length > 0) {
-      console.log('[TornadoGameWrapper] Using external classes:', externalClasses);
+
       setClasses(externalClasses);
       setClassesLoaded(true);
     }
@@ -350,7 +356,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               margin: 0,
               fontFamily: 'Comic Sans MS, cursive, sans-serif'
             }}>
-              🎮 Choose a Game
+              🎮 {t('games.choose')}
             </h2>
             <button
               onClick={onBack}
@@ -366,7 +372,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
           </div>
 
@@ -591,6 +597,58 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               <div style={{ fontSize: '48px' }}>🏍️</div>
               <div>{t('games.motorace')}</div>
             </button>
+
+            <button
+              onClick={() => {
+                setGameType('horserace');
+                localStorage.setItem('selected_game_type', 'horserace');
+                setGameState('select-class');
+              }}
+              style={{
+                flex: 1,
+                minWidth: '140px',
+                padding: '40px 20px',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                border: '4px solid',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                background: gameType === 'horserace' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'rgba(255,255,255,0.3)',
+                color: gameType === 'horserace' ? '#fff' : '#1E293B',
+                borderColor: gameType === 'horserace' ? '#F59E0B' : 'rgba(255,255,255,0.5)',
+                boxShadow: gameType === 'horserace' ? '0 6px 25px rgba(245, 158, 11, 0.4)' : 'none',
+                transform: 'scale(1.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
+                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.borderColor = '#F59E0B';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(245, 158, 11, 0.6)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+                if (gameType !== 'horserace') {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                  e.currentTarget.style.color = '#1E293B';
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
+                  e.currentTarget.style.boxShadow = 'none';
+                } else {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #F59E0B, #D97706)';
+                  e.currentTarget.style.color = '#fff';
+                  e.currentTarget.style.borderColor = '#F59E0B';
+                  e.currentTarget.style.boxShadow = '0 6px 25px rgba(245, 158, 11, 0.4)';
+                }
+              }}
+            >
+              <div style={{ fontSize: '48px' }}>🐎</div>
+              <div>{t('games.horserace')}</div>
+            </button>
           </div>
 
           <div style={{
@@ -607,6 +665,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             <div style={{ marginTop: '10px' }}><strong>🧠 {t('games.memorymatch')}:</strong> {t('games.memorymatch.desc')}</div>
             <div style={{ marginTop: '10px' }}><strong>🎯 {t('games.quiz')}:</strong> {t('games.quiz.desc_short')}</div>
             <div style={{ marginTop: '10px' }}><strong>🏍️ {t('games.motorace')}:</strong> {t('games.motorace.desc')}</div>
+            <div style={{ marginTop: '10px' }}><strong>🐎 {t('games.horserace')}:</strong> {t('games.horserace.desc')}</div>
           </div>
         </div>
       )}
@@ -673,8 +732,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 key={cls.id}
                 onClick={() => {
                   setSelectedClass(cls);
-                  // Skip mode selection for FaceOff, Memory Match, Quiz, MotoRace — go directly to config
-                  if (gameType === 'faceoff' || gameType === 'memorymatch' || gameType === 'quiz' || gameType === 'motorace') {
+                  // Skip mode selection for FaceOff, Memory Match, Quiz, MotoRace, HorseRace — go directly to config
+                  if (gameType === 'faceoff' || gameType === 'memorymatch' || gameType === 'quiz' || gameType === 'motorace' || gameType === 'horserace') {
                     setGameState('config');
                   } else {
                     setGameState('select-mode');
@@ -803,7 +862,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               margin: 0,
               fontFamily: 'Comic Sans MS, cursive, sans-serif'
             }}>
-              🎮 Game Mode
+              🎮 {t('games.mode')}
             </h2>
             <button
               onClick={onBack}
@@ -819,7 +878,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
           </div>
 
@@ -831,7 +890,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               marginBottom: '15px',
               display: 'block'
             }}>
-              Select mode for {selectedClass.name}:
+              {t('games.select_mode_for').replace('{className}', selectedClass.name)}
             </label>
             <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
               <button
@@ -857,7 +916,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   transform: !isTeamMode ? 'scale(1.02)' : 'scale(1)'
                 }}
               >
-                👤 Individual
+                👤 {t('games.individual')}
               </button>
               <button
                 onClick={() => {
@@ -882,7 +941,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   transform: isTeamMode ? 'scale(1.02)' : 'scale(1)'
                 }}
               >
-                👥 Teams
+                👥 {t('games.teams')}
               </button>
             </div>
           </div>
@@ -924,7 +983,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
 
             <div style={{
@@ -941,7 +1000,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 margin: 0,
                 fontFamily: 'Comic Sans MS, cursive, sans-serif'
               }}>
-                ⚡ FaceOff Configuration
+                ⚡ {t('games.faceoff_config')}
               </div>
               {selectedClass && (
                 <div style={{
@@ -949,7 +1008,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   color: '#666',
                   marginTop: '4px'
                 }}>
-                  Class: {selectedClass.name}
+                  {t('games.select_class')}: {selectedClass.name}
                 </div>
               )}
             </div>
@@ -966,7 +1025,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '10px'
             }}>
-              🎯 Rounds:
+              🎯 {t('games.rounds')}:
             </label>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[5, 10, 20, 30].map(rounds => (
@@ -1007,7 +1066,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '10px'
             }}>
-              🖼️ Word-Image Pairs ({faceOffConfig.wordImagePairs.length}):
+              🖼️ {t('games.word_image_pairs')} ({faceOffConfig.wordImagePairs.length}):
             </label>
 
             {/* Bulk Upload Button */}
@@ -1040,7 +1099,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 }}
               >
                 <span>📸📸📸</span>
-                <span>Upload Multiple Images</span>
+                <span>{t('games.upload_multiple')}</span>
               </button>
               <input
                 id="faceoff-bulk-file-input"
@@ -1090,7 +1149,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   marginBottom: '10px',
                   display: 'block'
                 }}>
-                  📝 Add words for uploaded images ({bulkUploadImages.length}):
+                  {t('games.add_words_for_images').replace('{count}', bulkUploadImages.length)}
                 </label>
                 <div style={{
                   display: 'grid',
@@ -1126,7 +1185,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       />
                       <input
                         type="text"
-                        placeholder={`Word for image ${index + 1}...`}
+                        placeholder={t('games.word_for_image').replace('{index}', index + 1)}
                         defaultValue=""
                         id={`bulk-word-input-${imgData.id}`}
                         style={{
@@ -1156,7 +1215,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                             addFaceOffWordImagePair(word, imgData.src);
                             setBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
                           } else {
-                            alert('Please enter a word for this image!');
+                            alert(t('games.enter_word_for_image'));
                           }
                         }}
                         style={{
@@ -1178,7 +1237,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        Add
+                        {t('games.add')}
                       </button>
                       <button
                         onClick={() => {
@@ -1220,7 +1279,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       cursor: 'pointer'
                     }}
                   >
-                    Clear All Bulk Images
+                    {t('games.clear_all_bulk')}
                   </button>
                 )}
               </div>
@@ -1239,7 +1298,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: '#EF4444',
                 fontWeight: '600'
               }}>
-                ⚠️ Need at least 5 word-image pairs to start
+                ⚠️ {t('games.need_pairs').replace('{count}', 5)}
               </div>
             )}
 
@@ -1320,7 +1379,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 display: 'block',
                 marginBottom: '10px'
               }}>
-                👤 Select 2 Players:
+                {t('games.select_2_players')}
               </label>
               <div style={{
                 display: 'grid',
@@ -1377,7 +1436,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: selectedStudents.length === 2 ? '#4CAF50' : '#6B7280',
                 fontWeight: '600'
               }}>
-                Selected: {selectedStudents.length}/2 {selectedStudents.length === 2 ? '✓ Ready' : '(Select exactly 2)'}
+                {t('games.selected_n_of_n')
+                  .replace('{selected}', selectedStudents.length)
+                  .replace('{count}', 2)}{' '}
+                {selectedStudents.length === 2
+                  ? t('games.selected_ready')
+                  : t('games.select_exactly_n').replace('{count}', 2)}
               </div>
             </div>
           )}
@@ -1411,7 +1475,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               opacity: selectedStudents.length === 2 && faceOffConfig.wordImagePairs.length >= 5 ? 1 : 0.5
             }}
           >
-            ⚡ START FACEOFF ⚡
+            {t('games.start_faceoff')}
           </button>
         </div>
       )}
@@ -1451,7 +1515,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
 
             <div style={{
@@ -1476,7 +1540,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   color: '#666',
                   marginTop: '4px'
                 }}>
-                  Class: {selectedClass.name}
+                  {t('games.select_class')}: {selectedClass.name}
                 </div>
               )}
             </div>
@@ -1493,7 +1557,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '10px'
             }}>
-              📚 Content Items ({memoryMatchConfig.contentItems.length}):
+              📚 {t('games.content_items')} ({memoryMatchConfig.contentItems.length}):
             </label>
 
             {/* Bulk Upload Button */}
@@ -1526,7 +1590,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 }}
               >
                 <span>📸📸📸</span>
-                <span>Upload Multiple Images</span>
+                <span>{t('games.upload_multiple')}</span>
               </button>
               <input
                 id="memory-bulk-file-input"
@@ -1576,7 +1640,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   marginBottom: '10px',
                   display: 'block'
                 }}>
-                  📝 Add labels for uploaded images ({memoryMatchBulkUploadImages.length}):
+                  {t('games.add_labels_for_images').replace('{count}', memoryMatchBulkUploadImages.length)}
                 </label>
                 <div style={{
                   display: 'grid',
@@ -1612,7 +1676,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       />
                       <input
                         type="text"
-                        placeholder={`Label for image ${index + 1}...`}
+                        placeholder={t('games.label_for_image').replace('{index}', index + 1)}
                         defaultValue=""
                         id={`memory-word-input-${imgData.id}`}
                         style={{
@@ -1642,7 +1706,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                             addMemoryMatchContentItem(text, imgData.src, 'image');
                             setMemoryMatchBulkUploadImages(prev => prev.filter(img => img.id !== imgData.id));
                           } else {
-                            alert('Please enter a label for this image!');
+                            alert(t('games.enter_label_for_image'));
                           }
                         }}
                         style={{
@@ -1664,7 +1728,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                           e.currentTarget.style.transform = 'scale(1)';
                         }}
                       >
-                        Add
+                        {t('games.add')}
                       </button>
                       <button
                         onClick={() => {
@@ -1717,7 +1781,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                         opacity: memoryMatchBulkUploadImages.length % 2 === 0 ? 1 : 0.5
                       }}
                     >
-                      Quick Start ({memoryMatchBulkUploadImages.length} images)
+                      {t('games.quick_start_images').replace('{count}', memoryMatchBulkUploadImages.length)}
                     </button>
                     <button
                       onClick={() => setMemoryMatchBulkUploadImages([])}
@@ -1732,7 +1796,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                         cursor: 'pointer'
                       }}
                     >
-                      Clear
+                      {t('games.clear')}
                     </button>
                   </div>
                 )}
@@ -1752,7 +1816,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: '#EF4444',
                 fontWeight: '600'
               }}>
-                ⚠️ Need at least 2 content items or images to start
+                ⚠️ {t('games.need_pairs').replace('{count}', 2)}
               </div>
             )}
 
@@ -1769,7 +1833,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: '#92400E',
                 fontWeight: '600'
               }}>
-                ⚠️ Please upload an even number of images for matching pairs
+                ⚠️ {t('games.upload_even_images_warning')}
               </div>
             )}
 
@@ -1787,10 +1851,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 fontWeight: '500',
                 lineHeight: '1.5'
               }}>
-                💡 <strong>Tip:</strong> Add labels to your images to match words with pictures!
+                💡 <strong>{t('games.tip')}:</strong> {t('games.tip_add_labels')}
                 <br />
                 <span style={{ fontSize: '11px', color: '#6B7280' }}>
-                  Or skip labels and match pictures with pictures.
+                  {t('games.tip_skip_labels')}
                 </span>
               </div>
             )}
@@ -1874,7 +1938,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 display: 'block',
                 marginBottom: '10px'
               }}>
-                👤 Select Players (1-4):
+                👤 {t('games.select_class')}:
               </label>
               <div style={{
                 display: 'grid',
@@ -1931,7 +1995,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: selectedStudents.length >= 1 ? '#8B5CF6' : '#6B7280',
                 fontWeight: '600'
               }}>
-                Selected: {selectedStudents.length}/4 {selectedStudents.length >= 1 ? '✓ Ready' : '(Select 1-4 players)'}
+                {t('games.selected_n_of_n')
+                  .replace('{selected}', selectedStudents.length)
+                  .replace('{count}', 4)}{' '}
+                {selectedStudents.length >= 1
+                  ? t('games.selected_ready')
+                  : t('games.select_range_players').replace('{min}', 1).replace('{max}', 4)}
               </div>
             </div>
           )}
@@ -1994,7 +2063,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 ? 1 : 0.5
             }}
           >
-            🧠 START MEMORY MATCH 🧠
+            {t('games.start_memory_match')}
           </button>
         </div>
       )}
@@ -2028,7 +2097,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
             <div style={{ textAlign: 'center', flex: 1, minWidth: '160px' }}>
               <div style={{
@@ -2043,7 +2112,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 🎯 {t('games.quiz_config')}
               </div>
               {selectedClass && (
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Class: {selectedClass.name}</div>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{t('games.select_class')}: {selectedClass.name}</div>
               )}
             </div>
             <div style={{ width: '80px' }} />
@@ -2053,7 +2122,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           <div style={{ marginBottom: '18px', padding: '14px 18px', background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)', borderRadius: '16px', border: '2px solid #0EA5E940' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
               <span style={{ fontSize: '14px', fontWeight: '700', color: '#0C4A6E' }}>
-                📝 Questions: {quizConfig.questions.length}
+                📝 {t('games.questions_count').replace('{count}', quizConfig.questions.length)}
               </span>
               <button
                 onClick={addQuizQuestion}
@@ -2072,7 +2141,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   gap: '8px'
                 }}
               >
-                + Add question
+                + {t('games.add_question')}
               </button>
             </div>
           </div>
@@ -2081,7 +2150,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           <div style={{ maxHeight: '42vh', overflowY: 'auto', marginBottom: '18px', paddingRight: '6px' }}>
             {quizConfig.questions.length === 0 && (
               <div style={{ textAlign: 'center', padding: '24px', color: '#94A3B8', fontSize: '14px' }}>
-                Add at least one question with text and 4 options (mark the correct one).
+                {t('games.no_questions')}
               </div>
             )}
             {quizConfig.questions.map((q, idx) => (
@@ -2209,7 +2278,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                         alignSelf: 'flex-start'
                       }}
                     >
-                      + Add option
+                      + {t('games.add_option')}
                     </button>
                   )}
                 </div>
@@ -2221,7 +2290,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {selectedClass && (
             <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #0EA5E940' }}>
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#0C4A6E', display: 'block', marginBottom: '10px' }}>
-                👤 Select 2 players
+                {t('games.select_2_players_lowercase')}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
                 {(selectedClass.students || []).map(student => {
@@ -2255,7 +2324,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 })}
               </div>
               <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === 2 ? '#0EA5E9' : '#64748B', fontWeight: '600' }}>
-                Selected: {selectedStudents.length}/2 {selectedStudents.length === 2 ? '✓ Ready' : '(Select exactly 2)'}
+                {t('games.selected_n_of_n')
+                  .replace('{selected}', selectedStudents.length)
+                  .replace('{count}', 2)}{' '}
+                {selectedStudents.length === 2
+                  ? t('games.selected_ready')
+                  : t('games.select_exactly_n').replace('{count}', 2)}
               </div>
             </div>
           )}
@@ -2286,7 +2360,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               opacity: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1 ? 1 : 0.6
             }}
           >
-            🎯 START QUIZ
+            {t('games.start_quiz')}
           </button>
         </div>
       )}
@@ -2320,7 +2394,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
               }}
             >
-              ← Back
+              ← {t('games.back')}
             </button>
             <div style={{ textAlign: 'center', flex: 1, minWidth: '160px' }}>
               <div style={{
@@ -2332,10 +2406,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 margin: 0,
                 fontFamily: 'Comic Sans MS, cursive, sans-serif'
               }}>
-                🏍️ MotoRace Configuration
+                🏍️ {t('games.motorace_config')}
               </div>
               {selectedClass && (
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>Class: {selectedClass.name}</div>
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{t('games.select_class')}: {selectedClass.name}</div>
               )}
             </div>
             <div style={{ width: '80px' }} />
@@ -2344,7 +2418,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {/* Content type: Text OR Images only */}
           <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFF7ED', borderRadius: '16px', border: '2px solid #F9731640' }}>
             <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '10px' }}>
-              📋 Content type (choose one)
+              📋 {t('games.text')} / {t('games.image')}
             </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
@@ -2362,7 +2436,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'text' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                ✏️ Words (comma-separated)
+                ✏️ {t('games.text')}
               </button>
               <button
                 type="button"
@@ -2379,7 +2453,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   borderColor: motoRaceConfig.contentType === 'images' ? '#F97316' : '#E7E5E4'
                 }}
               >
-                🖼️ Images (bulk upload)
+                🖼️ {t('games.image')}
               </button>
             </div>
           </div>
@@ -2387,12 +2461,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {motoRaceConfig.contentType === 'text' && (
             <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F9731640' }}>
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
-                ✏️ Add words for review (comma-separated)
+                ✏️ {t('games.enter_word')}
               </label>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <input
                   type="text"
-                  placeholder="e.g. apple, banana, cat, dog"
+                  placeholder={t('games.enter_word')}
                   id="motorace-words-input"
                   style={{
                     flex: 1,
@@ -2439,7 +2513,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     cursor: 'pointer'
                   }}
                 >
-                  Add
+                  {t('games.add')}
                 </button>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', maxHeight: '120px', overflowY: 'auto' }}>
@@ -2469,7 +2543,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {motoRaceConfig.contentType === 'images' && (
             <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F9731640' }}>
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
-                🖼️ Upload images (bulk)
+                {t('games.upload_images_bulk')}
               </label>
               <input
                 type="file"
@@ -2508,7 +2582,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   marginBottom: '12px'
                 }}
               >
-                📸 Select images
+                {t('games.select_images')}
               </button>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
                 {motoRaceConfig.items.map((src, idx) => (
@@ -2544,7 +2618,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {selectedClass && (
             <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFF7ED', borderRadius: '16px', border: '2px solid #F9731640' }}>
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
-                👥 Number of players
+                {t('games.number_of_players')}
               </label>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
                 {[2, 3, 4].map(n => (
@@ -2572,7 +2646,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 ))}
               </div>
               <label style={{ fontSize: '13px', fontWeight: '600', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
-                Select {(motoRaceConfig.playerCount || 2)} players
+                {t('games.select_n_players').replace('{count}', (motoRaceConfig.playerCount || 2))}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
                 {(selectedClass.students || []).map(student => {
@@ -2608,7 +2682,9 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 })}
               </div>
               <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === (motoRaceConfig.playerCount || 2) ? '#F97316' : '#64748B', fontWeight: '600' }}>
-                Selected: {selectedStudents.length}/{motoRaceConfig.playerCount || 2}
+                {t('games.selected_n_of_n')
+                  .replace('{selected}', selectedStudents.length)
+                  .replace('{count}', (motoRaceConfig.playerCount || 2))}
               </div>
             </div>
           )}
@@ -2638,7 +2714,361 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               opacity: selectedStudents.length === (motoRaceConfig.playerCount || 2) && motoRaceConfig.items.length >= 10 ? 1 : 0.6
             }}
           >
-            🏍️ START MOTORACE (need at least 10 items)
+            🏍️ {t('games.start_game')} ({t('games.need_pairs').replace('{count}', 10)})
+          </button>
+        </div>
+      )}
+
+      {/* HorseRace Configuration Screen */}
+      {gameState === 'config' && gameType === 'horserace' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '720px',
+          padding: '28px',
+          background: 'rgba(255, 255, 255, 0.98)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '28px',
+          border: '4px solid #F59E0B',
+          boxShadow: '0 24px 56px rgba(245, 158, 11, 0.25)',
+          marginTop: '44px',
+          marginBottom: '44px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+            <button
+              onClick={onBack}
+              style={{
+                padding: '10px 18px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 3px 12px rgba(255, 107, 107, 0.3)'
+              }}
+            >
+              ← {t('games.back')}
+            </button>
+            <div style={{ textAlign: 'center', flex: 1, minWidth: '160px' }}>
+              <div style={{
+                fontSize: '20px',
+                fontWeight: '900',
+                background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                margin: 0,
+                fontFamily: 'Comic Sans MS, cursive, sans-serif'
+              }}>
+                🐎 {t('games.horserace_config')}
+              </div>
+              {selectedClass && (
+                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>{t('games.select_class')}: {selectedClass.name}</div>
+              )}
+            </div>
+            <div style={{ width: '80px' }} />
+          </div>
+
+          {/* Content type: Text OR Images only */}
+          <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFFBEB', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
+            <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '10px' }}>
+              📋 {t('games.text')} / {t('games.image')}
+            </label>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'text', items: prev.contentType === 'text' ? prev.items : [] }))}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px solid',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  background: horseRaceConfig.contentType === 'text' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#fff',
+                  color: horseRaceConfig.contentType === 'text' ? '#fff' : '#78716c',
+                  borderColor: horseRaceConfig.contentType === 'text' ? '#F59E0B' : '#E7E5E4'
+                }}
+              >
+                ✏️ {t('games.text')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'images', items: prev.contentType === 'images' ? prev.items : [] }))}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px solid',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  background: horseRaceConfig.contentType === 'images' ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#fff',
+                  color: horseRaceConfig.contentType === 'images' ? '#fff' : '#78716c',
+                  borderColor: horseRaceConfig.contentType === 'images' ? '#F59E0B' : '#E7E5E4'
+                }}
+              >
+                🖼️ {t('games.image')}
+              </button>
+            </div>
+          </div>
+
+          {horseRaceConfig.contentType === 'text' && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '8px' }}>
+                ✏️ {t('games.enter_word')}
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder={t('games.enter_word')}
+                  id="horserace-words-input"
+                  style={{
+                    flex: 1,
+                    minWidth: '200px',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '2px solid #E7E5E4',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const input = document.getElementById('horserace-words-input');
+                      const text = (input?.value || '').trim();
+                      if (!text) return;
+                      const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
+                      if (words.length) {
+                        setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                        if (input) input.value = '';
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = document.getElementById('horserace-words-input');
+                    const text = (input?.value || '').trim();
+                    if (!text) return;
+                    const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
+                    if (words.length) {
+                      setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                      if (input) input.value = '';
+                    }
+                  }}
+                  style={{
+                    padding: '10px 18px',
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    border: '2px solid #F59E0B',
+                    borderRadius: '10px',
+                    background: '#fff',
+                    color: '#B45309',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t('games.add')}
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', maxHeight: '120px', overflowY: 'auto' }}>
+                {horseRaceConfig.items.map((word, idx) => (
+                  <button
+                    key={`${word}-${idx}`}
+                    type="button"
+                    onClick={() => setHorseRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '2px solid #F59E0B',
+                      background: '#FFFBEB',
+                      color: '#92400E',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {word} ✕
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {horseRaceConfig.contentType === 'images' && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '8px' }}>
+                {t('games.upload_images_bulk')}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                id="horserace-bulk-images"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (!files?.length) return;
+                  const readers = Array.from(files).map(file => {
+                    return new Promise(resolve => {
+                      const r = new FileReader();
+                      r.onload = () => resolve(r.result);
+                      r.readAsDataURL(file);
+                    });
+                  });
+                  Promise.all(readers).then(urls => {
+                    setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...urls] }));
+                    e.target.value = '';
+                  });
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById('horserace-bulk-images').click()}
+                style={{
+                  padding: '10px 18px',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  border: '2px dashed #F59E0B',
+                  borderRadius: '10px',
+                  background: '#fff',
+                  color: '#B45309',
+                  cursor: 'pointer',
+                  marginBottom: '12px'
+                }}
+              >
+                {t('games.select_images')}
+              </button>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+                {horseRaceConfig.items.map((src, idx) => (
+                  <div key={idx} style={{ position: 'relative', aspectRatio: 1, borderRadius: '8px', overflow: 'hidden', border: '2px solid #F59E0B' }}>
+                    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={() => setHorseRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                      style={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        background: 'rgba(239,68,68,0.9)',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        lineHeight: 1
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Players: 2, 3, or 4 */}
+          {selectedClass && (
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFFBEB', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
+              <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '8px' }}>
+                {t('games.number_of_players')}
+              </label>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                {[2, 3, 4].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => {
+                      setSelectedStudents([]);
+                      setHorseRaceConfig(prev => ({ ...prev, playerCount: n }));
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      border: '2px solid',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      background: (horseRaceConfig.playerCount || 2) === n ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#fff',
+                      color: (horseRaceConfig.playerCount || 2) === n ? '#fff' : '#78716c',
+                      borderColor: (horseRaceConfig.playerCount || 2) === n ? '#F59E0B' : '#E7E5E4'
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <label style={{ fontSize: '13px', fontWeight: '600', color: '#92400E', display: 'block', marginBottom: '8px' }}>
+                {t('games.select_n_players').replace('{count}', (horseRaceConfig.playerCount || 2))}
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+                {(selectedClass.students || []).map(student => {
+                  const isSelected = selectedStudents.some(p => p.id === student.id);
+                  const maxP = horseRaceConfig.playerCount || 2;
+                  const isFull = selectedStudents.length >= maxP;
+                  return (
+                    <button
+                      key={student.id}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
+                        else if (!isFull) setSelectedStudents(prev => [...prev, { id: student.id, name: student.name, avatar: student.avatar, color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][prev.length] }]);
+                      }}
+                      disabled={!isSelected && isFull}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        border: '2px solid',
+                        borderColor: isSelected ? '#F59E0B' : '#E2E8F0',
+                        background: isSelected ? 'linear-gradient(135deg, #F59E0B, #D97706)' : '#fff',
+                        color: isSelected ? '#fff' : '#475569',
+                        cursor: !isSelected && isFull ? 'not-allowed' : 'pointer',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        opacity: !isSelected && isFull ? 0.5 : 1,
+                        textAlign: 'left'
+                      }}
+                    >
+                      {isSelected ? '✓ ' : ''}{student.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === (horseRaceConfig.playerCount || 2) ? '#F59E0B' : '#64748B', fontWeight: '600' }}>
+                {t('games.selected_n_of_n')
+                  .replace('{selected}', selectedStudents.length)
+                  .replace('{count}', (horseRaceConfig.playerCount || 2))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              const count = horseRaceConfig.playerCount || 2;
+              if (selectedStudents.length === count && horseRaceConfig.items.length >= 10) {
+                setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i] })));
+                setGameState('playing');
+              }
+            }}
+            disabled={selectedStudents.length !== (horseRaceConfig.playerCount || 2) || horseRaceConfig.items.length < 10}
+            style={{
+              width: '100%',
+              padding: '16px',
+              fontSize: '18px',
+              fontWeight: '900',
+              border: 'none',
+              borderRadius: '14px',
+              cursor: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? 'pointer' : 'not-allowed',
+              background: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10
+                ? 'linear-gradient(135deg, #F59E0B, #D97706)'
+                : '#ccc',
+              color: '#fff',
+              boxShadow: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? '0 6px 24px rgba(245, 158, 11, 0.4)' : 'none',
+              opacity: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? 1 : 0.6
+            }}
+          >
+            🐎 {t('games.start_game')} ({t('games.need_pairs').replace('{count}', 10)})
           </button>
         </div>
       )}
@@ -2687,7 +3117,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 e.target.style.boxShadow = '0 4px 15px rgba(255, 107, 107, 0.4)';
               }}
             >
-              ← Back to Portal
+              ← {t('games.back')}
             </button>
             
             {selectedClass && (
@@ -2702,7 +3132,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   color: '#6B7280',
                   marginBottom: '4px'
                 }}>
-                  {isTeamMode ? '👥 Team Mode' : '👤 Individual Mode'}
+                  {isTeamMode ? `👥 ${t('games.teams')}` : `👤 ${t('games.individual')}`}
                 </div>
                 <div style={{
                   fontSize: '24px',
@@ -2730,10 +3160,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 flex: 1,
                 textAlign: 'center'
               }}>
-                🌪️ TORENADO GAME 🌪️
+                {t('games.torenado_game')}
               </h1>
             )}
-            
+
             <div style={{ width: '100px' }}></div>
           </div>
 
@@ -2789,7 +3219,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     boxShadow: isTeamMode ? '0 4px 15px rgba(139, 92, 246, 0.3)' : 'none'
                   }}
                 >
-                  👥 Teams
+                  {t('games.teams_label')}
                 </button>
               </div>
             </div>
@@ -2805,7 +3235,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 display: 'block',
                 marginBottom: '15px'
               }}>
-                👥 Number of Teams:
+                {t('games.teams_label')}
               </label>
               <div style={{ display: 'flex', gap: '12px' }}>
                 {[2, 3, 4].map(count => (
@@ -2818,8 +3248,6 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                         const teams = Array.from({ length: count }, (_, i) =>
                           selectedClass.students.filter((_, idx) => idx % count === i)
                         );
-                        // You can store this or use it as needed
-                        console.log('Teams divided:', teams);
                       }
                     }}
                     style={{
@@ -2858,7 +3286,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 display: 'block',
                 marginBottom: '15px'
               }}>
-                👥 Teams:
+                👥 {t('games.teams')}:
               </label>
               <div style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(2, 1fr)' }}>
                 {Array.from({ length: playerCount }).map((_, i) => {
@@ -2894,7 +3322,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 display: 'block',
                 marginBottom: '12px'
               }}>
-                👤 Select Students (2-4):
+                {t('games.select_students')}
               </label>
               <div style={{
                 display: 'grid',
@@ -2970,7 +3398,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: selectedStudents.length >= 2 ? '#10B981' : '#6B7280',
                 fontWeight: '600'
               }}>
-                Selected: {selectedStudents.length}/4 {selectedStudents.length >= 2 ? '✓ Ready' : '(Select at least 2)'}
+                {t('games.selected_count').replace('{selected}', selectedStudents.length).replace('{ready}', selectedStudents.length >= 2 ? t('games.selected_ready') : t('games.selected_not_ready'))}
               </div>
             </div>
           )}
@@ -2984,7 +3412,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '15px'
             }}>
-              🎯 Number of Tiles:
+              {t('games.number_of_tiles')}
             </label>
             <input
               type="range"
@@ -3026,7 +3454,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '15px'
             }}>
-              🔢 Numbered Tiles:
+              {t('games.numbered_tiles')}
             </label>
             <button
               onClick={() => setConfig(prev => ({ ...prev, numberedSquares: !prev.numberedSquares }))}
@@ -3049,7 +3477,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   : '0 2px 8px rgba(0, 0, 0, 0.1)'
               }}
             >
-              {config.numberedSquares ? '✅ Enabled' : '❌ Disabled'}
+              {config.numberedSquares ? t('games.enabled') : t('games.disabled')}
             </button>
           </div>
 
@@ -3062,7 +3490,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '15px'
             }}>
-              🌪️ Tornado Count:
+              {t('games.tornado_count')}
             </label>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button
@@ -3126,9 +3554,9 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '15px'
             }}>
-              🖼️ Upload Pictures for Review:
+              {t('games.upload_pictures_review')}
             </label>
-            
+
             {/* Image Upload Area - Smaller */}
             <div
               style={{
@@ -3177,14 +3605,14 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 fontWeight: 'bold',
                 color: '#4ECDC4'
               }}>
-                Click to Upload Images
+                {t('games.click_upload_images')}
               </div>
               <div style={{
                 fontSize: '12px',
                 color: '#666',
                 marginTop: '6px'
               }}>
-                or drag and drop files here
+                {t('games.drag_drop_files')}
               </div>
             </div>
 
@@ -3225,7 +3653,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     color: '#666',
                     fontWeight: '500'
                   }}>
-                    images loaded
+                    {t('games.images_loaded_suffix')}
                   </span>
                 </div>
               </div>
@@ -3304,7 +3732,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               display: 'block',
               marginBottom: '15px'
             }}>
-              ✏️ Add Words for Review:
+              ✏️ {t('games.enter_word')}:
             </label>
             <div style={{
               display: 'flex',
@@ -3313,7 +3741,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             }}>
               <input
                 type="text"
-                placeholder="Type words separated by commas (e.g., apple, banana, cat, dog)"
+                placeholder={t('games.words_csv_placeholder')}
                 onChange={(e) => {
                   const words = e.target.value.split(',').map(w => w.trim()).filter(w => w);
                   const currentWords = config.decorativeElements.filter(e => typeof e === 'string' && !e.startsWith('data:') && !e.startsWith('blob:'));
@@ -3362,7 +3790,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   e.target.style.boxShadow = '0 4px 15px rgba(78, 205, 196, 0.3)';
                 }}
               >
-                Add
+                {t('games.add')}
               </button>
             </div>
             
@@ -3380,7 +3808,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 color: '#666',
                 marginBottom: '10px'
               }}>
-                💡 Added words (click to remove):
+                {t('games.added_words')}
               </div>
               <div style={{
                 display: 'flex',
@@ -3429,7 +3857,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     color: '#999',
                     fontStyle: 'italic'
                   }}>
-                    No words added yet. Type words above and click "Add" to include them.
+                    {t('games.no_words_added_yet')}
                   </div>
                 )}
               </div>
@@ -3456,7 +3884,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     const teamMembers = students.filter((_, idx) => idx % playerCount === i);
                     teams.push({
                       id: i,
-                      name: `Team ${i + 1}`,
+                      name: t('games.team_name').replace('{number}', i + 1),
                       color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i],
                       members: teamMembers
                     });
@@ -3508,12 +3936,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             }}
             onMouseOut={(e) => {
               e.target.style.transform = 'scale(1)';
-              e.target.style.boxShadow = isTeamMode || selectedStudents.length >= 2 
-                ? '0 10px 40px rgba(0, 217, 255, 0.5)' 
+              e.target.style.boxShadow = isTeamMode || selectedStudents.length >= 2
+                ? '0 10px 40px rgba(0, 217, 255, 0.5)'
                 : 'none';
             }}
           >
-            🚀 START GAME 🚀
+            {t('games.start_game')}
           </button>
 
           <style>{`
@@ -3605,6 +4033,16 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           players={players}
           onBack={() => setGameState('config')}
           selectedClass={selectedClass}
+          onGivePoints={handleGivePoints}
+        />
+      )}
+
+      {gameState === 'playing' && gameType === 'horserace' && (
+        <HorseRaceGame
+          items={horseRaceConfig.items}
+          contentType={horseRaceConfig.contentType}
+          players={players}
+          onBack={() => setGameState('config')}
           onGivePoints={handleGivePoints}
         />
       )}
