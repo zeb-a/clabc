@@ -79,6 +79,69 @@ const internalCSS = `
   /* Logout button styles */
   .logout-btn { background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%); border: 2px solid #FECACA; padding: 11px 18px; border-radius: 14px; display: inline-flex; align-items: center; gap: 8px; color: #DC2626; cursor: pointer; transition: all 160ms ease; font-weight: 700; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1); }
   .logout-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); border-color: #F87171; }
+
+  /* Tab button hover effect */
+  .tab-button:hover:not(:active) {
+    transform: translateY(-2px);
+  }
+
+  /* Game card hover effect */
+  .game-card:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  /* Class card hover effect */
+  .class-card-modal:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Start button hover effect */
+  .start-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+  }
+
+  /* Mobile responsive adjustments for tabbed modal */
+  @media (max-width: 640px) {
+    .game-modal-container {
+      width: 95vw !important;
+      max-width: 95vw !important;
+      padding: 16px !important;
+    }
+    .tab-button {
+      padding: 12px 8px !important;
+      fontSize: 13px !important;
+      minHeight: 44px !important;
+    }
+    .game-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px !important;
+    }
+    .game-card {
+      padding: 16px 8px !important;
+      minHeight: 90px !important;
+    }
+    .class-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px !important;
+    }
+    .class-card-modal {
+      padding: 12px 8px !important;
+      minHeight: 100px !important;
+    }
+    .class-card-avatar {
+      width: 40px !important;
+      height: 40px !important;
+    }
+  }
+
+  @media (min-width: 641px) {
+    .game-modal-container {
+      width: 550px !important;
+    }
+  }
 `;
 
 export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado }) {
@@ -91,6 +154,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const [torenadoPlayers, setTorenadoPlayers] = useState([]);
   const [playerCount, setPlayerCount] = useState(2);
   const [isTeamMode, setIsTeamMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('game');
 
   // --- Add Class State ---
   const [newClassName, setNewClassName] = useState('');
@@ -398,6 +462,43 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const classToEdit = classes ? classes.find(c => c.id === editingClassId) : null;
   const classToDelete = classes ? classes.find(c => c.id === deleteConfirmId) : null;
 
+  // Helper functions for game selection display
+  const getSelectedGameName = () => {
+    const type = localStorage.getItem('selected_game_type');
+    const names = {
+      'tornado': 'Tornado',
+      'faceoff': 'FaceOff',
+      'memorymatch': 'Memory Match',
+      'quiz': 'Quiz',
+      'motorace': 'MotoRace'
+    };
+    return names[type] || 'Select a Game';
+  };
+
+  const getSelectedGameEmoji = () => {
+    const type = localStorage.getItem('selected_game_type');
+    const emojis = {
+      'tornado': '🌪️',
+      'faceoff': '⚡',
+      'memorymatch': '🧠',
+      'quiz': '🎯',
+      'motorace': '🏍️'
+    };
+    return emojis[type] || '🎮';
+  };
+
+  const getSelectedGameColor = () => {
+    const type = localStorage.getItem('selected_game_type');
+    const colors = {
+      'tornado': 'linear-gradient(135deg, #3B82F6, #10B981)',
+      'faceoff': 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
+      'memorymatch': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+      'quiz': 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
+      'motorace': 'linear-gradient(135deg, #F97316, #EA580C)'
+    };
+    return colors[type] || 'linear-gradient(135deg, #667eea, #764ba2)';
+  };
+
   return (
     <div style={{ ...styles.container, fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system' }}>
       <style>{internalCSS}</style>
@@ -423,9 +524,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'center' }}>
             <button
               onClick={() => {
-                localStorage.setItem('selected_game_type', 'tornado');
+                const existingGame = localStorage.getItem('selected_game_type');
+                if (!existingGame) {
+                  localStorage.setItem('selected_game_type', 'tornado');
+                }
                 setTorenadoSelectedClass(null);
                 setTorenadoPlayers([]);
+                setActiveTab('class'); // Auto-switch to class tab if game is already selected
                 setShowTorenadoModal(true);
               }}
               style={{
@@ -675,858 +780,276 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {/* --- TORENADO GAME MODAL --- */}
       {showTorenadoModal && (
         <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
-          <div style={{
-            ...styles.deleteModal,
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            paddingTop: '16px',
-            paddingBottom: '32px',
-            border: '3px solid transparent',
-            background: 'white',
-            backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            backgroundOrigin: 'border-box',
-            backgroundClip: 'padding-box, border-box'
-          }} onClick={(e) => e.stopPropagation()}>
+          <div style={styles.gameModalContainer} onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs}>
               <X size={20} />
             </button>
-            <div style={{
-              textAlign: 'left',
-              padding: '4px 0',
-              position: 'relative',
-              zIndex: 1
-            }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '13px',
-                boxShadow: '0 6px 20px rgba(102, 126, 234, 0.35)',
-                position: 'relative',
-                overflow: 'hidden',
-                zIndex: 1
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
-                }}></div>
-                <span style={{
-                  fontSize: '18px',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-                  position: 'relative',
-                  zIndex: 1,
-                  animation: 'bounce 2s infinite'
-                }}>🎮</span>
-                <span style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  letterSpacing: '0.5px',
-                  textShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  position: 'relative',
-                  zIndex: 1
-                }}>Choose a Game</span>
-              </div>
+
+            {/* Tab Navigation */}
+            <div style={styles.tabContainer}>
+              <button
+                onClick={() => setActiveTab('game')}
+                style={{
+                  ...styles.tabButton,
+                  background: activeTab === 'game' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+                  color: activeTab === 'game' ? 'white' : '#6B7280',
+                  borderColor: activeTab === 'game' ? '#667eea' : '#E5E7EB',
+                  boxShadow: activeTab === 'game' ? '0 4px 15px rgba(102, 126, 234, 0.35)' : '0 2px 4px rgba(0,0,0,0.05)'
+                }}
+              >
+                🎮 Choose Game
+              </button>
+              <button
+                onClick={() => setActiveTab('class')}
+                style={{
+                  ...styles.tabButton,
+                  background: activeTab === 'class' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+                  color: activeTab === 'class' ? 'white' : '#6B7280',
+                  borderColor: activeTab === 'class' ? '#667eea' : '#E5E7EB',
+                  boxShadow: activeTab === 'class' ? '0 4px 15px rgba(102, 126, 234, 0.35)' : '0 2px 4px rgba(0,0,0,0.05)'
+                }}
+              >
+                📚 Choose Class
+              </button>
             </div>
 
-            {/* Decorative border */}
-            <div style={{
-              marginTop: '20px',
-              marginBottom: '16px',
-              padding: '16px',
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
-              borderRadius: '16px',
-              border: '2px solid',
-              borderImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1',
-              position: 'relative'
-            }}>
-
-            {/* Game Selection */}
-            <div style={{ marginTop: 0 }}>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('selected_game_type', 'tornado');
-                    setTorenadoSelectedClass(null);
-                    setTorenadoPlayers([]);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '15px 10px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: '2px solid',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: localStorage.getItem('selected_game_type') === 'tornado'
-                      ? 'linear-gradient(135deg, #3B82F6, #10B981)'
-                      : '#F3F4F6',
-                    color: localStorage.getItem('selected_game_type') === 'tornado' ? '#fff' : '#6B7280',
-                    borderColor: localStorage.getItem('selected_game_type') === 'tornado' ? '#059669' : '#E5E7EB',
-                    boxShadow: localStorage.getItem('selected_game_type') === 'tornado' ? '0 4px 15px rgba(16, 185, 129, 0.3)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>🌪️</span>
-                  <span>Tornado</span>
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('selected_game_type', 'faceoff');
-                    setTorenadoSelectedClass(null);
-                    setTorenadoPlayers([]);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '15px 10px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: '2px solid',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: localStorage.getItem('selected_game_type') === 'faceoff'
-                      ? 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'
-                      : '#F3F4F6',
-                    color: localStorage.getItem('selected_game_type') === 'faceoff' ? '#fff' : '#6B7280',
-                    borderColor: localStorage.getItem('selected_game_type') === 'faceoff' ? '#FF6B6B' : '#E5E7EB',
-                    boxShadow: localStorage.getItem('selected_game_type') === 'faceoff' ? '0 4px 15px rgba(255, 107, 107, 0.3)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>⚡</span>
-                  <span>FaceOff</span>
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('selected_game_type', 'memorymatch');
-                    setTorenadoSelectedClass(null);
-                    setTorenadoPlayers([]);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '15px 10px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: '2px solid',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: localStorage.getItem('selected_game_type') === 'memorymatch'
-                      ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
-                      : '#F3F4F6',
-                    color: localStorage.getItem('selected_game_type') === 'memorymatch' ? '#fff' : '#6B7280',
-                    borderColor: localStorage.getItem('selected_game_type') === 'memorymatch' ? '#8B5CF6' : '#E5E7EB',
-                    boxShadow: localStorage.getItem('selected_game_type') === 'memorymatch' ? '0 4px 15px rgba(139, 92, 246, 0.3)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>🧠</span>
-                  <span>Memory Match</span>
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('selected_game_type', 'quiz');
-                    setTorenadoSelectedClass(null);
-                    setTorenadoPlayers([]);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '15px 10px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: '2px solid',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: localStorage.getItem('selected_game_type') === 'quiz'
-                      ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
-                      : '#F3F4F6',
-                    color: localStorage.getItem('selected_game_type') === 'quiz' ? '#fff' : '#6B7280',
-                    borderColor: localStorage.getItem('selected_game_type') === 'quiz' ? '#0EA5E9' : '#E5E7EB',
-                    boxShadow: localStorage.getItem('selected_game_type') === 'quiz' ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>🎯</span>
-                  <span>Quiz</span>
-                </button>
-                <button
-                  onClick={() => {
-                    localStorage.setItem('selected_game_type', 'motorace');
-                    setTorenadoSelectedClass(null);
-                    setTorenadoPlayers([]);
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '15px 10px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: '2px solid',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: localStorage.getItem('selected_game_type') === 'motorace'
-                      ? 'linear-gradient(135deg, #F97316, #EA580C)'
-                      : '#F3F4F6',
-                    color: localStorage.getItem('selected_game_type') === 'motorace' ? '#fff' : '#6B7280',
-                    borderColor: localStorage.getItem('selected_game_type') === 'motorace' ? '#F97316' : '#E5E7EB',
-                    boxShadow: localStorage.getItem('selected_game_type') === 'motorace' ? '0 4px 15px rgba(249, 115, 22, 0.3)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}
-                >
-                  <span style={{ fontSize: '24px' }}>🏍️</span>
-                  <span>MotoRace</span>
-                </button>
-              </div>
-            </div>
-            </div>
-
-            {/* Only show class selection for Tornado (FaceOff, Memory Match, Quiz, MotoRace handle this separately) */}
-            {localStorage.getItem('selected_game_type') !== 'faceoff' && localStorage.getItem('selected_game_type') !== 'memorymatch' && localStorage.getItem('selected_game_type') !== 'quiz' && localStorage.getItem('selected_game_type') !== 'motorace' && (
-              <>
-            {/* Class Selection - Grid of Cards */}
-            <div style={{ marginTop: 15 }}>
-              <label style={{
-                fontSize: '16px',
-                fontWeight: '700',
-                color: '#ffffff',
-                marginBottom: '10px',
-                display: 'inline-block',
-                padding: '10px 20px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '12px',
-                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.25)',
-                letterSpacing: '0.3px'
-              }}>
-                📚 Select a Class:
-              </label>
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: '12px',
-                maxHeight: '400px',
-                overflowY: 'auto',
-                padding: '10px'
-              }}>
-                {classes.map(cls => (
-                  <div
-                    key={cls.id}
+            {/* Tab Content */}
+            <div style={styles.tabContent}>
+              {activeTab === 'game' ? (
+                /* --- GAME SELECTION TAB --- */
+                <div style={{ ...styles.gameGrid, paddingTop: '5px' }}>
+                  <button
                     onClick={() => {
-                      setTorenadoSelectedClass(cls);
+                      localStorage.setItem('selected_game_type', 'tornado');
+                      setTorenadoSelectedClass(null);
                       setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
                     }}
                     style={{
-                      padding: '16px',
-                      borderRadius: '14px',
-                      border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#E5E7EB'}`,
-                      background: torenadoSelectedClass?.id === cls.id
-                        ? 'linear-gradient(135deg, #8B5CF615, #EC489915)'
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'tornado'
+                        ? 'linear-gradient(135deg, #3B82F6, #10B981)'
                         : 'white',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: torenadoSelectedClass?.id === cls.id
-                        ? '0 3px 10px rgba(139, 92, 246, 0.25)'
-                        : '0 1px 3px rgba(0,0,0,0.05)',
-                      position: 'relative'
+                      borderColor: localStorage.getItem('selected_game_type') === 'tornado' ? '#10B981' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'tornado' ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
-                    <SafeAvatar
-                      src={cls.avatar || boringAvatar(cls.name || 'class')}
-                      name={cls.name}
-                      style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
-                    />
-                    <div style={{ textAlign: 'center', width: '100%' }}>
-                      <div style={{
-                        fontSize: '11px',
-                        fontWeight: '700',
-                        color: torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#374151',
-                        marginBottom: '2px'
-                      }}>
-                        {cls.name}
+                    <span style={{ fontSize: '36px' }}>🌪️</span>
+                    <span style={styles.gameCardText}>Tornado</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'faceoff');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'faceoff'
+                        ? 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'faceoff' ? '#FF6B6B' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'faceoff' ? '0 4px 15px rgba(255, 107, 107, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>⚡</span>
+                    <span style={styles.gameCardText}>FaceOff</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'memorymatch');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'memorymatch'
+                        ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'memorymatch' ? '#8B5CF6' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'memorymatch' ? '0 4px 15px rgba(139, 92, 246, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>🧠</span>
+                    <span style={styles.gameCardText}>Memory Match</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'quiz');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'quiz'
+                        ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'quiz' ? '#0EA5E9' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'quiz' ? '0 4px 15px rgba(14, 165, 233, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>🎯</span>
+                    <span style={styles.gameCardText}>Quiz</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'motorace');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'motorace'
+                        ? 'linear-gradient(135deg, #F97316, #EA580C)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'motorace' ? '#F97316' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'motorace' ? '0 4px 15px rgba(249, 115, 22, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>🏍️</span>
+                    <span style={styles.gameCardText}>MotoRace</span>
+                  </button>
+                </div>
+              ) : (
+                /* --- CLASS SELECTION TAB --- */
+                <div style={styles.classGrid}>
+                  {classes.map(cls => {
+                    const selectedGameType = localStorage.getItem('selected_game_type');
+                    const studentCount = cls.students?.length || 0;
+                    const minPlayers = {
+                      'tornado': 2,
+                      'faceoff': 2,
+                      'memorymatch': 2,
+                      'quiz': 0,
+                      'motorace': 1
+                    }[selectedGameType] || 2;
+                    const hasEnoughPlayers = studentCount >= minPlayers;
+
+                    return (
+                      <div
+                        key={cls.id}
+                        onClick={() => hasEnoughPlayers && setTorenadoSelectedClass(cls)}
+                        style={{
+                          ...styles.classCardInModal,
+                          borderColor: torenadoSelectedClass?.id === cls.id ? '#667eea' : '#E5E7EB',
+                          background: torenadoSelectedClass?.id === cls.id
+                            ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))'
+                            : !hasEnoughPlayers ? '#F8FAFC' : 'white',
+                          boxShadow: torenadoSelectedClass?.id === cls.id
+                            ? '0 4px 15px rgba(102, 126, 234, 0.25)'
+                            : '0 2px 6px rgba(0,0,0,0.06)',
+                          cursor: hasEnoughPlayers ? 'pointer' : 'not-allowed',
+                          opacity: !hasEnoughPlayers ? 0.6 : 1
+                        }}
+                      >
+                        <SafeAvatar
+                          src={cls.avatar || boringAvatar(cls.name || 'class')}
+                          name={cls.name}
+                          style={{
+                            ...styles.classCardAvatar,
+                            opacity: !hasEnoughPlayers ? 0.5 : 1
+                          }}
+                        />
+                        <div style={styles.classCardInfo}>
+                          <div style={{
+                            ...styles.classNameText,
+                            color: torenadoSelectedClass?.id === cls.id ? '#667eea' : '#374151'
+                          }}>
+                            {cls.name}
+                          </div>
+                          <div style={{
+                            ...styles.studentCountText,
+                            color: !hasEnoughPlayers ? '#EF4444' : '#6B7280'
+                          }}>
+                            {studentCount} students
+                          </div>
+                          {!hasEnoughPlayers && (
+                            <div style={{
+                              fontSize: '9px',
+                              fontWeight: '600',
+                              color: '#EF4444',
+                              marginTop: '2px',
+                              textAlign: 'center'
+                            }}>
+                              {minPlayers > 0
+                                ? `Need ${minPlayers}+ players`
+                                : 'Not available'
+                              }
+                            </div>
+                          )}
+                        </div>
+                        {torenadoSelectedClass?.id === cls.id && hasEnoughPlayers && (
+                          <div style={styles.checkmarkBadge}>✓</div>
+                        )}
+                        {(!hasEnoughPlayers || torenadoSelectedClass?.id !== cls.id) && !hasEnoughPlayers && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            background: '#EF4444',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '10px',
+                            fontWeight: 'bold'
+                          }}>
+                            !
+                          </div>
+                        )}
                       </div>
-                      <div style={{
-                        fontSize: '9px',
-                        color: '#6B7280',
-                        fontWeight: '500'
-                      }}>
-                        {cls.students?.length || 0}
-                      </div>
-                    </div>
-                    {torenadoSelectedClass?.id === cls.id && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '-5px',
-                        right: '-5px',
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        boxShadow: '0 2px 6px rgba(139, 92, 246, 0.4)'
-                      }}>
-                        ✓
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-
-            </>
-            )}
-
-            {/* FaceOff-specific: Show class selection and start button */}
-            {localStorage.getItem('selected_game_type') === 'faceoff' && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  marginBottom: '10px',
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 15px rgba(255, 107, 107, 0.25)',
-                  letterSpacing: '0.3px'
-                }}>
-                  📚 Select a Class:
-                </label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: '12px',
-                  maxHeight: '400px',
-                  overflowY: 'auto',
-                  padding: '10px'
-                }}>
-                  {classes.map(cls => (
-                    <div
-                      key={cls.id}
-                      onClick={() => {
-                        setTorenadoSelectedClass(cls);
-                        setTorenadoPlayers([]);
-                      }}
-                      style={{
-                        padding: '16px',
-                        borderRadius: '14px',
-                        border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#FF6B6B' : '#E5E7EB'}`,
-                        background: torenadoSelectedClass?.id === cls.id
-                          ? 'linear-gradient(135deg, #FF6B6B15, #FF8E8E15)'
-                          : 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: torenadoSelectedClass?.id === cls.id
-                          ? '0 3px 10px rgba(255, 107, 107, 0.25)'
-                          : '0 1px 3px rgba(0,0,0,0.05)',
-                        position: 'relative'
-                      }}
-                    >
-                      <SafeAvatar
-                        src={cls.avatar || boringAvatar(cls.name || 'class')}
-                        name={cls.name}
-                        style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
-                      />
-                      <div style={{ textAlign: 'center', width: '100%' }}>
-                        <div style={{
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          color: torenadoSelectedClass?.id === cls.id ? '#FF6B6B' : '#374151',
-                          marginBottom: '2px'
-                        }}>
-                          {cls.name}
-                        </div>
-                        <div style={{
-                          fontSize: '9px',
-                          color: '#6B7280',
-                          fontWeight: '500'
-                        }}>
-                          {cls.students?.length || 0}
-                        </div>
-                      </div>
-                      {torenadoSelectedClass?.id === cls.id && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-5px',
-                          right: '-5px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 6px rgba(255, 107, 107, 0.4)'
-                        }}>
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Start Button */}
-                {torenadoSelectedClass && (
-                  <div style={{ marginTop: 15 }}>
-                    <button
-                      onClick={handleTorenadoStartGame}
-                      style={{
-                        width: '100%',
-                        padding: '12px 20px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background: 'linear-gradient(135deg, #FF6B6B, #FF8E8E)',
-                        color: '#fff',
-                        boxShadow: '0 4px 15px rgba(255, 107, 107, 0.3)'
-                      }}
-                    >
-                      ⚡ Continue →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Memory Match-specific: Show class selection and start button */}
-            {localStorage.getItem('selected_game_type') === 'memorymatch' && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  marginBottom: '10px',
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.25)',
-                  letterSpacing: '0.3px'
-                }}>
-                  📚 Select a Class:
-                </label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: '12px',
-                  maxHeight: '400px',
-                  overflowY: 'auto',
-                  padding: '10px'
-                }}>
-                  {classes.map(cls => (
-                    <div
-                      key={cls.id}
-                      onClick={() => {
-                        setTorenadoSelectedClass(cls);
-                        setTorenadoPlayers([]);
-                      }}
-                      style={{
-                        padding: '16px',
-                        borderRadius: '14px',
-                        border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#E5E7EB'}`,
-                        background: torenadoSelectedClass?.id === cls.id
-                          ? 'linear-gradient(135deg, #8B5CF615, #A78BFA15)'
-                          : 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: torenadoSelectedClass?.id === cls.id
-                          ? '0 3px 10px rgba(139, 92, 246, 0.25)'
-                          : '0 1px 3px rgba(0,0,0,0.05)',
-                        position: 'relative'
-                      }}
-                    >
-                      <SafeAvatar
-                        src={cls.avatar || boringAvatar(cls.name || 'class')}
-                        name={cls.name}
-                        style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
-                      />
-                      <div style={{ textAlign: 'center', width: '100%' }}>
-                        <div style={{
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          color: torenadoSelectedClass?.id === cls.id ? '#8B5CF6' : '#374151',
-                          marginBottom: '2px'
-                        }}>
-                          {cls.name}
-                        </div>
-                        <div style={{
-                          fontSize: '9px',
-                          color: '#6B7280',
-                          fontWeight: '500'
-                        }}>
-                          {cls.students?.length || 0}
-                        </div>
-                      </div>
-                      {torenadoSelectedClass?.id === cls.id && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-5px',
-                          right: '-5px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 6px rgba(139, 92, 246, 0.4)'
-                        }}>
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Start Button */}
-                {torenadoSelectedClass && (
-                  <div style={{ marginTop: 15 }}>
-                    <button
-                      onClick={handleTorenadoStartGame}
-                      style={{
-                        width: '100%',
-                        padding: '12px 20px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background: 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
-                        color: '#fff',
-                        boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
-                      }}
-                    >
-                      🧠 Continue →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Quiz-specific: Show class selection and start button */}
-            {localStorage.getItem('selected_game_type') === 'quiz' && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  marginBottom: '10px',
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 15px rgba(14, 165, 233, 0.25)',
-                  letterSpacing: '0.3px'
-                }}>
-                  📚 Select a Class:
-                </label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: '12px',
-                  maxHeight: '400px',
-                  overflowY: 'auto',
-                  padding: '10px'
-                }}>
-                  {classes.map(cls => (
-                    <div
-                      key={cls.id}
-                      onClick={() => {
-                        setTorenadoSelectedClass(cls);
-                        setTorenadoPlayers([]);
-                      }}
-                      style={{
-                        padding: '16px',
-                        borderRadius: '14px',
-                        border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#0EA5E9' : '#E5E7EB'}`,
-                        background: torenadoSelectedClass?.id === cls.id
-                          ? 'linear-gradient(135deg, #0EA5E915, #06B6D415)'
-                          : 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: torenadoSelectedClass?.id === cls.id
-                          ? '0 3px 10px rgba(14, 165, 233, 0.25)'
-                          : '0 1px 3px rgba(0,0,0,0.05)',
-                        position: 'relative'
-                      }}
-                    >
-                      <SafeAvatar
-                        src={cls.avatar || boringAvatar(cls.name || 'class')}
-                        name={cls.name}
-                        style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
-                      />
-                      <div style={{ textAlign: 'center', width: '100%' }}>
-                        <div style={{
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          color: torenadoSelectedClass?.id === cls.id ? '#0EA5E9' : '#374151',
-                          marginBottom: '2px'
-                        }}>
-                          {cls.name}
-                        </div>
-                        <div style={{
-                          fontSize: '9px',
-                          color: '#6B7280',
-                          fontWeight: '500'
-                        }}>
-                          {cls.students?.length || 0}
-                        </div>
-                      </div>
-                      {torenadoSelectedClass?.id === cls.id && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-5px',
-                          right: '-5px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 6px rgba(14, 165, 233, 0.4)'
-                        }}>
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {torenadoSelectedClass && (
-                  <div style={{ marginTop: 15 }}>
-                    <button
-                      onClick={handleTorenadoStartGame}
-                      style={{
-                        width: '100%',
-                        padding: '12px 20px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background: 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
-                        color: '#fff',
-                        boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)'
-                      }}
-                    >
-                      🎯 Continue →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* MotoRace-specific: Show class selection and start button */}
-            {localStorage.getItem('selected_game_type') === 'motorace' && (
-              <div style={{ marginTop: 15 }}>
-                <label style={{
-                  fontSize: '16px',
-                  fontWeight: '700',
-                  color: '#ffffff',
-                  marginBottom: '10px',
-                  display: 'inline-block',
-                  padding: '10px 20px',
-                  background: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 15px rgba(249, 115, 22, 0.25)',
-                  letterSpacing: '0.3px'
-                }}>
-                  📚 Select a Class:
-                </label>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                  gap: '12px',
-                  maxHeight: '400px',
-                  overflowY: 'auto',
-                  padding: '10px'
-                }}>
-                  {classes.map(cls => (
-                    <div
-                      key={cls.id}
-                      onClick={() => {
-                        setTorenadoSelectedClass(cls);
-                        setTorenadoPlayers([]);
-                      }}
-                      style={{
-                        padding: '16px',
-                        borderRadius: '14px',
-                        border: `2px solid ${torenadoSelectedClass?.id === cls.id ? '#F97316' : '#E5E7EB'}`,
-                        background: torenadoSelectedClass?.id === cls.id
-                          ? 'linear-gradient(135deg, #F9731615, #EA580C15)'
-                          : 'white',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: torenadoSelectedClass?.id === cls.id
-                          ? '0 3px 10px rgba(249, 115, 22, 0.25)'
-                          : '0 1px 3px rgba(0,0,0,0.05)',
-                        position: 'relative'
-                      }}
-                    >
-                      <SafeAvatar
-                        src={cls.avatar || boringAvatar(cls.name || 'class')}
-                        name={cls.name}
-                        style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
-                      />
-                      <div style={{ textAlign: 'center', width: '100%' }}>
-                        <div style={{
-                          fontSize: '11px',
-                          fontWeight: '700',
-                          color: torenadoSelectedClass?.id === cls.id ? '#F97316' : '#374151',
-                          marginBottom: '2px'
-                        }}>
-                          {cls.name}
-                        </div>
-                        <div style={{
-                          fontSize: '9px',
-                          color: '#6B7280',
-                          fontWeight: '500'
-                        }}>
-                          {cls.students?.length || 0}
-                        </div>
-                      </div>
-                      {torenadoSelectedClass?.id === cls.id && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-5px',
-                          right: '-5px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #F97316, #EA580C)',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 6px rgba(249, 115, 22, 0.4)'
-                        }}>
-                          ✓
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {torenadoSelectedClass && (
-                  <div style={{ marginTop: 15 }}>
-                    <button
-                      onClick={handleTorenadoStartGame}
-                      style={{
-                        width: '100%',
-                        padding: '12px 20px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        border: 'none',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        background: 'linear-gradient(135deg, #F97316, #EA580C)',
-                        color: '#fff',
-                        boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)'
-                      }}
-                    >
-                      🏍️ Continue →
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tornado-specific: Continue with existing setup UI */}
-            {localStorage.getItem('selected_game_type') !== 'faceoff' && localStorage.getItem('selected_game_type') !== 'memorymatch' && localStorage.getItem('selected_game_type') !== 'quiz' && localStorage.getItem('selected_game_type') !== 'motorace' && (
-              <>
-            {/* Start Button */}
-            {torenadoSelectedClass && (
-              <div style={{ marginTop: 15 }}>
+            {/* Start Button - Only show when class is selected */}
+            {torenadoSelectedClass && activeTab === 'class' && (
+              <div style={styles.startButtonContainer}>
                 <button
                   onClick={handleTorenadoStartGame}
-                  style={{
-                    width: '100%',
-                    padding: '12px 20px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: 'linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B)',
-                    color: '#fff',
-                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
-                  }}
+                  style={styles.startButton}
                 >
-          Continue →
+                  {localStorage.getItem('selected_game_type') === 'tornado' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🌪️</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'faceoff' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>⚡</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'memorymatch' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🧠</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'quiz' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🎯</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'motorace' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🏍️</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {!localStorage.getItem('selected_game_type') && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🎮</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
                 </button>
               </div>
-            )}
-            </>
             )}
           </div>
         </div>
@@ -1612,6 +1135,200 @@ const styles = {
 
   // Torenado Modal Close Button (positioned at top right)
   torenadoModalCloseAbs: { position: 'absolute', top: 12, right: 16, background: '#F3F4F6', border: 'none', cursor: 'pointer', padding: 8, borderRadius: '50%', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', zIndex: 1000 },
+
+  // Game Modal Container (tabbed interface)
+  gameModalContainer: {
+    background: 'white',
+    padding: '20px',
+    borderRadius: '24px',
+    width: '550px',
+    maxWidth: '95vw',
+    maxHeight: '85vh',
+    position: 'relative',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    display: 'flex',
+    flexDirection: 'column',
+    border: '3px solid transparent',
+    backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundOrigin: 'border-box',
+    backgroundClip: 'padding-box, border-box'
+  },
+
+  // Tab Container
+  tabContainer: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '20px',
+    paddingTop: '8px'
+  },
+
+  // Tab Button
+  tabButton: {
+    flex: '0.4',
+    padding: '14px 12px',
+    fontSize: '14px',
+    fontWeight: '700',
+    border: '2px solid',
+    borderRadius: '14px',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    minHeight: '48px',
+    boxSizing: 'border-box',
+    userSelect: 'none'
+  },
+
+  // Tab Content Area
+  tabContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden'
+  },
+
+  // Game Grid
+  gameGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '12px',
+    paddingBottom: '8px'
+  },
+
+  // Game Card
+  gameCard: {
+    padding: '20px 12px',
+    borderRadius: '16px',
+    border: '2px solid #E5E7EB',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '100px',
+    userSelect: 'none'
+  },
+
+  // Game Card Text
+  gameCardText: {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#374151'
+  },
+
+  // Class Grid in Modal
+  classGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+    gap: '12px',
+    maxHeight: '350px',
+    overflowY: 'auto',
+    paddingBottom: '8px',
+    paddingRight: '4px'
+  },
+
+  // Selected Game Indicator
+  selectedGameIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px 16px',
+    background: '#F8FAFC',
+    borderRadius: '12px',
+    marginBottom: '16px',
+    border: '1px solid #E5E7EB'
+  },
+
+  // Class Card in Modal
+  classCardInModal: {
+    padding: '16px 12px',
+    borderRadius: '14px',
+    border: '2px solid #E5E7EB',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    position: 'relative',
+    minHeight: '110px',
+    userSelect: 'none'
+  },
+
+  // Class Card Avatar
+  classCardAvatar: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    objectFit: 'cover'
+  },
+
+  // Class Card Info
+  classCardInfo: {
+    textAlign: 'center',
+    width: '100%'
+  },
+
+  // Class Name Text
+  classNameText: {
+    fontSize: '12px',
+    fontWeight: '700',
+    marginBottom: '2px'
+  },
+
+  // Student Count Text
+  studentCountText: {
+    fontSize: '10px',
+    color: '#6B7280',
+    fontWeight: '500'
+  },
+
+  // Checkmark Badge
+  checkmarkBadge: {
+    position: 'absolute',
+    top: '-6px',
+    right: '-6px',
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '11px',
+    fontWeight: 'bold',
+    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)'
+  },
+
+  // Start Button Container
+  startButtonContainer: {
+    marginTop: '16px',
+    paddingTop: '16px',
+    borderTop: '1px solid #E5E7EB'
+  },
+
+  // Start Button
+  startButton: {
+    width: '100%',
+    padding: '16px 20px',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '14px',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    color: '#fff',
+    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.35)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px'
+  },
 
   // Avatar Selector Grid
   themeGrid: {

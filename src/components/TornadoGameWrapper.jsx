@@ -3592,6 +3592,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         <MemoryMatchGame
           contentItems={memoryMatchConfig.contentItems}
           onBack={onBack}
+          onReset={() => setGameState('config')}
           classColor="#8B5CF6"
           players={players}
           selectedClass={selectedClass}
