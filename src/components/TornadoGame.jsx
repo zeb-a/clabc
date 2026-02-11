@@ -2,6 +2,108 @@ import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { SoundManager } from './TornadoSoundManager';
 
+/**
+ * Extracts the filename from an uploaded image file without the extension.
+ * Handles various image formats (.jpg, .jpeg, .png, .gif, .webp, .svg, .bmp, .tiff)
+ * 
+ * @param {File|string} fileOrName - Either a File object or a filename string
+ * @returns {string} The filename without the file extension
+ */
+function extractImageName(fileOrName) {
+  let filename = '';
+  
+  if (typeof fileOrName === 'string') {
+    filename = fileOrName;
+  } else if (fileOrName instanceof File) {
+    filename = fileOrName.name;
+  } else {
+    return '';
+  }
+  
+  // Remove path separators (for cross-platform compatibility)
+  filename = filename.replace(/[\\/]/g, ' ');
+  
+  // Remove file extension
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex > 0) {
+    // Check if it's a valid image extension
+    const extension = filename.slice(lastDotIndex + 1).toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'tif', 'ico'];
+    
+    if (imageExtensions.includes(extension)) {
+      filename = filename.slice(0, lastDotIndex);
+    }
+  }
+  
+  return filename.trim();
+}
+
+/**
+ * Processes uploaded image files and creates editable text elements for the game.
+ * Extracts filenames without extensions and allows modification of these names.
+ * 
+ * @param {File[]} files - Array of File objects from file input
+ * @param {Function} onProcessComplete - Callback function called with processed image data
+ * @returns {Promise<Array>} Promise resolving to array of processed image objects
+ */
+async function processUploadedImages(files, onProcessComplete) {
+  if (!files || files.length === 0) return [];
+  
+  const imagePromises = Array.from(files).map((file) => {
+    return new Promise((resolve, reject) => {
+      // Verify it's an image file
+      if (!file.type.startsWith('image/')) {
+        reject(new Error(`File "${file.name}" is not an image`));
+        return;
+      }
+      
+      // Extract name without extension
+      const displayName = extractImageName(file);
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve({
+          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          src: reader.result,
+          name: displayName,
+          originalName: file.name,
+          file: file
+        });
+      };
+      reader.onerror = () => reject(new Error(`Failed to read file "${file.name}"`));
+      reader.readAsDataURL(file);
+    });
+  });
+  
+  try {
+    const processedImages = await Promise.all(imagePromises);
+    
+    // Notify callback if provided
+    if (onProcessComplete && typeof onProcessComplete === 'function') {
+      onProcessComplete(processedImages);
+    }
+    
+    return processedImages;
+  } catch (error) {
+    console.error('Error processing images:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the display name of a processed image
+ * 
+ * @param {Object} imageData - The image data object
+ * @param {string} newName - The new display name
+ * @returns {Object} Updated image data object
+ */
+function updateImageName(imageData, newName) {
+  return {
+    ...imageData,
+    name: newName.trim()
+  };
+}
+
 // Kid-friendly colors
 const KID_COLORS = {
   backgrounds: [
@@ -895,6 +997,208 @@ class TornadoScene extends Phaser.Scene {
       });
 
     return container;
+  }
+
+  /**
+   * Creates an editable text element for displaying image names
+   * Allows users to click and edit the text after it's been added to the game
+   * 
+   * @param {number} x - X position of the text
+   * @param {number} y - Y position of the text
+   * @param {string} initialText - The initial text to display
+   * @param {Object} options - Configuration options
+   * @returns {Object} The text object container with edit functionality
+   */
+  createEditableTextElement(x, y, initialText, options = {}) {
+    const {
+      fontSize = '24px',
+      fontFamily = 'Comic Sans MS, cursive, sans-serif',
+      color = '#333333',
+      backgroundColor = 0xFFFFFF,
+      borderColor = 0x3B82F6,
+      padding = 10,
+      maxWidth = 300,
+      editable = true,
+      onEditComplete = null
+    } = options;
+
+    const container = this.add.container(x, y);
+    
+    // Background for better visibility
+    const bg = this.add.graphics();
+    const textObj = this.add.text(0, 0, initialText, {
+      fontSize,
+      fontFamily,
+      color,
+      wordWrap: { width: maxWidth }
+    });
+    textObj.setOrigin(0.5);
+    
+    // Calculate dimensions
+    const textWidth = textObj.width + padding * 2;
+    const textHeight = textObj.height + padding * 2;
+    
+    bg.fillStyle(backgroundColor, 0.95);
+    bg.fillRoundedRect(-textWidth / 2, -textHeight / 2, textWidth, textHeight, 10);
+    bg.lineStyle(2, borderColor, 1);
+    bg.strokeRoundedRect(-textWidth / 2, -textHeight / 2, textWidth, textHeight, 10);
+    
+    container.add(bg);
+    container.add(textObj);
+    
+    // Make editable if enabled
+    if (editable) {
+      let isEditing = false;
+      let originalText = initialText;
+      
+      // Create a hidden HTML input for editing
+      const inputElement = document.createElement('input');
+      inputElement.type = 'text';
+      inputElement.value = initialText;
+      inputElement.style.cssText = `
+        position: fixed;
+        display: none;
+        padding: 8px;
+        font-size: ${fontSize};
+        font-family: ${fontFamily};
+        border: 2px solid #3B82F6;
+        border-radius: 8px;
+        background: #FFFFFF;
+        color: #333333;
+        z-index: 9999;
+        outline: none;
+      `;
+      document.body.appendChild(inputElement);
+      
+      container.setInteractive({ useHandCursor: true })
+        .on('pointerdown', (pointer) => {
+          if (isEditing) return;
+          
+          isEditing = true;
+          originalText = textObj.text;
+          
+          // Position input over the text
+          const camera = this.cameras.main;
+          const worldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+          
+          inputElement.style.display = 'block';
+          inputElement.style.left = `${pointer.x - textWidth / 2}px`;
+          inputElement.style.top = `${pointer.y - textHeight / 2}px`;
+          inputElement.style.width = `${textWidth}px`;
+          inputElement.value = originalText;
+          inputElement.focus();
+          inputElement.select();
+          
+          // Hide the game text while editing
+          textObj.setVisible(false);
+          bg.lineStyle(3, 0xF59E0B, 1);
+          bg.strokeRoundedRect(-textWidth / 2, -textHeight / 2, textWidth, textHeight, 10);
+        });
+      
+      // Handle edit completion
+      const finishEditing = () => {
+        if (!isEditing) return;
+        
+        const newText = inputElement.value.trim() || originalText;
+        textObj.setText(newText);
+        
+        // Recalculate background size if text changed
+        if (newText !== originalText) {
+          bg.clear();
+          const newWidth = textObj.width + padding * 2;
+          const newHeight = textObj.height + padding * 2;
+          bg.fillStyle(backgroundColor, 0.95);
+          bg.fillRoundedRect(-newWidth / 2, -newHeight / 2, newWidth, newHeight, 10);
+          bg.lineStyle(2, borderColor, 1);
+          bg.strokeRoundedRect(-newWidth / 2, -newHeight / 2, newWidth, newHeight, 10);
+        }
+        
+        // Reset styles
+        textObj.setVisible(true);
+        isEditing = false;
+        inputElement.style.display = 'none';
+        
+        // Call completion callback if provided
+        if (onEditComplete) {
+          onEditComplete(newText, container);
+        }
+      };
+      
+      // Handle input events
+      inputElement.addEventListener('blur', finishEditing);
+      inputElement.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          inputElement.blur();
+        } else if (e.key === 'Escape') {
+          textObj.setText(originalText);
+          inputElement.blur();
+        }
+      });
+      
+      // Store input element for cleanup
+      container.inputElement = inputElement;
+    }
+    
+    container.textObj = textObj;
+    container.bg = bg;
+    container.originalText = initialText;
+    
+    return container;
+  }
+
+  /**
+   * Adds processed image names as editable text elements to the game
+   * 
+   * @param {Array} processedImages - Array of processed image objects from processUploadedImages()
+   * @param {Object} layout - Layout configuration
+   */
+  addImageNameElements(processedImages, layout = {}) {
+    const {
+      startX = 100,
+      startY = 100,
+      spacingX = 320,
+      spacingY = 80,
+      columns = 3,
+      fontSize = '18px',
+      editable = true
+    } = layout;
+    
+    const elements = [];
+    
+    processedImages.forEach((imageData, index) => {
+      const x = startX + (index % columns) * spacingX;
+      const y = startY + Math.floor(index / columns) * spacingY;
+      
+      const textElement = this.createEditableTextElement(x, y, imageData.name, {
+        fontSize,
+        editable,
+        onEditComplete: (newName, container) => {
+          // Update the image data when text is edited
+          imageData.name = newName;
+          console.log(`Updated image name to: ${newName}`);
+        }
+      });
+      
+      elements.push(textElement);
+    });
+    
+    return elements;
+  }
+
+  /**
+   * Cleans up editable text elements (removes DOM elements)
+   * 
+   * @param {Array} elements - Array of editable text elements to clean up
+   */
+  cleanupEditableElements(elements) {
+    elements.forEach(element => {
+      if (element.inputElement) {
+        element.inputElement.removeEventListener('blur');
+        element.inputElement.removeEventListener('keydown');
+        document.body.removeChild(element.inputElement);
+      }
+      element.destroy();
+    });
   }
 
   async onCardClick(card) {

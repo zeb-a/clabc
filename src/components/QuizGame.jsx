@@ -41,7 +41,7 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
 
   const validQuestions = questions.filter(q => {
     const opts = q.options || [];
-    return q.question?.trim() && opts.length >= 2 && opts.some(o => o?.trim()) && opts[q.correct]?.trim();
+    return q.question?.trim() && opts.filter(o => o?.trim()).length >= 2 && opts[q.correct]?.trim();
   });
   const faceOffMode = playing && players.length >= 2;
 
@@ -175,6 +175,26 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
         setWrongLeft(true);
         setWrongAnswerIndexLeft(optionIndex);
         sounds.wrong();
+        // Check if both sides have now answered incorrectly
+        setTimeout(() => {
+          if (wrongRight || wrongLeft) {
+            // Show correct answer and proceed after 1 second
+            setRoundAnswered('both_wrong');
+            setTimeout(() => {
+              if (currentIndex < validQuestions.length - 1) {
+                setCurrentIndex(i => i + 1);
+                setRoundAnswered(null);
+                setWrongLeft(false);
+                setWrongRight(false);
+                setWrongAnswerIndexLeft(null);
+                setWrongAnswerIndexRight(null);
+              } else {
+                sounds.win();
+                setShowGameOver(true);
+              }
+            }, 1000);
+          }
+        }, 500);
       }
       return;
     }
@@ -202,6 +222,26 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
         setWrongRight(true);
         setWrongAnswerIndexRight(optionIndex);
         sounds.wrong();
+        // Check if both sides have now answered incorrectly
+        setTimeout(() => {
+          if (wrongLeft || wrongRight) {
+            // Show correct answer and proceed after 1 second
+            setRoundAnswered('both_wrong');
+            setTimeout(() => {
+              if (currentIndex < validQuestions.length - 1) {
+                setCurrentIndex(i => i + 1);
+                setRoundAnswered(null);
+                setWrongLeft(false);
+                setWrongRight(false);
+                setWrongAnswerIndexLeft(null);
+                setWrongAnswerIndexRight(null);
+              } else {
+                sounds.win();
+                setShowGameOver(true);
+              }
+            }, 1000);
+          }
+        }, 500);
       }
     }
   };
@@ -486,7 +526,7 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
     return (
       <div data-game-screen style={styles.container}>
         <PixiBackdrop classColor={classColor} variant="dark" />
-        <nav style={{ ...styles.nav, color: navColor }}>
+        <nav style={{ ...styles.nav, color: navColor, paddingBottom: 0, marginBottom: 0 }}>
           <button onClick={() => (onBack ? onBack() : setPlaying(false))} style={styles.backBtn}><ChevronLeft size={22} /> {t('games.exit')}</button>
           <span style={{ fontWeight: 700, fontSize: '14px' }}>
             {t('games.question_num').replace('{current}', currentIndex + 1).replace('{total}', validQuestions.length)}
@@ -494,28 +534,209 @@ export default function QuizGame({ questions: initialQuestions, onBack, onEditQu
           <button onClick={() => setFullScreen(f => !f)} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 8, color: navColor, cursor: 'pointer' }} title={fullScreen ? t('games.exit_full_screen') : t('games.full_screen')}>{fullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
         </nav>
 
-        {/* Score panels - same layout as FaceOff */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 20px', position: 'relative', zIndex: 1 }}>
-          <div style={{ width: 120, padding: '12px 16px', background: 'rgba(255,255,255,0.95)', borderRadius: 15, border: `3px solid ${LEFT_COLOR}`, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: LEFT_COLOR, marginBottom: 4 }}>{players[0]?.name || 'Player 1'}</div>
-            <div style={{ fontSize: '28px', fontWeight: 'bold', color: LEFT_COLOR }}>{scoreLeft}</div>
-          </div>
-          <div style={{ width: 120, padding: '12px 16px', background: 'rgba(255,255,255,0.95)', borderRadius: 15, border: `3px solid ${RIGHT_COLOR}`, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: RIGHT_COLOR, marginBottom: 4 }}>{players[1]?.name || 'Player 2'}</div>
-            <div style={{ fontSize: '28px', fontWeight: 'bold', color: RIGHT_COLOR }}>{scoreRight}</div>
+        {/* Question area - image above, question below, responsive, centered */}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '36.72vh', // 8% taller than 34vh
+            padding: '12.96px 0', // 8% taller than 12px
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 518.4, // 8% taller than 480
+              margin: '0 auto',
+              background: 'rgba(255,255,255,0.98)',
+              borderRadius: 17.28, // 8% taller than 16
+              border: '2px solid #FFD700',
+              boxShadow: '0 2.16px 15.12px rgba(255,215,0,0.07)', // 8% taller
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10.8, // 8% taller than 10
+              padding: '17.28px 4vw', // 8% taller than 16px
+              transition: 'max-width 0.15s, padding 0.15s',
+            }}
+          >
+            {q.image && (
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginBottom: 10.8 }}>
+                <img
+                  src={q.image}
+                  alt=""
+                  style={{
+                    width: '100%',
+                    maxWidth: 453.6, // 8% taller than 420
+                    maxHeight: 194.4, // 8% taller than 180
+                    minHeight: 64.8, // 8% taller than 60
+                    objectFit: 'contain',
+                    borderRadius: 10.8, // 8% taller than 10
+                    background: '#F8FAFC',
+                  }}
+                />
+              </div>
+            )}
+            <div
+              style={{
+                width: '100%',
+                fontSize: 'clamp(17.28px, 2.16vw, 28.08px)', // 8% taller than clamp(16px,2vw,26px)
+                fontWeight: 900,
+                color: '#222',
+                lineHeight: 1.296, // 8% taller than 1.2
+                fontFamily: 'Inter, ui-sans-serif, system-ui',
+                background: 'linear-gradient(90deg, #fff180 0%, #ffe24d 100%)',
+                padding: '11.88px 1vw', // 8% taller than 11px
+                borderRadius: 10.8, // 8% taller than 10
+                boxShadow: '0 1.08px 5.4px 0 rgba(60,60,60,0.07)', // 8% taller
+                textAlign: 'center',
+                margin: 0,
+                wordBreak: 'break-word',
+                minHeight: 32.4, // 8% taller than 30
+                maxHeight: 270, // 8% taller than 250
+                overflowY: 'auto'
+              }}
+            >
+              {q.question}
+            </div>
           </div>
         </div>
 
-        {/* Question area - centered like FaceOff word */}
-        <div style={{ padding: '0 24px 16px', position: 'relative', zIndex: 1 }}>
-          <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 24px', background: 'rgba(255,255,255,0.98)', borderRadius: 20, border: '4px solid #FFD700', boxShadow: '0 8px 24px rgba(255,215,0,0.25)' }}>
-            {q.image && <img src={q.image} alt="" style={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 12, marginBottom: 14 }} />}
-            <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#333', lineHeight: 1.4, fontFamily: 'Comic Sans MS, cursive, sans-serif' }}>{q.question}</div>
+        {/* Score panels - bigger cards with avatars */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '0 28.8px', // 24px * 1.2
+            position: 'relative',
+            zIndex: 1,
+            transform: 'translateY(-240px)' // -200px * 1.2
+          }}
+        >
+          {/* Left player card */}
+          <div style={{ 
+            width: 172.8, // 144 * 1.2
+            padding: '2.88px 23.04px', // 2.4px * 1.2, 19.2px * 1.2
+            background: 'rgba(255,255,255,0.95)', 
+            borderRadius: 21.6, // 18 * 1.2
+            border: `4.32px solid ${LEFT_COLOR}`, // 3.6px * 1.2
+            boxShadow: '0 5.76px 17.28px rgba(0,0,0,0.1)', // 4.8px * 1.2, 14.4px * 1.2
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 11.52  // 9.6 * 1.2
+          }}>
+            <div style={{
+              width: 57.6, // 48 * 1.2
+              height: 57.6,
+              borderRadius: '50%',
+              background: '#f3f3f3',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              marginBottom: 9.6 // 8 * 1.2
+            }}>
+              {players[0]?.avatar ? (
+                <img
+                  src={players[0].avatar}
+                  alt={`${players[0]?.name || 'Player 1'} avatar`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                />
+              ) : (
+                <span style={{
+                  fontSize: '28.8px', // fallback avatar placeholder
+                  color: LEFT_COLOR,
+                  fontWeight: 700
+                }}>
+                  {(players[0]?.name ?? 'P1')[0]}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '18.72px', fontWeight: 'bold', color: LEFT_COLOR, marginBottom: 0 }}> {/* 15.6*1.2 */}
+              {players[0]?.name || 'Player 1'}
+            </div>
+            <div style={{ fontSize: '40.32px', fontWeight: 'bold', color: LEFT_COLOR }}> {/* 33.6*1.2 */}
+              {scoreLeft}
+            </div>
+          </div>
+          {/* Right player card */}
+          <div style={{ 
+            width: 172.8, // 144*1.2
+            padding: '2.88px 23.04px', 
+            background: 'rgba(255,255,255,0.95)', 
+            borderRadius: 21.6, 
+            border: `4.32px solid ${RIGHT_COLOR}`, 
+            boxShadow: '0 5.76px 17.28px rgba(0,0,0,0.1)', 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 11.52
+          }}>
+            <div style={{
+              width: 57.6, // 48*1.2
+              height: 57.6,
+              borderRadius: '50%',
+              background: '#f3f3f3',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              marginBottom: 9.6
+            }}>
+              {players[1]?.avatar ? (
+                <img
+                  src={players[1].avatar}
+                  alt={`${players[1]?.name || 'Player 2'} avatar`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '50%'
+                  }}
+                />
+              ) : (
+                <span style={{
+                  fontSize: '28.8px',
+                  color: RIGHT_COLOR,
+                  fontWeight: 700
+                }}>
+                  {(players[1]?.name ?? 'P2')[0]}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '18.72px', fontWeight: 'bold', color: RIGHT_COLOR, marginBottom: 0 }}>
+              {players[1]?.name || 'Player 2'}
+            </div>
+            <div style={{ fontSize: '40.32px', fontWeight: 'bold', color: RIGHT_COLOR }}>
+              {scoreRight}
+            </div>
           </div>
         </div>
 
         {/* Two columns with vertical divider - same structure as FaceOff */}
-        <div style={{ flex: 1, display: 'flex', padding: '0 16px 24px', gap: 0, position: 'relative', zIndex: 1, minHeight: '320px' }}>
+        <div style={{ 
+          flex: 1, 
+          display: 'flex', 
+          padding: '64px 16px 24px', 
+          gap: 0, 
+          position: 'absolute', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          zIndex: 1, 
+          minHeight: '320px' 
+        }}>
           {/* Left side - Player 1 options */}
           <div style={{
             flex: 1,

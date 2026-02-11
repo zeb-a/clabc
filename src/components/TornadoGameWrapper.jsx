@@ -10,6 +10,108 @@ import { useTranslation } from '../i18n';
 
 const OPTIONS = ['A', 'B', 'C', 'D'];
 
+/**
+ * Extracts the filename from an uploaded image file without the extension.
+ * Handles various image formats (.jpg, .jpeg, .png, .gif, .webp, .svg, .bmp, .tiff)
+ *
+ * @param {File|string} fileOrName - Either a File object or a filename string
+ * @returns {string} The filename without the file extension
+ */
+function extractImageName(fileOrName) {
+  let filename = '';
+
+  if (typeof fileOrName === 'string') {
+    filename = fileOrName;
+  } else if (fileOrName instanceof File) {
+    filename = fileOrName.name;
+  } else {
+    return '';
+  }
+
+  // Remove path separators (for cross-platform compatibility)
+  filename = filename.replace(/[\\/]/g, ' ');
+
+  // Remove file extension
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex > 0) {
+    // Check if it's a valid image extension
+    const extension = filename.slice(lastDotIndex + 1).toLowerCase();
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'tif', 'ico'];
+
+    if (imageExtensions.includes(extension)) {
+      filename = filename.slice(0, lastDotIndex);
+    }
+  }
+
+  return filename.trim();
+}
+
+/**
+ * Processes uploaded image files and creates editable text elements for the game.
+ * Extracts filenames without extensions and allows modification of these names.
+ *
+ * @param {File[]} files - Array of File objects from file input
+ * @param {Function} onProcessComplete - Callback function called with processed image data
+ * @returns {Promise<Array>} Promise resolving to array of processed image objects
+ */
+async function processUploadedImages(files, onProcessComplete) {
+  if (!files || files.length === 0) return [];
+
+  const imagePromises = Array.from(files).map((file) => {
+    return new Promise((resolve, reject) => {
+      // Verify it's an image file
+      if (!file.type.startsWith('image/')) {
+        reject(new Error(`File "${file.name}" is not an image`));
+        return;
+      }
+
+      // Extract name without extension
+      const displayName = extractImageName(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve({
+          id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          src: reader.result,
+          name: displayName,
+          originalName: file.name,
+          file: file
+        });
+      };
+      reader.onerror = () => reject(new Error(`Failed to read file "${file.name}"`));
+      reader.readAsDataURL(file);
+    });
+  });
+
+  try {
+    const processedImages = await Promise.all(imagePromises);
+
+    // Notify callback if provided
+    if (onProcessComplete && typeof onProcessComplete === 'function') {
+      onProcessComplete(processedImages);
+    }
+
+    return processedImages;
+  } catch (error) {
+    console.error('Error processing images:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the display name of a processed image
+ *
+ * @param {Object} imageData - The image data object
+ * @param {string} newName - The new display name
+ * @returns {Object} Updated image data object
+ */
+function updateImageName(imageData, newName) {
+  return {
+    ...imageData,
+    name: newName.trim()
+  };
+}
+
 const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: externalIsReplay }) => {
   const { t } = useTranslation();
   // Check if this is a replay (coming back from game) or fresh start (from portal)
@@ -66,7 +168,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   });
   const [horseRaceConfig, setHorseRaceConfig] = useState({
     contentType: 'text', // 'text' | 'images'
-    items: [], // strings (words) or image data URLs
+    words: [], // strings (words) for text mode
+    images: [], // image data URLs for images mode
     playerCount: 2
   });
   const [players, setPlayers] = useState([]);
@@ -1107,28 +1210,18 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 accept="image/*"
                 multiple
                 style={{ display: 'none' }}
-                onChange={(e) => {
+                onChange={async (e) => {
                   const files = e.target.files;
                   if (!files || files.length === 0) return;
 
-                  const imagePromises = Array.from(files).map(file => {
-                    return new Promise((resolve) => {
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        resolve({
-                          id: `bulk_${Date.now()}_${Math.random()}`,
-                          src: reader.result,
-                          name: file.name
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    });
-                  });
-
-                  Promise.all(imagePromises).then(images => {
+                  try {
+                    const images = await processUploadedImages(files);
                     setBulkUploadImages(prev => [...prev, ...images]);
                     e.target.value = '';
-                  });
+                  } catch (error) {
+                    console.error('Error uploading images:', error);
+                    alert(`Error: ${error.message}`);
+                  }
                 }}
               />
             </div>
@@ -1186,7 +1279,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       <input
                         type="text"
                         placeholder={t('games.word_for_image').replace('{index}', index + 1)}
-                        defaultValue=""
+                        defaultValue={imgData.name || ''}
                         id={`bulk-word-input-${imgData.id}`}
                         style={{
                           flex: 1,
@@ -1204,6 +1297,14 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                             e.preventDefault();
                             document.getElementById(`bulk-add-btn-${imgData.id}`)?.click();
                           }
+                        }}
+                        onChange={(e) => {
+                          // Update the image data when the user edits the name
+                          setBulkUploadImages(prev =>
+                            prev.map(img =>
+                              img.id === imgData.id ? { ...img, name: e.target.value } : img
+                            )
+                          );
                         }}
                       />
                       <button
@@ -1598,28 +1699,18 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 accept="image/*"
                 multiple
                 style={{ display: 'none' }}
-                onChange={(e) => {
+                onChange={async (e) => {
                   const files = e.target.files;
                   if (!files || files.length === 0) return;
 
-                  const imagePromises = Array.from(files).map(file => {
-                    return new Promise((resolve) => {
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        resolve({
-                          id: `memory_bulk_${Date.now()}_${Math.random()}`,
-                          src: reader.result,
-                          name: file.name
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    });
-                  });
-
-                  Promise.all(imagePromises).then(images => {
+                  try {
+                    const images = await processUploadedImages(files);
                     setMemoryMatchBulkUploadImages(prev => [...prev, ...images]);
                     e.target.value = '';
-                  });
+                  } catch (error) {
+                    console.error('Error uploading images:', error);
+                    alert(`Error: ${error.message}`);
+                  }
                 }}
               />
             </div>
@@ -1677,7 +1768,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       <input
                         type="text"
                         placeholder={t('games.label_for_image').replace('{index}', index + 1)}
-                        defaultValue=""
+                        defaultValue={imgData.name || ''}
                         id={`memory-word-input-${imgData.id}`}
                         style={{
                           flex: 1,
@@ -1695,6 +1786,14 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                             e.preventDefault();
                             document.getElementById(`memory-add-btn-${imgData.id}`)?.click();
                           }
+                        }}
+                        onChange={(e) => {
+                          // Update the image data when the user edits the name
+                          setMemoryMatchBulkUploadImages(prev =>
+                            prev.map(img =>
+                              img.id === imgData.id ? { ...img, name: e.target.value } : img
+                            )
+                          );
                         }}
                       />
                       <button
@@ -2336,12 +2435,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
           <button
             onClick={() => {
-              if (selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1) {
+              const allQuestionsValid = quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim());
+              if (selectedStudents.length === 2 && allQuestionsValid) {
                 setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff'][i] })));
                 setGameState('playing');
               }
             }}
-            disabled={selectedStudents.length !== 2 || quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length < 1}
+            disabled={selectedStudents.length !== 2 || !quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())}
             style={{
               width: '100%',
               padding: '16px',
@@ -2349,15 +2449,15 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               fontWeight: '900',
               border: 'none',
               borderRadius: '14px',
-              cursor: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1 ? 'pointer' : 'not-allowed',
-              background: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1
+              cursor: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim()) ? 'pointer' : 'not-allowed',
+              background: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())
                 ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
                 : '#ccc',
               color: '#fff',
-              boxShadow: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1
+              boxShadow: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())
                 ? '0 6px 24px rgba(14, 165, 233, 0.4)'
                 : 'none',
-              opacity: selectedStudents.length === 2 && quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim()).length >= 1 ? 1 : 0.6
+              opacity: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim()) ? 1 : 0.6
             }}
           >
             {t('games.start_quiz')}
@@ -2777,7 +2877,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'text', items: prev.contentType === 'text' ? prev.items : [] }))}
+                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'text' }))}
                 style={{
                   padding: '10px 18px',
                   fontSize: '14px',
@@ -2794,7 +2894,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               </button>
               <button
                 type="button"
-                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'images', items: prev.contentType === 'images' ? prev.items : [] }))}
+                onClick={() => setHorseRaceConfig(prev => ({ ...prev, contentType: 'images' }))}
                 style={{
                   padding: '10px 18px',
                   fontSize: '14px',
@@ -2820,7 +2920,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <input
                   type="text"
-                  placeholder={t('games.enter_word')}
+                  placeholder={t('games.enter_word') + " - e.g., apple, banana, cat, dog..."}
                   id="horserace-words-input"
                   style={{
                     flex: 1,
@@ -2838,7 +2938,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       if (!text) return;
                       const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
                       if (words.length) {
-                        setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                        setHorseRaceConfig(prev => ({ ...prev, words: [...prev.words, ...words] }));
                         if (input) input.value = '';
                       }
                     }
@@ -2852,7 +2952,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     if (!text) return;
                     const words = text.split(/[,，\n]+/).map(w => w.trim()).filter(Boolean);
                     if (words.length) {
-                      setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...words] }));
+                      setHorseRaceConfig(prev => ({ ...prev, words: [...prev.words, ...words] }));
                       if (input) input.value = '';
                     }
                   }}
@@ -2871,11 +2971,11 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 </button>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', maxHeight: '120px', overflowY: 'auto' }}>
-                {horseRaceConfig.items.map((word, idx) => (
+                {horseRaceConfig.words.map((word, idx) => (
                   <button
                     key={`${word}-${idx}`}
                     type="button"
-                    onClick={() => setHorseRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                    onClick={() => setHorseRaceConfig(prev => ({ ...prev, words: prev.words.filter((_, i) => i !== idx) }))}
                     style={{
                       padding: '6px 12px',
                       borderRadius: '8px',
@@ -2916,7 +3016,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     });
                   });
                   Promise.all(readers).then(urls => {
-                    setHorseRaceConfig(prev => ({ ...prev, items: [...prev.items, ...urls] }));
+                    setHorseRaceConfig(prev => ({ ...prev, images: [...prev.images, ...urls] }));
                     e.target.value = '';
                   });
                 }}
@@ -2939,12 +3039,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 {t('games.select_images')}
               </button>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
-                {horseRaceConfig.items.map((src, idx) => (
+                {horseRaceConfig.images.map((src, idx) => (
                   <div key={idx} style={{ position: 'relative', aspectRatio: 1, borderRadius: '8px', overflow: 'hidden', border: '2px solid #F59E0B' }}>
                     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
                       type="button"
-                      onClick={() => setHorseRaceConfig(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }))}
+                      onClick={() => setHorseRaceConfig(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }))}
                       style={{
                         position: 'absolute',
                         top: 2,
@@ -3046,12 +3146,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           <button
             onClick={() => {
               const count = horseRaceConfig.playerCount || 2;
-              if (selectedStudents.length === count && horseRaceConfig.items.length >= 10) {
+              const items = horseRaceConfig.contentType === 'text' ? horseRaceConfig.words : horseRaceConfig.images;
+              if (selectedStudents.length === count && items.length >= 10) {
                 setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff', '#00ff88', '#ffcc00'][i] })));
                 setGameState('playing');
               }
             }}
-            disabled={selectedStudents.length !== (horseRaceConfig.playerCount || 2) || horseRaceConfig.items.length < 10}
+            disabled={selectedStudents.length !== (horseRaceConfig.playerCount || 2) || (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) < 10}
             style={{
               width: '100%',
               padding: '16px',
@@ -3059,13 +3160,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               fontWeight: '900',
               border: 'none',
               borderRadius: '14px',
-              cursor: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? 'pointer' : 'not-allowed',
-              background: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10
+              cursor: selectedStudents.length === (horseRaceConfig.playerCount || 2) && (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) >= 10 ? 'pointer' : 'not-allowed',
+              background: selectedStudents.length === (horseRaceConfig.playerCount || 2) && (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) >= 10
                 ? 'linear-gradient(135deg, #F59E0B, #D97706)'
                 : '#ccc',
               color: '#fff',
-              boxShadow: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? '0 6px 24px rgba(245, 158, 11, 0.4)' : 'none',
-              opacity: selectedStudents.length === (horseRaceConfig.playerCount || 2) && horseRaceConfig.items.length >= 10 ? 1 : 0.6
+              boxShadow: selectedStudents.length === (horseRaceConfig.playerCount || 2) && (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) >= 10 ? '0 6px 24px rgba(245, 158, 11, 0.4)' : 'none',
+              opacity: selectedStudents.length === (horseRaceConfig.playerCount || 2) && (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) >= 10 ? 1 : 0.6
             }}
           >
             🐎 {t('games.start_game')} ({t('games.need_pairs').replace('{count}', 10)})
@@ -4016,7 +4117,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
       {gameState === 'playing' && gameType === 'quiz' && (
         <QuizGame
-          questions={quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).some(o => o?.trim()) && (q.options || [])[q.correct]?.trim())}
+          questions={quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())}
           onBack={() => setGameState('config')}
           classColor="#0EA5E9"
           players={players}
@@ -4039,7 +4140,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
       {gameState === 'playing' && gameType === 'horserace' && (
         <HorseRaceGame
-          items={horseRaceConfig.items}
+          items={horseRaceConfig.contentType === 'text' ? horseRaceConfig.words : horseRaceConfig.images}
           contentType={horseRaceConfig.contentType}
           players={players}
           onBack={() => setGameState('config')}
