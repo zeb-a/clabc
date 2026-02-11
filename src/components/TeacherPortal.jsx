@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap } from 'lucide-react';
+import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText } from 'lucide-react';
 import InlineHelpButton from './InlineHelpButton';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
@@ -228,7 +228,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     if (!torenadoSelectedClass) return;
 
     const selectedGameType = localStorage.getItem('selected_game_type');
-    if (selectedGameType === 'quiz' || selectedGameType === 'motorace') {
+    if (selectedGameType === 'quiz' || selectedGameType === 'motorace' || selectedGameType === 'liveworksheet') {
       localStorage.setItem('torenado_players', JSON.stringify([]));
       localStorage.setItem('torenado_config', JSON.stringify({ classId: torenadoSelectedClass.id }));
       setShowTorenadoModal(false);
@@ -464,7 +464,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       'memorymatch': t('games.memorymatch'),
       'quiz': t('games.quiz'),
       'motorace': t('games.motorace'),
-      'horserace': t('games.horserace')
+      'horserace': t('games.horserace'),
+      'liveworksheet': t('games.liveworksheet')
     };
     return names[type] || t('games.choose');
   };
@@ -477,7 +478,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       'memorymatch': '🧠',
       'quiz': '🎯',
       'motorace': '🏍️',
-      'horserace': '🐴'
+      'horserace': '🐴',
+      'liveworksheet': '📄'
     };
     return emojis[type] || '🎮';
   };
@@ -490,7 +492,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       'memorymatch': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
       'quiz': 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
       'motorace': 'linear-gradient(135deg, #F97316, #EA580C)',
-      'horserace': 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
+      'horserace': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+      'liveworksheet': 'linear-gradient(135deg, #EC4899, #8B5CF6)'
     };
     return colors[type] || 'linear-gradient(135deg, #667eea, #764ba2)';
   };
@@ -928,6 +931,25 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     <span style={{ fontSize: '36px' }}>🐴</span>
                     <span style={styles.gameCardText}>{t('games.horserace')}</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem('selected_game_type', 'liveworksheet');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'liveworksheet'
+                        ? 'linear-gradient(135deg, #EC4899, #8B5CF6)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'liveworksheet' ? '#EC4899' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'liveworksheet' ? '0 4px 15px rgba(236, 72, 153, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>📄</span>
+                    <span style={styles.gameCardText}>{t('games.liveworksheet')}</span>
+                  </button>
                 </div>
               ) : (
                 /* --- CLASS SELECTION TAB --- */
@@ -941,7 +963,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       'memorymatch': 2,
                       'quiz': 0,
                       'motorace': 1,
-                      'horserace': 2
+                      'horserace': 2,
+                      'liveworksheet': 0
                     }[selectedGameType] || 2;
                     const hasEnoughPlayers = studentCount >= minPlayers;
 
@@ -1062,6 +1085,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   {localStorage.getItem('selected_game_type') === 'horserace' && (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '28px' }}>🐴</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'liveworksheet' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>📄</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </span>
                   )}
                   {!localStorage.getItem('selected_game_type') && (

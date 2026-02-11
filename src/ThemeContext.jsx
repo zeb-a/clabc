@@ -113,8 +113,8 @@ function applyDarkModeStyles(isDark) {
         border-color: inherit !important;
       }
 
-      /* Apply gentle dark mode to everything EXCEPT PointAnimation and elements that shouldn't have backgrounds */
-      *:not([data-point-animation]):not([data-point-animation-backdrop]):not([data-point-animation] *):not(span):not(em):not(strong):not(code):not(mark):not(i):not(b):not(img):not(a):not(input):not(textarea):not(select):not(svg):not(path):not(circle):not(line):not(polyline):not(polygon):not(rect):not(g) {
+      /* Apply gentle dark mode to everything EXCEPT PointAnimation, game screens (they have own theme) and elements that shouldn't have backgrounds */
+      *:not([data-point-animation]):not([data-point-animation-backdrop]):not([data-point-animation] *):not([data-game-screen]):not([data-game-screen] *):not([data-games-hub]):not([data-games-hub] *):not(span):not(em):not(strong):not(code):not(mark):not(i):not(b):not(img):not(a):not(input):not(textarea):not(select):not(svg):not(path):not(circle):not(line):not(polyline):not(polygon):not(rect):not(g) {
         background-color: #252525 !important;
         color: #f0f0f0 !important;
         border-color: #4a4a4a !important;
@@ -157,6 +157,48 @@ function applyDarkModeStyles(isDark) {
       button, .btn {
         background-color: #252525 !important;
         color: #f0f0f0 !important;
+      }
+
+      /* Play button & primary actions: keep green, ensure white text for contrast */
+      [data-play-btn],
+      [data-primary-btn] {
+        background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%) !important;
+        background-color: #2E7D32 !important;
+        color: #ffffff !important;
+        border-color: #388E3C !important;
+      }
+      [data-play-btn] *, [data-primary-btn] * {
+        color: #ffffff !important;
+      }
+
+      /* Play modal & class selection cards: dark card, light text */
+      [data-play-modal],
+      [data-play-modal] [data-play-card] {
+        background: #2d2d2d !important;
+        background-color: #2d2d2d !important;
+        border-color: #4a4a4a !important;
+        color: #f0f0f0 !important;
+      }
+      [data-play-modal] h1, [data-play-modal] h2, [data-play-modal] h3, [data-play-modal] h4,
+      [data-play-modal] p, [data-play-modal] span, [data-play-modal] div {
+        color: #f0f0f0 !important;
+      }
+      [data-play-modal] [data-play-card][data-selected="true"] {
+        border-color: #4CAF50 !important;
+        background: #1e3d20 !important;
+        background-color: #1e3d20 !important;
+      }
+      [data-play-modal] .btn-secondary, [data-play-modal] [class*="cancel"] {
+        background: #3d3d3d !important;
+        color: #f0f0f0 !important;
+      }
+
+      /* Games hub & game screens: consistent dark UI */
+      [data-games-hub], [data-game-screen] {
+        background: #1a1a1a !important;
+      }
+      [data-games-hub] *, [data-game-screen] * {
+        color: inherit;
       }
 
       input, textarea, select {

@@ -5,6 +5,7 @@ import MemoryMatchGame from './MemoryMatchGame';
 import QuizGame from './QuizGame';
 import MotoRaceGame from './MotoRaceGame';
 import HorseRaceGame from './HorseRaceGame';
+import LiveWorksheet from './LiveWorksheet';
 import api from '../services/api';
 import { useTranslation } from '../i18n';
 
@@ -129,7 +130,9 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   };
   
   const isReplay = externalIsReplay !== undefined ? externalIsReplay : checkIsReplay();
-  const initialGameState = isReplay ? 'select-class' : 'config';
+  // For liveworksheet, always show the worksheet view directly
+  const isLiveWorksheet = localStorage.getItem('selected_game_type') === 'liveworksheet';
+  const initialGameState = isLiveWorksheet ? 'worksheet' : (isReplay ? 'select-class' : 'config');
   
   // Game type: 'tornado', 'faceoff', or 'memorymatch'
   const [gameType, setGameType] = useState(localStorage.getItem('selected_game_type') || 'tornado');
@@ -161,6 +164,21 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   const [quizConfig, setQuizConfig] = useState({
     questions: [] // { id, question, image?, options: [a,b,c,d], correct: 0-3 }
   });
+
+  // Load stored quiz questions on mount
+  useEffect(() => {
+    const storedQuestions = localStorage.getItem('stored_quiz_questions');
+    const gameType = localStorage.getItem('selected_game_type');
+    if (storedQuestions && gameType === 'quiz') {
+      try {
+        const parsed = JSON.parse(storedQuestions);
+        setQuizConfig({ questions: parsed });
+        localStorage.removeItem('stored_quiz_questions');
+      } catch (e) {
+        console.error('Error loading stored quiz questions:', e);
+      }
+    }
+  }, []);
   const [motoRaceConfig, setMotoRaceConfig] = useState({
     contentType: 'text', // 'text' | 'images'
     items: [], // strings (words) or image data URLs
@@ -836,7 +854,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 onClick={() => {
                   setSelectedClass(cls);
                   // Skip mode selection for FaceOff, Memory Match, Quiz, MotoRace, HorseRace — go directly to config
-                  if (gameType === 'faceoff' || gameType === 'memorymatch' || gameType === 'quiz' || gameType === 'motorace' || gameType === 'horserace') {
+                  // For Live Worksheet, go directly to worksheet view
+                  if (gameType === 'liveworksheet') {
+                    setGameState('worksheet');
+                  } else if (gameType === 'faceoff' || gameType === 'memorymatch' || gameType === 'quiz' || gameType === 'motorace' || gameType === 'horserace') {
                     setGameState('config');
                   } else {
                     setGameState('select-mode');
@@ -4115,7 +4136,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
         />
       )}
 
-      {gameState === 'playing' && gameType === 'quiz' && (
+      {gameState === 'playing' && (gameType === 'quiz' || gameType === 'liveworksheet') && (
         <QuizGame
           questions={quizConfig.questions.filter(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())}
           onBack={() => setGameState('config')}
@@ -4253,6 +4274,82 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             }
           `}</style>
         </div>
+      )}
+
+      {/* Live Worksheet View */}
+      {gameState === 'worksheet' && gameType === 'liveworksheet' && (
+        <LiveWorksheet
+          onBack={() => {
+            localStorage.removeItem('selected_game_type');
+            setGameState('select-game');
+            setGameType('tornado');
+            if (onBack) onBack();
+          }}
+          selectedClass={selectedClass}
+          onAssign={async (worksheet) => {
+            try {
+              const { default: api } = await import('../services/api.js');
+              
+              // Create new assignment object
+              const newAssignment = {
+                id: Date.now().toString(),
+                title: worksheet.file || 'Worksheet',
+                type: 'worksheet',
+                questions: worksheet.questions,
+                createdAt: worksheet.createdAt,
+                status: 'active'
+              };
+
+              // Get current class
+              const classes = await api.getClasses(user?.email);
+              
+              // Try to find by ID first, then by collectionId, then by name as fallback
+              let currentClass = classes.find(c => c.id === selectedClass?.id);
+              if (!currentClass && selectedClass?.collectionId) {
+                currentClass = classes.find(c => c.collectionId === selectedClass.collectionId);
+              }
+              if (!currentClass && selectedClass?.name) {
+                currentClass = classes.find(c => c.name === selectedClass.name);
+              }
+              
+              if (currentClass) {
+                // Add assignment to class
+                const updatedAssignments = [...(currentClass.assignments || []), newAssignment];
+                
+                // Save updated class - match by the real ID from the found class
+                await api.saveClasses(user?.email, [...classes.map(c => 
+                  c.id === currentClass.id || c.collectionId === selectedClass?.collectionId
+                    ? { ...c, assignments: updatedAssignments }
+                    : c
+                )]);
+                
+                // Return to game menu after a brief delay to show success message
+                setTimeout(() => {
+                  localStorage.removeItem('selected_game_type');
+                  setGameState('select-game');
+                  setGameType('tornado');
+                }, 2000);
+              } else {
+                alert('Please select a class first.');
+              }
+            } catch (err) {
+              console.error('Failed to assign worksheet:', err);
+              alert('Failed to assign worksheet. Please try again.');
+            }
+            
+            localStorage.removeItem('selected_game_type');
+            setGameState('select-game');
+            setGameType('tornado');
+          }}
+          onPlayNow={(questions) => {
+            // Store questions and navigate to quiz game
+            localStorage.setItem('stored_quiz_questions', JSON.stringify(questions));
+            localStorage.setItem('selected_game_type', 'quiz');
+            setQuizConfig({ questions });
+            setGameType('quiz');
+            setGameState('config');
+          }}
+        />
       )}
     </div>
   );
