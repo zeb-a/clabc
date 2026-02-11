@@ -764,6 +764,9 @@ class TornadoScene extends Phaser.Scene {
     container.isRevealed = false;
     container.index = index;
 
+    // Check if numbered tiles should be displayed
+    const showNumber = this.gameConfig.numberedSquares;
+
     // Card back (hidden state) - kid-friendly design
     const cardBack = this.add.graphics();
     cardBack.fillStyle(0xFFE4B5, 1);
@@ -788,9 +791,12 @@ class TornadoScene extends Phaser.Scene {
     container.add(cardBack);
     container.cardBack = cardBack;
 
-    // Star icon on back
-    const questionMark = this.add.text(0, 0, '⭐', {
-      fontSize: `${Math.min(width, height) * 0.35}px`
+    // Number or star icon on back based on numberedSquares setting
+    const questionMark = this.add.text(0, 0, showNumber ? (index + 1).toString() : '⭐', {
+      fontSize: `${Math.min(width, height) * 0.35}px`,
+      fontWeight: 'bold',
+      color: showNumber ? '#333333' : undefined,
+      fontFamily: 'Comic Sans MS, cursive, sans-serif'
     });
     questionMark.setOrigin(0.5);
     questionMark.alpha = 0.6;
@@ -862,6 +868,13 @@ class TornadoScene extends Phaser.Scene {
           cardBack.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
           cardBack.lineStyle(4, 0x00CED1, 1);
           cardBack.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);
+          // Re-draw pattern on hover
+          cardBack.lineStyle(2, 0xFFD700, 0.6);
+          for (let i = 0; i < 4; i++) {
+            const yOffset = -height / 2 + 25 + i * (height / 5);
+            cardBack.moveTo(-width / 2 + 20, yOffset);
+            cardBack.lineTo(width / 2 - 20, yOffset);
+          }
         }
       })
       .on('pointerout', () => {
@@ -871,6 +884,13 @@ class TornadoScene extends Phaser.Scene {
           cardBack.fillRoundedRect(-width / 2, -height / 2, width, height, 20);
           cardBack.lineStyle(4, 0x00CED1, 1);
           cardBack.strokeRoundedRect(-width / 2, -height / 2, width, height, 20);
+          // Re-draw pattern on mouse out
+          cardBack.lineStyle(2, 0xFFD700, 0.6);
+          for (let i = 0; i < 4; i++) {
+            const yOffset = -height / 2 + 25 + i * (height / 5);
+            cardBack.moveTo(-width / 2 + 20, yOffset);
+            cardBack.lineTo(width / 2 - 20, yOffset);
+          }
         }
       });
 
@@ -894,8 +914,6 @@ class TornadoScene extends Phaser.Scene {
     card.isRevealed = true;
     this.flippedCount++;
     this.totalTurnsTaken++;
-
-    console.log(`Turn #${this.totalTurnsTaken}: Player ${currentPlayerIndex + 1} clicked card`);
 
     // Flip animation
     await this.flipCard(card);
@@ -1382,8 +1400,6 @@ class TornadoScene extends Phaser.Scene {
   nextTurn() {
     // Calculate next player using total turns taken - this is UNBREAKABLE
     const nextPlayerIndex = (this.totalTurnsTaken) % this.players.length;
-
-    console.log(`Advancing to Player ${nextPlayerIndex + 1} (turn #${this.totalTurnsTaken + 1})`);
 
     this.setGameState(prev => ({
       ...prev,
