@@ -161,6 +161,12 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
     contentItems: []
   });
   const [memoryMatchBulkUploadImages, setMemoryMatchBulkUploadImages] = useState([]);
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isDraggingFaceOff, setIsDraggingFaceOff] = useState(false);
+  const [isDraggingTornado, setIsDraggingTornado] = useState(false);
+  const [isDraggingMotoRace, setIsDraggingMotoRace] = useState(false);
+  const [isDraggingHorseRace, setIsDraggingHorseRace] = useState(false);
   const [quizConfig, setQuizConfig] = useState({
     questions: [] // { id, question, image?, options: [a,b,c,d], correct: 0-3 }
   });
@@ -215,6 +221,60 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
       ...prev,
       contentItems: [...prev.contentItems, { text, src: image, type }]
     }));
+  };
+
+  const handleFaceOffFileDrop = async (files) => {
+    try {
+      const images = await processUploadedImages(files);
+      setBulkUploadImages(prev => [...prev, ...images]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
+  const handleTornadoFileDrop = (files) => {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const newImages = imageFiles.slice(0, 20).map(file => URL.createObjectURL(file));
+    setConfig(prev => ({ ...prev, decorativeElements: [...prev.decorativeElements, ...newImages] }));
+  };
+
+  const handleMotoRaceFileDrop = (files) => {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const readers = imageFiles.map(file => {
+      return new Promise(resolve => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then(urls => {
+      setMotoRaceConfig(prev => ({ ...prev, items: [...prev.items, ...urls] }));
+    });
+  };
+
+  const handleHorseRaceFileDrop = (files) => {
+    const imageFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const readers = imageFiles.map(file => {
+      return new Promise(resolve => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.readAsDataURL(file);
+      });
+    });
+    Promise.all(readers).then(urls => {
+      setHorseRaceConfig(prev => ({ ...prev, images: [...prev.images, ...urls] }));
+    });
+  };
+
+  const handleMemoryMatchFileDrop = async (files) => {
+    try {
+      const images = await processUploadedImages(files);
+      setMemoryMatchBulkUploadImages(prev => [...prev, ...images]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert(`Error: ${error.message}`);
+    }
   };
 
   const removeMemoryMatchItem = (index) => {
@@ -1217,36 +1277,61 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             </label>
 
             {/* Bulk Upload Button */}
-            <div style={{ marginBottom: '15px' }}>
+            <div
+              onDragEnter={() => setIsDraggingFaceOff(true)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsDraggingFaceOff(false);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingFaceOff(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  handleFaceOffFileDrop(files);
+                }
+              }}
+              style={{ marginBottom: '15px' }}
+            >
               <button
                 onClick={() => document.getElementById('faceoff-bulk-file-input').click()}
                 style={{
                   width: '100%',
-                  padding: '12px 20px',
-                  fontSize: '14px',
+                  padding: '24px 20px',
+                  fontSize: '16px',
                   fontWeight: 'bold',
-                  border: '2px dashed #8B5CF6',
-                  borderRadius: '10px',
-                  background: '#fff',
+                  border: isDraggingFaceOff ? '3px dashed #8B5CF6' : '2px dashed #8B5CF6',
+                  borderRadius: '15px',
+                  background: isDraggingFaceOff ? '#F3E8FF' : '#fff',
                   color: '#8B5CF6',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '12px'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#8B5CF615';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  if (!isDraggingFaceOff) {
+                    e.currentTarget.style.background = '#8B5CF615';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  if (!isDraggingFaceOff) {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
-                <span>📸📸📸</span>
-                <span>{t('games.upload_multiple')}</span>
+                <div style={{ fontSize: '36px' }}>📸📸📸</div>
+                <div style={{ fontSize: '15px' }}>{t('games.upload_multiple')}</div>
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
+                  or drag and drop images here
+                </div>
               </button>
               <input
                 id="faceoff-bulk-file-input"
@@ -1272,13 +1357,31 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
             {/* Bulk Uploaded Images - Display with word inputs */}
             {bulkUploadImages.length > 0 && (
-              <div style={{
-                marginBottom: '15px',
-                padding: '12px',
-                background: '#F0F9FF',
-                borderRadius: '12px',
-                border: '2px solid #3B82F6'
-              }}>
+              <div
+                onDragEnter={() => setIsDraggingFaceOff(true)}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setIsDraggingFaceOff(false);
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingFaceOff(false);
+                  const files = e.dataTransfer.files;
+                  if (files.length > 0) {
+                    handleFaceOffFileDrop(files);
+                  }
+                }}
+                style={{
+                  marginBottom: '15px',
+                  padding: '15px',
+                  background: isDraggingFaceOff ? '#DBEAFE' : '#F0F9FF',
+                  borderRadius: '12px',
+                  border: isDraggingFaceOff ? '3px dashed #3B82F6' : '2px solid #3B82F6',
+                  transition: 'all 0.3s'
+                }}
+              >
                 <label style={{
                   fontSize: '13px',
                   fontWeight: '700',
@@ -1290,13 +1393,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: '10px',
-                  maxHeight: '250px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '300px',
                   overflowY: 'auto',
-                  padding: '8px',
+                  padding: '12px',
                   background: '#fff',
-                  borderRadius: '8px'
+                  borderRadius: '10px'
                 }}>
                   {bulkUploadImages.map((imgData, index) => (
                     <div key={imgData.id} style={{
@@ -1706,36 +1809,61 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
             </label>
 
             {/* Bulk Upload Button */}
-            <div style={{ marginBottom: '15px' }}>
+            <div
+              onDragEnter={() => setIsDraggingFile(true)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsDraggingFile(false);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingFile(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  handleMemoryMatchFileDrop(files);
+                }
+              }}
+              style={{ marginBottom: '15px' }}
+            >
               <button
                 onClick={() => document.getElementById('memory-bulk-file-input').click()}
                 style={{
                   width: '100%',
-                  padding: '12px 20px',
-                  fontSize: '14px',
+                  padding: '24px 20px',
+                  fontSize: '16px',
                   fontWeight: 'bold',
-                  border: '2px dashed #8B5CF6',
-                  borderRadius: '10px',
-                  background: '#fff',
+                  border: isDraggingFile ? '3px dashed #8B5CF6' : '2px dashed #8B5CF6',
+                  borderRadius: '15px',
+                  background: isDraggingFile ? '#F3E8FF' : '#fff',
                   color: '#8B5CF6',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  gap: '12px'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#8B5CF615';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  if (!isDraggingFile) {
+                    e.currentTarget.style.background = '#8B5CF615';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#fff';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  if (!isDraggingFile) {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }
                 }}
               >
-                <span>📸📸📸</span>
-                <span>{t('games.upload_multiple')}</span>
+                <div style={{ fontSize: '36px' }}>📸📸📸</div>
+                <div style={{ fontSize: '15px' }}>{t('games.upload_multiple')}</div>
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
+                  or drag and drop images here
+                </div>
               </button>
               <input
                 id="memory-bulk-file-input"
@@ -1761,13 +1889,31 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
             {/* Bulk Uploaded Images - Display with text/label inputs */}
             {memoryMatchBulkUploadImages.length > 0 && (
-              <div style={{
-                marginBottom: '15px',
-                padding: '12px',
-                background: '#F0F9FF',
-                borderRadius: '12px',
-                border: '2px solid #3B82F6'
-              }}>
+              <div
+                onDragEnter={() => setIsDraggingFile(true)}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setIsDraggingFile(false);
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingFile(false);
+                  const files = e.dataTransfer.files;
+                  if (files.length > 0) {
+                    handleMemoryMatchFileDrop(files);
+                  }
+                }}
+                style={{
+                  marginBottom: '15px',
+                  padding: '15px',
+                  background: isDraggingFile ? '#DBEAFE' : '#F0F9FF',
+                  borderRadius: '12px',
+                  border: isDraggingFile ? '3px dashed #3B82F6' : '2px solid #3B82F6',
+                  transition: 'all 0.3s'
+                }}
+              >
                 <label style={{
                   fontSize: '13px',
                   fontWeight: '700',
@@ -1779,13 +1925,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 </label>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: '10px',
-                  maxHeight: '250px',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                  gap: '12px',
+                  maxHeight: '300px',
                   overflowY: 'auto',
-                  padding: '8px',
+                  padding: '12px',
                   background: '#fff',
-                  borderRadius: '8px'
+                  borderRadius: '10px'
                 }}>
                   {memoryMatchBulkUploadImages.map((imgData, index) => (
                     <div key={imgData.id} style={{
@@ -2004,20 +2150,75 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
 
             {/* Content Items Display */}
             {memoryMatchConfig.contentItems.length > 0 && (
-              <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                maxHeight: '150px',
-                overflowY: 'auto',
-                padding: '8px',
-                background: '#fff',
-                borderRadius: '10px',
-                border: '2px solid #E5E7EB'
-              }}>
+              <div
+                onDragEnter={() => setIsDraggingFile(true)}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setIsDraggingFile(false);
+                  }
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingFile(false);
+                  const files = e.dataTransfer.files;
+                  if (files.length > 0) {
+                    handleMemoryMatchFileDrop(files);
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  padding: '12px',
+                  background: isDraggingFile ? '#F3E8FF' : '#fff',
+                  borderRadius: '12px',
+                  border: isDraggingFile ? '3px dashed #8B5CF6' : '2px solid #E5E7EB',
+                  transition: 'all 0.2s'
+                }}
+              >
                 {memoryMatchConfig.contentItems.map((item, index) => (
                   <div
                     key={index}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      setDraggedItemIndex(index);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (draggedItemIndex !== null && draggedItemIndex !== index) {
+                        e.currentTarget.style.background = '#EDE9FE';
+                        e.currentTarget.style.borderColor = '#8B5CF6';
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      if (draggedItemIndex !== null && draggedItemIndex !== index) {
+                        e.currentTarget.style.background = '#F9FAFB';
+                        e.currentTarget.style.borderColor = '#E5E7EB';
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (draggedItemIndex !== null && draggedItemIndex !== index) {
+                        const newItems = [...memoryMatchConfig.contentItems];
+                        const [draggedItem] = newItems.splice(draggedItemIndex, 1);
+                        newItems.splice(index, 0, draggedItem);
+                        setMemoryMatchConfig(prev => ({ ...prev, contentItems: newItems }));
+                      }
+                      setDraggedItemIndex(null);
+                      e.currentTarget.style.background = '#F9FAFB';
+                      e.currentTarget.style.borderColor = '#E5E7EB';
+                    }}
+                    onDragEnd={() => {
+                      setDraggedItemIndex(null);
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -2028,9 +2229,13 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                       border: '2px solid #E5E7EB',
                       fontSize: '12px',
                       fontWeight: '600',
-                      position: 'relative'
+                      position: 'relative',
+                      cursor: 'grab',
+                      userSelect: 'none',
+                      transition: 'all 0.2s'
                     }}
                   >
+                    <span style={{ color: '#9CA3AF', cursor: 'grab', fontSize: '16px', marginRight: '2px' }}>⋮⋮</span>
                     {item.type === 'image' && (
                       <img
                         src={item.src}
@@ -2782,7 +2987,24 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           )}
 
           {motoRaceConfig.contentType === 'images' && (
-            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F9731640' }}>
+            <div
+              onDragEnter={() => setIsDraggingMotoRace(true)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsDraggingMotoRace(false);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingMotoRace(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  handleMotoRaceFileDrop(files);
+                }
+              }}
+              style={{ marginBottom: '18px', padding: '18px', background: isDraggingMotoRace ? '#FFEDD5' : '#f8fafc', borderRadius: '16px', border: isDraggingMotoRace ? '3px dashed #F97316' : '2px solid #F9731640', transition: 'all 0.3s' }}
+            >
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#9A3412', display: 'block', marginBottom: '8px' }}>
                 {t('games.upload_images_bulk')}
               </label>
@@ -2812,20 +3034,30 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 type="button"
                 onClick={() => document.getElementById('motorace-bulk-images').click()}
                 style={{
-                  padding: '10px 18px',
-                  fontSize: '14px',
+                  padding: '24px 20px',
+                  fontSize: '16px',
                   fontWeight: '700',
-                  border: '2px dashed #F97316',
-                  borderRadius: '10px',
-                  background: '#fff',
+                  border: isDraggingMotoRace ? '3px dashed #F97316' : '2px dashed #F97316',
+                  borderRadius: '15px',
+                  background: isDraggingMotoRace ? '#FFEDD5' : '#fff',
                   color: '#F97316',
                   cursor: 'pointer',
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  width: '100%'
                 }}
               >
-                {t('games.select_images')}
+                <div style={{ fontSize: '36px' }}>🖼️🖼️🖼️</div>
+                <div style={{ fontSize: '15px' }}>{t('games.select_images')}</div>
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
+                  or drag and drop images here
+                </div>
               </button>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '12px', maxHeight: '200px', overflowY: 'auto', padding: '8px', background: '#fff', borderRadius: '10px' }}>
                 {motoRaceConfig.items.map((src, idx) => (
                   <div key={idx} style={{ position: 'relative', aspectRatio: 1, borderRadius: '8px', overflow: 'hidden', border: '2px solid #F97316' }}>
                     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -3013,7 +3245,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           {/* Content type: Text OR Images only */}
           <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#FFFBEB', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
             <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '10px' }}>
-              📋 {t('games.text')} / {t('games.image')}
+              📋 {t('games.text')} / {t('games.image')} ({t('games.need_pairs').replace('{count}', 10)})
             </label>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
@@ -3136,7 +3368,24 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
           )}
 
           {horseRaceConfig.contentType === 'images' && (
-            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #F59E0B40' }}>
+            <div
+              onDragEnter={() => setIsDraggingHorseRace(true)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsDraggingHorseRace(false);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingHorseRace(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  handleHorseRaceFileDrop(files);
+                }
+              }}
+              style={{ marginBottom: '18px', padding: '18px', background: isDraggingHorseRace ? '#FEF3C7' : '#f8fafc', borderRadius: '16px', border: isDraggingHorseRace ? '3px dashed #F59E0B' : '2px solid #F59E0B40', transition: 'all 0.3s' }}
+            >
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#92400E', display: 'block', marginBottom: '8px' }}>
                 {t('games.upload_images_bulk')}
               </label>
@@ -3166,20 +3415,30 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 type="button"
                 onClick={() => document.getElementById('horserace-bulk-images').click()}
                 style={{
-                  padding: '10px 18px',
-                  fontSize: '14px',
+                  padding: '24px 20px',
+                  fontSize: '16px',
                   fontWeight: '700',
-                  border: '2px dashed #F59E0B',
-                  borderRadius: '10px',
-                  background: '#fff',
-                  color: '#B45309',
+                  border: isDraggingHorseRace ? '3px dashed #F59E0B' : '2px dashed #F59E0B',
+                  borderRadius: '15px',
+                  background: isDraggingHorseRace ? '#FEF3C7' : '#fff',
+                  color: '#F59E0B',
                   cursor: 'pointer',
-                  marginBottom: '12px'
+                  marginBottom: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  width: '100%'
                 }}
               >
-                {t('games.select_images')}
+                <div style={{ fontSize: '36px' }}>🖼️🖼️🖼️</div>
+                <div style={{ fontSize: '15px' }}>{t('games.select_images')}</div>
+                <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '4px' }}>
+                  or drag and drop images here
+                </div>
               </button>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(64px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '12px', maxHeight: '200px', overflowY: 'auto', padding: '8px', background: '#fff', borderRadius: '10px' }}>
                 {horseRaceConfig.images.map((src, idx) => (
                   <div key={idx} style={{ position: 'relative', aspectRatio: 1, borderRadius: '8px', overflow: 'hidden', border: '2px solid #F59E0B' }}>
                     <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -3310,7 +3569,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               opacity: selectedStudents.length === (horseRaceConfig.playerCount || 2) && (horseRaceConfig.contentType === 'text' ? horseRaceConfig.words.length : horseRaceConfig.images.length) >= 10 ? 1 : 0.6
             }}
           >
-            🐎 {t('games.start_game')} ({t('games.need_pairs').replace('{count}', 10)})
+            🐎 {t('games.start_game')}
           </button>
         </div>
       )}
@@ -3799,16 +4058,31 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               {t('games.upload_pictures_review')}
             </label>
 
-            {/* Image Upload Area - Smaller */}
+            {/* Image Upload Area */}
             <div
+              onDragEnter={() => setIsDraggingTornado(true)}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsDraggingTornado(false);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingTornado(false);
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  handleTornadoFileDrop(files);
+                }
+              }}
               style={{
                 width: '100%',
-                padding: '15px',
+                padding: '30px',
                 marginBottom: '15px',
                 fontSize: '14px',
-                border: '3px dashed #4ECDC4',
+                border: isDraggingTornado ? '4px dashed #4ECDC4' : '3px dashed #4ECDC4',
                 borderRadius: '15px',
-                background: '#fff',
+                background: isDraggingTornado ? '#E0F2F1' : '#fff',
                 color: '#333',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
@@ -3816,12 +4090,16 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               }}
               onClick={() => document.getElementById('fileInput').click()}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'scale(1.01)';
-                e.target.style.boxShadow = '0 4px 15px rgba(78, 205, 196, 0.15)';
+                if (!isDraggingTornado) {
+                  e.target.style.transform = 'scale(1.01)';
+                  e.target.style.boxShadow = '0 4px 15px rgba(78, 205, 196, 0.15)';
+                }
               }}
               onMouseLeave={(e) => {
-                e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = 'none';
+                if (!isDraggingTornado) {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.boxShadow = 'none';
+                }
               }}
             >
               <input
@@ -3837,15 +4115,16 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 }}
               />
               <div style={{
-                fontSize: '32px',
-                marginBottom: '8px'
+                fontSize: '42px',
+                marginBottom: '10px'
               }}>
                 📸
               </div>
               <div style={{
-                fontSize: '14px',
+                fontSize: '16px',
                 fontWeight: 'bold',
-                color: '#4ECDC4'
+                color: '#4ECDC4',
+                marginBottom: '6px'
               }}>
                 {t('games.click_upload_images')}
               </div>
