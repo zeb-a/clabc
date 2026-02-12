@@ -164,6 +164,8 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
   const [quizConfig, setQuizConfig] = useState({
     questions: [] // { id, question, image?, options: [a,b,c,d], correct: 0-3 }
   });
+  const [invalidQuestions, setInvalidQuestions] = useState({}); // { questionId: { emptyQuestion: boolean, notEnoughOptions: boolean } }
+  const [playerSelectionError, setPlayerSelectionError] = useState(false);
 
   // Load stored quiz questions on mount
   useEffect(() => {
@@ -257,6 +259,27 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
       ...prev,
       questions: prev.questions.filter(q => q.id !== id)
     }));
+  };
+
+  const clearQuestionError = (questionId, errorType) => {
+    setInvalidQuestions(prev => {
+      const questionErrors = prev[questionId] || {};
+      if (errorType) {
+        delete questionErrors[errorType];
+        if (Object.keys(questionErrors).length === 0) {
+          delete prev[questionId];
+        } else {
+          prev[questionId] = questionErrors;
+        }
+      } else {
+        delete prev[questionId];
+      }
+      return { ...prev };
+    });
+  };
+
+  const clearPlayerError = () => {
+    setPlayerSelectionError(false);
   };
 
   const removeWord = (word) => {
@@ -2273,16 +2296,24 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                 {t('games.no_questions')}
               </div>
             )}
-            {quizConfig.questions.map((q, idx) => (
+            {quizConfig.questions.map((q, idx) => {
+              const questionErrors = invalidQuestions[q.id] || {};
+              const hasEmptyQuestion = questionErrors.emptyQuestion;
+              const hasNotEnoughOptions = questionErrors.notEnoughOptions;
+              const isInvalid = hasEmptyQuestion || hasNotEnoughOptions;
+
+              return (
               <div
                 key={q.id}
+                id={`question-${q.id}`}
                 style={{
                   marginBottom: '14px',
                   padding: '14px 16px',
                   background: '#fff',
                   borderRadius: '14px',
-                  border: '2px solid #E2E8F0',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                  border: `2px solid ${isInvalid ? '#EF4444' : '#E2E8F0'}`,
+                  boxShadow: isInvalid ? '0 2px 12px rgba(239, 68, 68, 0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
@@ -2296,20 +2327,31 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     ✕
                   </button>
                 </div>
-                <input
-                  placeholder="Question text"
-                  value={q.question}
-                  onChange={e => updateQuizQuestion(q.id, { question: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid #E2E8F0',
-                    fontSize: '14px',
-                    marginBottom: '10px',
-                    boxSizing: 'border-box'
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    placeholder="Question text"
+                    value={q.question}
+                    onChange={e => {
+                      updateQuizQuestion(q.id, { question: e.target.value });
+                      clearQuestionError(q.id, 'emptyQuestion');
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      border: hasEmptyQuestion ? '2px solid #EF4444' : '1px solid #E2E8F0',
+                      fontSize: '14px',
+                      marginBottom: '10px',
+                      boxSizing: 'border-box',
+                      background: hasEmptyQuestion ? '#FEF2F2' : '#fff'
+                    }}
+                  />
+                  {hasEmptyQuestion && (
+                    <span style={{ fontSize: '11px', color: '#EF4444', fontWeight: '600', marginTop: '-6px', display: 'block', marginBottom: '10px' }}>
+                      ⚠️ Question is empty
+                    </span>
+                  )}
+                </div>
                 <div style={{ marginBottom: '10px' }}>
                   {q.image ? (
                     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -2341,11 +2383,19 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {hasNotEnoughOptions && (
+                    <span style={{ fontSize: '11px', color: '#EF4444', fontWeight: '600', marginBottom: '4px' }}>
+                      ⚠️ Not enough options (need at least 2 filled options)
+                    </span>
+                  )}
                   {(q.options || ['', '']).map((_, i) => (
                     <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <button
                         type="button"
-                        onClick={() => updateQuizQuestion(q.id, { correct: i })}
+                        onClick={() => {
+                          updateQuizQuestion(q.id, { correct: i });
+                          clearQuestionError(q.id, 'notEnoughOptions');
+                        }}
                         style={{
                           width: 32,
                           height: 32,
@@ -2370,6 +2420,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                           const opts = [...(q.options || ['', ''])];
                           opts[i] = e.target.value;
                           updateQuizQuestion(q.id, { options: opts });
+                          clearQuestionError(q.id, 'notEnoughOptions');
                         }}
                         style={{
                           flex: 1,
@@ -2385,7 +2436,10 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   {(q.options || ['', '']).length < 4 && (
                     <button
                       type="button"
-                      onClick={() => addQuizOption(q.id)}
+                      onClick={() => {
+                        addQuizOption(q.id);
+                        clearQuestionError(q.id, 'notEnoughOptions');
+                      }}
                       style={{
                         padding: '8px 12px',
                         fontSize: '12px',
@@ -2403,14 +2457,15 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Select 2 players */}
           {selectedClass && (
-            <div style={{ marginBottom: '18px', padding: '14px 18px', background: '#f8fafc', borderRadius: '16px', border: '2px solid #0EA5E940' }}>
+            <div style={{ marginBottom: '18px', padding: '14px 18px', background: playerSelectionError ? '#FEF2F2' : '#f8fafc', borderRadius: '16px', border: `2px solid ${playerSelectionError ? '#EF4444' : '#0EA5E940'}` }}>
               <label style={{ fontSize: '14px', fontWeight: '700', color: '#0C4A6E', display: 'block', marginBottom: '10px' }}>
-                {t('games.select_2_players_lowercase')}
+                👤 Select 2 players
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px', maxHeight: '140px', overflowY: 'auto' }}>
                 {(selectedClass.students || []).map(student => {
@@ -2420,6 +2475,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                     <button
                       key={student.id}
                       onClick={() => {
+                        clearPlayerError();
                         if (isSelected) setSelectedStudents(prev => prev.filter(p => p.id !== student.id));
                         else if (!isFull) setSelectedStudents(prev => [...prev, { id: student.id, name: student.name, color: ['#00d9ff', '#ff00ff'][prev.length] }]);
                       }}
@@ -2443,26 +2499,83 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
                   );
                 })}
               </div>
-              <div style={{ marginTop: '8px', fontSize: '13px', color: selectedStudents.length === 2 ? '#0EA5E9' : '#64748B', fontWeight: '600' }}>
-                {t('games.selected_n_of_n')
-                  .replace('{selected}', selectedStudents.length)
-                  .replace('{count}', 2)}{' '}
-                {selectedStudents.length === 2
-                  ? t('games.selected_ready')
-                  : t('games.select_exactly_n').replace('{count}', 2)}
+              <div style={{ marginTop: '8px', fontSize: '13px', color: playerSelectionError ? '#EF4444' : (selectedStudents.length === 2 ? '#0EA5E9' : '#64748B'), fontWeight: '600' }}>
+                {playerSelectionError
+                  ? 'Please select 2 players'
+                  : (
+                    <>
+                      {t('games.selected_n_of_n')
+                        .replace('{selected}', selectedStudents.length)
+                        .replace('{count}', 2)}{' '}
+                      {selectedStudents.length === 2
+                        ? t('games.selected_ready')
+                        : t('games.select_exactly_n').replace('{count}', 2)}
+                    </>
+                  )
+                }
               </div>
             </div>
           )}
 
+          {/* Start Game Button - combines checking and launching */}
           <button
             onClick={() => {
-              const allQuestionsValid = quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim());
-              if (selectedStudents.length === 2 && allQuestionsValid) {
+              // Check player selection
+              const playersSelected = selectedStudents.length === 2;
+              setPlayerSelectionError(!playersSelected);
+
+              // Validate all questions and find specific errors
+              const newInvalidQuestions = {};
+              let hasInvalidQuestions = false;
+              let firstInvalidQuestionId = null;
+
+              quizConfig.questions.forEach((q, idx) => {
+                const hasQuestion = q.question?.trim();
+                const hasTwoOptions = (q.options || []).filter(o => o?.trim()).length >= 2;
+                const hasCorrectAnswer = (q.options || [])[q.correct]?.trim();
+
+                const errors = {};
+
+                if (!hasQuestion) {
+                  errors.emptyQuestion = true;
+                  hasInvalidQuestions = true;
+                  if (!firstInvalidQuestionId) firstInvalidQuestionId = q.id;
+                }
+
+                if (!hasTwoOptions) {
+                  errors.notEnoughOptions = true;
+                  hasInvalidQuestions = true;
+                  if (!firstInvalidQuestionId) firstInvalidQuestionId = q.id;
+                }
+
+                if (!hasCorrectAnswer) {
+                  errors.notEnoughOptions = true; // Treat missing correct answer as options error
+                  hasInvalidQuestions = true;
+                  if (!firstInvalidQuestionId) firstInvalidQuestionId = q.id;
+                }
+
+                if (Object.keys(errors).length > 0) {
+                  newInvalidQuestions[q.id] = errors;
+                }
+              });
+
+              setInvalidQuestions(newInvalidQuestions);
+
+              if (hasInvalidQuestions && firstInvalidQuestionId) {
+                // Scroll to first invalid question
+                setTimeout(() => {
+                  const firstInvalidElement = document.getElementById(`question-${firstInvalidQuestionId}`);
+                  if (firstInvalidElement) {
+                    firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }, 100);
+              } else if (playersSelected) {
+                // All valid - start the game
                 setPlayers(selectedStudents.map((p, i) => ({ ...p, color: ['#00d9ff', '#ff00ff'][i] })));
                 setGameState('playing');
               }
             }}
-            disabled={selectedStudents.length !== 2 || !quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())}
+            disabled={quizConfig.questions.length === 0}
             style={{
               width: '100%',
               padding: '16px',
@@ -2470,18 +2583,25 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               fontWeight: '900',
               border: 'none',
               borderRadius: '14px',
-              cursor: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim()) ? 'pointer' : 'not-allowed',
-              background: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())
-                ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
-                : '#ccc',
+              cursor: quizConfig.questions.length === 0 ? 'not-allowed' : 'pointer',
+              background: quizConfig.questions.length === 0 ? '#ccc' : 'linear-gradient(135deg, #0EA5E9, #06B6D4)',
               color: '#fff',
-              boxShadow: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim())
-                ? '0 6px 24px rgba(14, 165, 233, 0.4)'
-                : 'none',
-              opacity: selectedStudents.length === 2 && quizConfig.questions.every(q => q.question?.trim() && (q.options || []).filter(o => o?.trim()).length >= 2 && (q.options || [])[q.correct]?.trim()) ? 1 : 0.6
+              boxShadow: quizConfig.questions.length === 0 ? 'none' : '0 6px 24px rgba(14, 165, 233, 0.4)',
+              transition: 'all 0.2s',
+              opacity: quizConfig.questions.length === 0 ? 0.6 : 1
+            }}
+            onMouseEnter={(e) => {
+              if (quizConfig.questions.length > 0) {
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (quizConfig.questions.length > 0) {
+                e.currentTarget.style.transform = 'scale(1)';
+              }
             }}
           >
-            {t('games.start_quiz')}
+            🎮 Start Game
           </button>
         </div>
       )}
