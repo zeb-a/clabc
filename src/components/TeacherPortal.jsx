@@ -933,6 +933,25 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   </button>
                   <button
                     onClick={() => {
+                      localStorage.setItem('selected_game_type', 'spelltheword');
+                      setTorenadoSelectedClass(null);
+                      setTorenadoPlayers([]);
+                      setActiveTab('class'); // Auto-switch to class tab
+                    }}
+                    style={{
+                      ...styles.gameCard,
+                      background: localStorage.getItem('selected_game_type') === 'spelltheword'
+                        ? 'linear-gradient(135deg, #EC4899, #F59E0B)'
+                        : 'white',
+                      borderColor: localStorage.getItem('selected_game_type') === 'spelltheword' ? '#EC4899' : '#E5E7EB',
+                      boxShadow: localStorage.getItem('selected_game_type') === 'spelltheword' ? '0 4px 15px rgba(236, 72, 153, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span style={{ fontSize: '36px' }}>🔤</span>
+                    <span style={styles.gameCardText}>Spell the Word</span>
+                  </button>
+                  <button
+                    onClick={() => {
                       localStorage.setItem('selected_game_type', 'liveworksheet');
                       setTorenadoSelectedClass(null);
                       setTorenadoPlayers([]);
@@ -1085,6 +1104,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   {localStorage.getItem('selected_game_type') === 'horserace' && (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '28px' }}>🐴</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
+                  {localStorage.getItem('selected_game_type') === 'spelltheword' && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '28px' }}>🔤</span> continue <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </span>
                   )}
                   {localStorage.getItem('selected_game_type') === 'liveworksheet' && (
