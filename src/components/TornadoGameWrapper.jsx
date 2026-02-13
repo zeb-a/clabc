@@ -5051,7 +5051,6 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
       {gameState === 'playing' && gameType === 'spelltheword' && (
         <SpellTheWordGame
           words={spellTheWordConfig.words}
-          players={players}
           onBack={() => setGameState('config')}
           onEditQuestions={(words) => setSpellTheWordConfig(prev => ({ ...prev, words }))}
           selectedClass={selectedClass}

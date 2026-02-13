@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, Plus, Trash2, Image as ImageIcon, Play, X, Upload } from 'lucide-react';
+import { ChevronLeft, Play, Upload } from 'lucide-react';
 import { sounds } from '../utils/gameSounds';
-import PixiBackdrop from './PixiBackdrop';
 import { useTranslation } from '../i18n';
 
 // Kid-friendly colors
 const LEFT_COLOR = '#32CD32';   // Lime green (player 1)
 const RIGHT_COLOR = '#FF69B4';  // Hot pink (player 2)
-const DIVIDER_COLOR = '#2D3748';
-const DIVIDER_ACCENT = '#4ECDC4';
 
 // Extract filename without extension
 function extractImageName(fileOrName) {
@@ -25,33 +22,39 @@ function extractImageName(fileOrName) {
   return filename.trim();
 }
 
-export default function SpellTheWordGame({ onBack, onEditQuestions, classColor = '#4CAF50', players = [], autoStart = false, selectedClass = null, onGivePoints = null }) {
+export default function SpellTheWordGame({ onBack, onEditQuestions, words: propWords = [], classColor = '#4CAF50' }) {
   const { t } = useTranslation();
   const [words, setWords] = useState([]);
-  const [activeTab, setActiveTab] = useState('words'); // 'words' or 'images'
+  const [activeTab, setActiveTab] = useState('words');
+  const [players, setPlayers] = useState([]); // [] = single, 2 players = face-off
   const [playing, setPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [guessedLetters, setGuessedLetters] = useState({});
-  const [showResult, setShowResult] = useState(false);
-  const [fullScreen, setFullScreen] = useState(true);
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
-
-  // Two-player mode state
-  const [scoreLeft, setScoreLeft] = useState(0);
-  const [scoreRight, setScoreRight] = useState(0);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [player1State, setPlayer1State] = useState({
+    guessedLetters: {},
+    completed: false,
+    score: 0
+  });
+  const [player2State, setPlayer2State] = useState({
+    guessedLetters: {},
+    completed: false,
+    score: 0
+  });
   const [gameOver, setGameOver] = useState(false);
   const [winner, setWinner] = useState(null);
 
   const audioRef = useRef(null);
 
   const faceOffMode = playing && players.length >= 2;
-  const currentPlayer = players.length >= 2 ? (currentWordIndex % 2 === 0 ? 'left' : 'right') : 'single';
 
+  // Initialize words from props on first mount
   useEffect(() => {
-    if (typeof onEditQuestions === 'function') onEditQuestions(words);
-  }, [words, onEditQuestions]);
+    if (propWords && propWords.length > 0 && words.length === 0) {
+      setWords(propWords);
+    }
+  }, []);
+
+  const validWords = words.filter(w => w.word?.trim());
+  const currentWord = validWords[currentWordIndex];
 
   const playSound = (type) => {
     if (sounds[type]) {
@@ -60,72 +63,26 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
     }
   };
 
-  const addWord = () => {
-    setWords(prev => [...prev, { id: Date.now(), word: '', image: null }]);
-  };
-
-  const updateWord = (id, updates) => {
-    setWords(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
-  };
-
-  const removeWord = (id) => {
-    setWords(prev => prev.filter(w => w.id !== id));
-  };
-
-  const handleImageUpload = (id, e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const word = extractImageName(file);
-      updateWord(id, { image: reader.result, word: word });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleBulkUpload = async (files) => {
-    const imagePromises = Array.from(files).filter(f => f.type.startsWith('image/')).map(file => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const word = extractImageName(file);
-          resolve({
-            id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            word,
-            image: reader.result
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-
-    const newWords = await Promise.all(imagePromises);
-    setWords(prev => [...prev, ...newWords]);
-  };
-
-  const startGame = () => {
-    const validWords = words.filter(w => w.word?.trim());
-    if (validWords.length < 1) return;
-    setPlaying(true);
-    setCurrentIndex(0);
-    setCurrentWordIndex(0);
-    setGuessedLetters({});
-    setShowResult(false);
-    setScoreLeft(0);
-    setScoreRight(0);
-    setGameOver(false);
-    setWinner(null);
-  };
-
-  const handleLetterClick = (letter) => {
-    const currentWord = words[currentIndex]?.word.toUpperCase();
+  const handleLetterClick = (letter, playerNum) => {
     if (!currentWord) return;
-
-    const key = `${currentIndex}-${letter}`;
-    if (guessedLetters[key] !== undefined) return;
-
-    const isCorrect = currentWord.includes(letter);
-    setGuessedLetters(prev => ({ ...prev, [key]: isCorrect ? 'correct' : 'wrong' }));
+    
+    const wordLetters = currentWord.word.toUpperCase().split('').filter(l => l.trim());
+    const letterUpper = letter.toUpperCase();
+    const key = `${playerNum}-${letter}`;
+    const playerState = playerNum === 1 ? player1State : player2State;
+    const setPlayerState = playerNum === 1 ? setPlayer1State : setPlayer2State;
+    
+    // Don't allow clicking if already guessed
+    if (playerState.guessedLetters[key] !== undefined) return;
+    
+    const isCorrect = wordLetters.includes(letterUpper);
+    
+    // Update guessed letters and check for completion
+    const newGuessedLetters = { ...playerState.guessedLetters, [key]: isCorrect ? 'correct' : 'wrong' };
+    setPlayerState(prev => ({
+      ...prev,
+      guessedLetters: newGuessedLetters
+    }));
 
     if (isCorrect) {
       playSound('correct');
@@ -133,39 +90,76 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
       playSound('wrong');
     }
 
-    // Check if word is complete
-    const allLetters = [...currentWord].filter(c => c !== ' ');
-    const allGuessed = allLetters.every(l => guessedLetters[`${currentIndex}-${l}`] === 'correct');
-    const allWrong = Object.keys(guessedLetters).filter(k => 
-      k.startsWith(`${currentIndex}-`) && guessedLetters[k] === 'wrong'
-    ).length;
+    // Check if all letters are guessed correctly
+    const allLetters = wordLetters;
+    const allGuessed = allLetters.every(l => newGuessedLetters[`${playerNum}-${l.toLowerCase()}`] === 'correct');
 
     if (allGuessed) {
-      setShowResult(true);
       playSound('win');
       
-      setTimeout(() => {
-        if (currentPlayer === 'left') {
-          setScoreLeft(prev => prev + 1);
-        } else if (currentPlayer === 'right') {
-          setScoreRight(prev => prev + 1);
-        }
+      // Mark word as completed and increment score
+      setPlayerState(prev => ({ ...prev, completed: true, score: prev.score + 1 }));
 
-        // Move to next word or next player's turn
-        const nextIndex = currentIndex + 1;
-        if (nextIndex >= words.filter(w => w.word?.trim()).length) {
-          setGameOver(true);
-          if (faceOffMode) {
-            setWinner(scoreLeft + 1 > scoreRight ? 'left' : scoreRight + 1 > scoreLeft ? 'right' : 'tie');
+      // In face-off mode, automatically move to next word after delay
+      if (faceOffMode) {
+        setTimeout(() => {
+          if (currentWordIndex < validWords.length - 1) {
+            setCurrentWordIndex(prev => prev + 1);
+            setPlayer1State(prev => ({ guessedLetters: {}, completed: false, score: prev.score }));
+            setPlayer2State(prev => ({ guessedLetters: {}, completed: false, score: prev.score }));
+          } else {
+            setWinner(player1State.score + 1 > player2State.score + 1 ? 'player1' : 
+                     player2State.score + 1 > player1State.score + 1 ? 'player2' : 'tie');
+            setGameOver(true);
           }
-        } else {
-          setCurrentIndex(nextIndex);
-          setCurrentWordIndex(nextIndex);
-          setGuessedLetters({});
-          setShowResult(false);
-        }
-      }, 1500);
+        }, 1500);
+      }
     }
+  };
+
+  const nextWord = () => {
+    if (currentWordIndex < validWords.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+      setPlayer1State({ guessedLetters: {}, completed: false, score: player1State.score });
+      setPlayer2State({ guessedLetters: {}, completed: false, score: player2State.score });
+    } else {
+      if (faceOffMode) {
+        setWinner(player1State.score > player2State.score ? 'player1' : 
+                 player2State.score > player1State.score ? 'player2' : 'tie');
+        setGameOver(true);
+      } else {
+        // Single player finished
+        setGameOver(true);
+        setWinner('player1');
+      }
+    }
+  };
+
+  const startGame = () => {
+    const wordsToUse = (words.length === 0 && propWords.length > 0) ? propWords : words;
+    const validWordsToUse = wordsToUse.filter(w => w.word?.trim());
+    
+    if (validWordsToUse.length < 1) return;
+
+    if (words.length === 0 && propWords.length > 0) {
+      setWords(propWords);
+    }
+
+    setPlaying(true);
+    setCurrentWordIndex(0);
+    setPlayer1State({ guessedLetters: {}, completed: false, score: 0 });
+    setPlayer2State({ guessedLetters: {}, completed: false, score: 0 });
+    setGameOver(false);
+    setWinner(null);
+  };
+
+  const resetGame = () => {
+    setPlaying(false);
+    setCurrentWordIndex(0);
+    setPlayer1State({ guessedLetters: {}, completed: false, score: 0 });
+    setPlayer2State({ guessedLetters: {}, completed: false, score: 0 });
+    setGameOver(false);
+    setWinner(null);
   };
 
   const renderConfig = () => (
@@ -237,6 +231,54 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
         </button>
       </div>
 
+      {/* Number of Players Selection */}
+      <div style={{ marginBottom: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '15px', border: '2px solid #e5e7eb' }}>
+        <label style={{
+          color: '#374151',
+          fontSize: '15px',
+          fontWeight: '700',
+          display: 'block',
+          marginBottom: '12px'
+        }}>
+          👥 Number of Players:
+        </label>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {[1, 2].map(num => (
+            <button
+              key={num}
+              onClick={() => setPlayers(num === 2 ? [
+                { id: 'p1', name: 'Player 1' },
+                { id: 'p2', name: 'Player 2' }
+              ] : [])}
+              style={{
+                flex: 1,
+                padding: '12px 20px',
+                fontSize: '15px',
+                fontWeight: '700',
+                border: '3px solid',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                background: players.length === num ? 'linear-gradient(135deg, #EC4899, #8B5CF6)' : '#fff',
+                color: players.length === num ? '#fff' : '#78716c',
+                borderColor: players.length === num ? '#EC4899' : '#E7E5E4',
+                boxShadow: players.length === num ? '0 4px 15px rgba(236, 72, 153, 0.3)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {num === 1 ? '👤 1 Player' : '👥 2 Players'}
+            </button>
+          ))}
+        </div>
+        {players.length === 2 && (
+          <div style={{ marginTop: '10px', fontSize: '13px', color: '#6b7280', fontWeight: '600' }}>
+            🎮 Two-player face-off mode enabled!
+          </div>
+        )}
+      </div>
+
       {/* Image Upload Zone */}
       {activeTab === 'images' && (
         <div
@@ -251,28 +293,6 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
             transition: 'all 0.3s ease'
           }}
           onClick={() => document.getElementById('bulk-image-upload').click()}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#f0f0ff';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#f8f9ff';
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDraggingFile(true);
-            e.currentTarget.style.background = '#e0e0ff';
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setIsDraggingFile(false);
-            e.currentTarget.style.background = '#f8f9ff';
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDraggingFile(false);
-            e.currentTarget.style.background = '#f8f9ff';
-            handleBulkUpload(e.dataTransfer.files);
-          }}
         >
           <Upload size={48} color={classColor} style={{ marginBottom: '10px' }} />
           <div style={{ fontSize: '16px', fontWeight: '700', color: classColor }}>
@@ -287,7 +307,32 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
             accept="image/*"
             multiple
             style={{ display: 'none' }}
-            onChange={(e) => handleBulkUpload(e.target.files)}
+            onChange={(e) => {
+              const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/'));
+              const readers = files.map(file => {
+                return new Promise(resolve => {
+                  const r = new FileReader();
+                  r.onload = () => {
+                    const word = extractImageName(file);
+                    resolve({
+                      id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                      word,
+                      image: r.result
+                    });
+                  };
+                  r.readAsDataURL(file);
+                });
+              });
+              Promise.all(readers).then(newWords => {
+                setWords(prev => {
+                  const updated = [...prev, ...newWords];
+                  if (typeof onEditQuestions === 'function') {
+                    onEditQuestions(updated);
+                  }
+                  return updated;
+                });
+              });
+            }}
           />
         </div>
       )}
@@ -308,7 +353,15 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
             <input
               type="text"
               value={word.word || ''}
-              onChange={(e) => updateWord(word.id, { word: e.target.value })}
+              onChange={(e) => {
+                setWords(prev => {
+                  const updated = prev.map(w => w.id === word.id ? { ...w, word: e.target.value.toLowerCase() } : w);
+                  if (typeof onEditQuestions === 'function') {
+                    onEditQuestions(updated);
+                  }
+                  return updated;
+                });
+              }}
               placeholder="Enter word..."
               style={{
                 flex: 1,
@@ -316,37 +369,23 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
                 fontSize: '14px',
                 border: '2px solid #e5e7eb',
                 borderRadius: '8px',
-                outline: 'none'
+                outline: 'none',
+                textTransform: 'lowercase'
               }}
             />
-            {activeTab === 'images' && (
-              <label style={{
-                padding: '8px 12px',
-                background: classColor,
-                color: 'white',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '12px',
-                fontWeight: '600'
-              }}>
-                <ImageIcon size={16} />
-                {word.image ? 'Change' : 'Add'} Image
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => handleImageUpload(word.id, e)}
-                />
-              </label>
-            )}
             {word.image && (
               <img src={word.image} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
             )}
             <button
-              onClick={() => removeWord(word.id)}
+              onClick={() => {
+                setWords(prev => {
+                  const updated = prev.filter(w => w.id !== word.id);
+                  if (typeof onEditQuestions === 'function') {
+                    onEditQuestions(updated);
+                  }
+                  return updated;
+                });
+              }}
               style={{
                 padding: '6px',
                 background: '#fee2e2',
@@ -356,7 +395,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
                 cursor: 'pointer'
               }}
             >
-              <Trash2 size={16} />
+              ✕
             </button>
           </div>
         ))}
@@ -364,7 +403,15 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
 
       {/* Add Word Button */}
       <button
-        onClick={addWord}
+        onClick={() => {
+          setWords(prev => {
+            const updated = [...prev, { id: Date.now(), word: '', image: null }];
+            if (typeof onEditQuestions === 'function') {
+              onEditQuestions(updated);
+            }
+            return updated;
+          });
+        }}
         style={{
           width: '100%',
           padding: '14px',
@@ -375,139 +422,181 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
           border: '2px dashed #d1d5db',
           borderRadius: '10px',
           cursor: 'pointer',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px'
+          marginBottom: '20px'
         }}
       >
-        <Plus size={20} />
-        Add Word
+        + Add Word
       </button>
 
       {/* Start Game Button */}
       <button
         onClick={startGame}
-        disabled={words.filter(w => w.word?.trim()).length < 1}
+        disabled={validWords.length < 1}
         style={{
           width: '100%',
           padding: '16px',
           fontSize: '18px',
           fontWeight: '800',
-          background: words.filter(w => w.word?.trim()).length >= 1 ? classColor : '#9ca3af',
+          background: validWords.length >= 1 ? classColor : '#9ca3af',
           color: 'white',
           border: 'none',
           borderRadius: '12px',
-          cursor: words.filter(w => w.word?.trim()).length >= 1 ? 'pointer' : 'not-allowed',
+          cursor: validWords.length >= 1 ? 'pointer' : 'not-allowed',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '10px',
-          boxShadow: words.filter(w => w.word?.trim()).length >= 1 ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'
+          boxShadow: validWords.length >= 1 ? '0 4px 15px rgba(0,0,0,0.2)' : 'none'
         }}
       >
         <Play size={24} />
-        Start Game ({words.filter(w => w.word?.trim()).length} word{words.filter(w => w.word?.trim()).length !== 1 ? 's' : ''})
+        Start Game ({validWords.length} word{validWords.length !== 1 ? 's' : ''})
       </button>
     </div>
   );
 
-  const renderPlaying = () => {
-    const currentWord = words[currentIndex];
+  const renderPlayerBoard = (playerNum, playerState) => {
     if (!currentWord) return null;
+    
+    const wordLetters = currentWord.word.toUpperCase().split('').filter(l => l.trim());
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const isLeft = playerNum === 1;
 
-    const wordLetters = currentWord.word.toUpperCase().split('');
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-    const renderLetterPanel = (side) => {
-      const isLeft = side === 'left';
-      const isRight = side === 'right';
-      const isSingle = !faceOffMode;
-
-      return (
+    return (
+      <div style={{
+        flex: 1,
+        padding: '20px',
+        background: isLeft ? 'linear-gradient(180deg, #f0fff0 0%, #e0ffe0 100%)' :
+                     'linear-gradient(180deg, #fff0f8 0%, #ffe0f8 100%)',
+        borderRadius: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        overflow: 'auto'
+      }}>
+        {/* Player Name */}
         <div style={{
-          flex: faceOffMode ? 1 : 1,
-          padding: '20px',
-          background: isLeft ? 'linear-gradient(180deg, #f0fff0 0%, #e0ffe0 100%)' :
-                       isRight ? 'linear-gradient(180deg, #fff0f8 0%, #ffe0f8 100%)' :
-                       'linear-gradient(180deg, #f0f8ff 0%, #e0f0ff 100%)',
-          borderRadius: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px'
+          fontSize: '20px',
+          fontWeight: '800',
+          color: isLeft ? LEFT_COLOR : RIGHT_COLOR,
+          textAlign: 'center',
+          marginBottom: '10px'
         }}>
-          {/* Player Name */}
-          {faceOffMode && (
-            <div style={{
-              fontSize: '20px',
-              fontWeight: '800',
-              color: isLeft ? LEFT_COLOR : RIGHT_COLOR,
-              textAlign: 'center',
-              marginBottom: '10px'
-            }}>
-              {players[isLeft ? 0 : 1]?.name || isLeft ? 'Player 1' : 'Player 2'}
-            </div>
-          )}
+          {players[playerNum - 1]?.name || (playerNum === 1 ? 'Player 1' : 'Player 2')}
+        </div>
 
-          {/* Score Display */}
-          <div style={{
-            textAlign: 'center',
-            padding: '15px',
-            background: 'rgba(255,255,255,0.8)',
-            borderRadius: '15px',
-            border: `3px solid ${isLeft ? LEFT_COLOR : RIGHT_COLOR}`
-          }}>
-            <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>Score</div>
-            <div style={{ fontSize: '36px', fontWeight: '900', color: isLeft ? LEFT_COLOR : RIGHT_COLOR }}>
-              {isLeft ? scoreLeft : scoreRight}
-            </div>
-          </div>
-
-          {/* Letter Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            gap: '8px',
-            marginTop: '10px'
-          }}>
-            {alphabet.map(letter => {
-              const key = `${currentIndex}-${letter}`;
-              const status = guessedLetters[key];
-              
-              return (
-                <button
-                  key={letter}
-                  onClick={() => handleLetterClick(letter)}
-                  disabled={status !== undefined}
-                  style={{
-                    padding: '12px',
-                    fontSize: '18px',
-                    fontWeight: '800',
-                    fontFamily: isLeft || isSingle ? 'Comic Sans MS, cursive' : 'sans-serif',
-                    background: status === 'correct' ? '#d1fae5' :
-                               status === 'wrong' ? '#fee2e2' : 'white',
-                    color: status === 'correct' ? '#059669' :
-                           status === 'wrong' ? '#dc2626' : isLeft ? LEFT_COLOR : isRight ? RIGHT_COLOR : '#3B82F6',
-                    border: `3px solid ${status === 'correct' ? '#10b981' :
-                                     status === 'wrong' ? '#f87171' :
-                                     isLeft ? LEFT_COLOR : isRight ? RIGHT_COLOR : '#3B82F6'}`,
-                    borderRadius: '10px',
-                    cursor: status === undefined ? 'pointer' : 'not-allowed',
-                    transition: 'all 0.2s ease',
-                    transform: status === 'wrong' ? 'translateX(-5px)' : 'none',
-                    animation: status === 'correct' ? 'bounce 0.5s ease' : status === 'wrong' ? 'shake 0.5s ease' : 'none',
-                    boxShadow: status === undefined ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
-                  }}
-                >
-                  {letter}
-                </button>
-              );
-            })}
+        {/* Score Display */}
+        <div style={{
+          textAlign: 'center',
+          padding: '15px',
+          background: 'rgba(255,255,255,0.8)',
+          borderRadius: '15px',
+          border: `3px solid ${isLeft ? LEFT_COLOR : RIGHT_COLOR}`
+        }}>
+          <div style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>Score</div>
+          <div style={{ fontSize: '36px', fontWeight: '900', color: isLeft ? LEFT_COLOR : RIGHT_COLOR }}>
+            {playerState.score}
           </div>
         </div>
-      );
-    };
+
+        {/* Word Dashes */}
+        <div style={{
+          display: 'flex',
+          gap: '6px',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          marginBottom: '10px'
+        }}>
+          {wordLetters.map((letter, index) => {
+            const key = `${playerNum}-${letter.toLowerCase()}`;
+            const isGuessed = playerState.guessedLetters[key] === 'correct';
+            
+            return (
+              <div
+                key={`${currentWord.word}-${index}`}
+                style={{
+                  minWidth: '30px',
+                  height: '40px',
+                  borderBottom: `3px dashed ${isGuessed ? classColor : '#9ca3af'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  fontWeight: '900',
+                  color: isGuessed ? classColor : 'transparent',
+                  fontFamily: 'Comic Sans MS, cursive',
+                  textTransform: 'uppercase',
+                  animation: isGuessed ? 'bounce 0.5s ease' : 'none'
+                }}
+              >
+                {isGuessed ? letter : ''}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Completed Status */}
+        {playerState.completed && (
+          <div style={{
+            textAlign: 'center',
+            padding: '10px',
+            background: '#d1fae5',
+            color: '#059669',
+            borderRadius: '10px',
+            fontWeight: '700',
+            marginBottom: '10px'
+          }}>
+            ✓ Correct!
+          </div>
+        )}
+
+        {/* Letter Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(6, 1fr)',
+          gap: '8px'
+        }}>
+          {alphabet.map(letter => {
+            const key = `${playerNum}-${letter}`;
+            const status = playerState.guessedLetters[key];
+            
+            return (
+              <button
+                key={letter}
+                onClick={() => handleLetterClick(letter, playerNum)}
+                disabled={status !== undefined || playerState.completed}
+                style={{
+                  padding: '10px',
+                  fontSize: '16px',
+                  fontWeight: '800',
+                  fontFamily: 'Comic Sans MS, cursive',
+                  background: status === 'correct' ? '#d1fae5' :
+                             status === 'wrong' ? '#fee2e2' : 'white',
+                  color: status === 'correct' ? '#059669' :
+                         status === 'wrong' ? '#dc2626' : isLeft ? LEFT_COLOR : RIGHT_COLOR,
+                  border: `3px solid ${status === 'correct' ? '#10b981' :
+                                   status === 'wrong' ? '#f87171' :
+                                   isLeft ? LEFT_COLOR : RIGHT_COLOR}`,
+                  borderRadius: '8px',
+                  cursor: status === undefined && !playerState.completed ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s ease',
+                  animation: status === 'correct' ? 'bounce 0.5s ease' : 
+                             status === 'wrong' ? 'shake 0.8s ease' : 'none',
+                  textTransform: 'lowercase',
+                  opacity: playerState.completed ? 0.5 : 1
+                }}
+              >
+                {letter}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPlaying = () => {
+    if (!currentWord) return null;
 
     return (
       <div style={{
@@ -520,16 +609,11 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
         flexDirection: 'column',
         alignItems: 'center',
         padding: '20px',
-        overflow: 'hidden'
+        overflowY: 'auto'
       }}>
-        <PixiBackdrop />
-
         {/* Back Button */}
         <button
-          onClick={() => {
-            setPlaying(false);
-            setShowResult(false);
-          }}
+          onClick={resetGame}
           style={{
             position: 'fixed',
             top: '20px',
@@ -557,92 +641,75 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
         <div style={{
           width: '100%',
           maxWidth: faceOffMode ? '1200px' : '600px',
-          height: 'calc(100vh - 100px)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          padding: '50px 20px'
         }}>
           {/* Word Progress */}
           <div style={{
-            marginBottom: '20px',
+            marginBottom: '15px',
             fontSize: '18px',
             fontWeight: '700',
             color: 'white',
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
-            Word {currentIndex + 1} of {words.filter(w => w.word?.trim()).length}
+            Word {currentWordIndex + 1} of {validWords.length}
           </div>
 
           {/* Image Display */}
           {currentWord.image && (
             <div style={{
-              marginBottom: '20px',
-              padding: '15px',
+              marginBottom: '15px',
+              padding: '10px',
               background: 'rgba(255,255,255,0.95)',
-              borderRadius: '20px',
+              borderRadius: '15px',
               boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
             }}>
               <img
                 src={currentWord.image}
                 alt=""
                 style={{
-                  maxWidth: '300px',
-                  maxHeight: '200px',
+                  maxWidth: '200px',
+                  maxHeight: '150px',
                   objectFit: 'contain',
-                  borderRadius: '10px'
+                  borderRadius: '8px'
                 }}
               />
             </div>
           )}
 
-          {/* Dashed Lines for Word */}
-          <div style={{
-            display: 'flex',
-            gap: '10px',
-            marginBottom: '30px',
-            flexWrap: 'wrap',
-            justifyContent: 'center'
-          }}>
-            {wordLetters.map((letter, index) => {
-              const key = `${currentIndex}-${letter}`;
-              const isGuessed = guessedLetters[key] === 'correct';
-              
-              return (
-                <div
-                  key={index}
-                  style={{
-                    minWidth: '40px',
-                    height: '50px',
-                    borderBottom: `4px dashed ${isGuessed ? classColor : '#9ca3af'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: '900',
-                    color: isGuessed ? classColor : 'transparent',
-                    fontFamily: 'Comic Sans MS, cursive',
-                    transition: 'all 0.3s ease',
-                    animation: isGuessed ? 'flyIn 0.5s ease' : 'none',
-                    transform: isGuessed ? 'scale(1.1)' : 'scale(1)'
-                  }}
-                >
-                  {isGuessed ? letter : ''}
-                </div>
-              );
-            })}
-          </div>
-
           {/* Game Area */}
           <div style={{
             width: '100%',
             display: 'flex',
-            gap: '20px',
-            flexDirection: faceOffMode ? 'row' : 'column'
+            gap: '15px',
+            flexDirection: faceOffMode ? 'row' : 'column',
+            alignItems: 'stretch'
           }}>
-            {renderLetterPanel('left')}
-            {faceOffMode && renderLetterPanel('right')}
+            {renderPlayerBoard(1, player1State)}
+            {faceOffMode && renderPlayerBoard(2, player2State)}
           </div>
+
+          {/* Next Word Button */}
+          <button
+            onClick={nextWord}
+            style={{
+              marginTop: '15px',
+              padding: '12px 24px',
+              fontSize: '16px',
+              fontWeight: '700',
+              background: 'rgba(255,255,255,0.9)',
+              color: '#374151',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+              display: (player1State.completed || player2State.completed) ? 'flex' : 'none'
+            }}
+          >
+            Next Word →
+          </button>
         </div>
 
         {/* Vertical Divider for 2-player mode */}
@@ -650,13 +717,14 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
           <div style={{
             position: 'fixed',
             left: '50%',
-            top: '100px',
-            bottom: '100px',
-            width: '4px',
-            background: `linear-gradient(180deg, ${DIVIDER_COLOR} 0%, ${DIVIDER_ACCENT} 50%, ${DIVIDER_COLOR} 100%)`,
+            top: '80px',
+            bottom: '40px',
+            width: '3px',
+            background: 'linear-gradient(180deg, #2D3748 0%, #4ECDC4 50%, #2D3748 100%)',
             transform: 'translateX(-50%)',
             borderRadius: '2px',
-            boxShadow: '0 0 20px rgba(78, 205, 196, 0.5)'
+            boxShadow: '0 0 15px rgba(78, 205, 196, 0.5)',
+            zIndex: 10
           }} />
         )}
 
@@ -682,21 +750,25 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
               maxWidth: '400px'
             }}>
               <div style={{ fontSize: '64px', marginBottom: '20px' }}>
-                {winner === 'left' ? '🏆' : winner === 'right' ? '🏆' : '🤝'}
+                {winner === 'player1' ? '🏆' : winner === 'player2' ? '🏆' : '🤝'}
               </div>
               <h2 style={{ fontSize: '32px', fontWeight: '900', color: classColor, margin: '0 0 10px 0' }}>
-                {winner === 'left' ? `${players[0]?.name || 'Player 1'} Wins!` :
-                 winner === 'right' ? `${players[1]?.name || 'Player 2'} Wins!` :
+                {winner === 'player1' ? `${players[0]?.name || 'Player 1'} Wins!` :
+                 winner === 'player2' ? `${players[1]?.name || 'Player 2'} Wins!` :
                  "It's a Tie!"}
               </h2>
-              <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '20px' }}>
-                Final Score: {scoreLeft} - {scoreRight}
-              </p>
+              {faceOffMode && (
+                <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '20px' }}>
+                  Final Score: {player1State.score} - {player2State.score}
+                </p>
+              )}
+              {!faceOffMode && (
+                <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '20px' }}>
+                  You scored {player1State.score} point{player1State.score !== 1 ? 's' : ''}!
+                </p>
+              )}
               <button
-                onClick={() => {
-                  setGameOver(false);
-                  setPlaying(false);
-                }}
+                onClick={resetGame}
                 style={{
                   padding: '14px 28px',
                   fontSize: '16px',
@@ -721,13 +793,17 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, classColor =
             50% { transform: scale(1.2); }
           }
           @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-          }
-          @keyframes flyIn {
-            0% { transform: translateY(-20px) scale(0.5); opacity: 0; }
-            100% { transform: translateY(0) scale(1.1); opacity: 1; }
+            0% { transform: translateX(0) rotate(0deg); }
+            10% { transform: translateX(-5px) rotate(-5deg); }
+            20% { transform: translateX(5px) rotate(5deg); }
+            30% { transform: translateX(-5px) rotate(-5deg); }
+            40% { transform: translateX(5px) rotate(5deg); }
+            50% { transform: translateX(-3px) rotate(-3deg); }
+            60% { transform: translateX(3px) rotate(3deg); }
+            70% { transform: translateX(-2px) rotate(-2deg); }
+            80% { transform: translateX(2px) rotate(2deg); }
+            90% { transform: translateX(-1px) rotate(-1deg); }
+            100% { transform: translateX(0) rotate(0deg); }
           }
         `}</style>
       </div>
