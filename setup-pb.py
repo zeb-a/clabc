@@ -186,6 +186,33 @@ def setup():
             print(f"✗ Failed to create classes collection: {res.status_code} - {res.text}")
     else:
         print("\n✓ Classes collection already exists")
+
+    # Create lesson_plans collection if it doesn't exist
+    if "lesson_plans" not in collections:
+        print("\nCreating lesson_plans collection...")
+        res = make_request("POST", "/collections", {
+            "name": "lesson_plans",
+            "type": "base",
+            "createRule": None,
+            "updateRule": None,
+            "deleteRule": None,
+            "listRule": None,
+            "viewRule": None,
+            "fields": [
+                {"name": "teacher", "type": "text", "required": True},
+                {"name": "class_id", "type": "text", "required": True},
+                {"name": "period", "type": "text", "required": True},
+                {"name": "title", "type": "text"},
+                {"name": "date", "type": "text"},
+                {"name": "data", "type": "json"}
+            ]
+        })
+        if res.status_code == 200:
+            print("✓ lesson_plans collection created")
+        else:
+            print(f"✗ Failed to create lesson_plans: {res.status_code} - {res.text}")
+    else:
+        print("\n✓ lesson_plans collection already exists")
     
     print("\n✓ Setup complete!")
 

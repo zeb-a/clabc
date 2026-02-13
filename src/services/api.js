@@ -592,6 +592,55 @@ if (avatar && avatar.startsWith('data:image')) {
    * and redirect URI set to https://your-pb-domain/api/oauth2-redirect.
    * @returns {Promise<{ user: { email, name, id, title }, token: string }>}
    */
+  // --- Lesson Plans ---
+  async getLessonPlans(teacherEmail, filters = {}) {
+    const token = getToken();
+    if (!token) throw new Error('not_authenticated');
+    const res = await pbRequest('/collections/lesson_plans/records?perPage=500');
+    let items = (res.items || []).filter((lp) => lp.teacher === teacherEmail);
+    if (filters.classId) items = items.filter((lp) => lp.class_id === filters.classId);
+    if (filters.period) items = items.filter((lp) => lp.period === filters.period);
+    return items;
+  },
+
+  async getLessonPlan(id) {
+    const token = getToken();
+    if (!token) throw new Error('not_authenticated');
+    return pbRequest(`/collections/lesson_plans/records/${id}`);
+  },
+
+  async createLessonPlan({ teacher, class_id, period, title, date, data }) {
+    const token = getToken();
+    if (!token) throw new Error('not_authenticated');
+    if (!period || !class_id || !teacher) throw new Error('period, class_id, and teacher are required');
+    return pbRequest('/collections/lesson_plans/records', {
+      method: 'POST',
+      body: JSON.stringify({
+        teacher,
+        class_id: String(class_id),
+        period,
+        title: title || '',
+        date: date || null,
+        data: data || {}
+      })
+    });
+  },
+
+  async updateLessonPlan(id, { title, date, data }) {
+    const token = getToken();
+    if (!token) throw new Error('not_authenticated');
+    return pbRequest(`/collections/lesson_plans/records/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ title: title ?? undefined, date: date ?? undefined, data: data ?? undefined })
+    });
+  },
+
+  async deleteLessonPlan(id) {
+    const token = getToken();
+    if (!token) throw new Error('not_authenticated');
+    return pbRequest(`/collections/lesson_plans/records/${id}`, { method: 'DELETE' });
+  },
+
   async loginWithGoogle() {
     const { default: PocketBase } = await import('pocketbase');
     const apiBase = base.startsWith('http') ? base : (typeof window !== 'undefined' ? window.location.origin + base : base);

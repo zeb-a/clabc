@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      pocketbase: resolve(__dirname, 'node_modules/pocketbase/dist/pocketbase.es.mjs')
+    }
+  },
   base: './',
   build: {
     // Ensure assets are properly referenced for Capacitor
@@ -24,7 +30,8 @@ export default defineConfig({
           'ui-vendor': ['lucide-react', 'framer-motion'],
           'editor-vendor': ['@tiptap/react', '@tiptap/starter-kit'],
           'chart-vendor': ['chart.js', 'react-chartjs-2'],
-          'utils-vendor': ['boring-avatars', 'qrcode.react', 'react-qr-code']
+          'utils-vendor': ['boring-avatars', 'qrcode.react', 'react-qr-code'],
+          'docx': ['docx']
         }
       }
     }

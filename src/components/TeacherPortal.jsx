@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText } from 'lucide-react';
+import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText, BookOpen } from 'lucide-react';
 import InlineHelpButton from './InlineHelpButton';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
@@ -144,7 +144,7 @@ const internalCSS = `
   }
 `;
 
-export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado }) {
+export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado, onOpenLessonPlanner }) {
   const { t } = useTranslation();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
@@ -521,6 +521,25 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'center' }}>
+            {onOpenLessonPlanner && (
+              <button
+                onClick={onOpenLessonPlanner}
+                style={{
+                  ...styles.logoutBtn,
+                  background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+                  border: '2px solid #66BB6A',
+                  color: '#fff',
+                  boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                  padding: '14px 20px',
+                  fontSize: '16px',
+                  fontWeight: 700
+                }}
+                title="Lesson Planner"
+              >
+                <BookOpen size={18} />
+                <span style={{ marginLeft: 6 }}>Lesson Planner</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 const existingGame = localStorage.getItem('selected_game_type');

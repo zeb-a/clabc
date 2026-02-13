@@ -17,6 +17,7 @@ import ConfirmAccountPage from './components/ConfirmAccountPage';
 import SearchableGuide from './components/SearchableGuide';
 import AssignmentsPage from "./components/AssignmentsPage";
 import ErrorBoundary from './components/ErrorBoundary';
+import LessonPlannerPage from './components/lesson-planner/LessonPlannerPage';
 import TornadoGameWrapper from './components/TornadoGameWrapper';
 import './components/ModalAnimations.css';
 // --- INITIAL DATA ---
@@ -71,15 +72,19 @@ function App() {
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
-  const [view, setView] = useState('portal'); // 'portal' | 'dashboard' | 'egg' | 'settings' | 'setup' | 'games'
-  const [viewHistory, setViewHistory] = useState(['portal']);
+  const initialView = (() => {
+    const h = (window.location.hash || '#portal').replace(/^#/, '');
+    return ['portal', 'dashboard', 'egg', 'settings', 'setup', 'torenado', 'lesson-planner'].includes(h) ? h : 'portal';
+  })();
+  const [view, setView] = useState(initialView);
+  const [viewHistory, setViewHistory] = useState([initialView]);
 
   // Track the current index in history to prevent conflicts
   const historyRef = useRef(0);
 
-  // Initialize browser history on mount - push initial state
+  // Initialize browser history on mount - sync with hash
   useEffect(() => {
-    window.history.replaceState({ view: 'portal', appHistoryIndex: 0 }, '', '#portal');
+    window.history.replaceState({ view: initialView, appHistoryIndex: 0 }, '', `#${initialView}`);
   }, []);
 
   // Navigate with history tracking for swipe-back
@@ -529,6 +534,7 @@ function App() {
         onEditProfile={() => setShowProfile(true)}
         updateClasses={setClasses}
         onOpenTorenado={() => navigate('torenado')}
+        onOpenLessonPlanner={() => navigate('lesson-planner')}
       />
     </>
     );
@@ -602,7 +608,17 @@ function App() {
   if (view === 'torenado') {
     return <TornadoGameWrapper onBack={handleTornadoBack} classes={classes} />;
   }
-  // 2. In your render logic:
+
+  // Lesson Planner
+  if (view === 'lesson-planner') {
+    return (
+      <LessonPlannerPage
+        user={user}
+        classes={classes}
+        onBack={() => navigate('portal')}
+      />
+    );
+  }
 
   // Fallback to portal
   return (
