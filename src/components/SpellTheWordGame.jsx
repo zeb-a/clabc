@@ -22,11 +22,11 @@ function extractImageName(fileOrName) {
   return filename.trim();
 }
 
-export default function SpellTheWordGame({ onBack, onEditQuestions, words: propWords = [], classColor = '#4CAF50' }) {
+export default function SpellTheWordGame({ onBack, onEditQuestions, words: propWords = [], classColor = '#4CAF50', players: propPlayers = [] }) {
   const { t } = useTranslation();
   const [words, setWords] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('words');
-  const [players, setPlayers] = useState([]); // [] = single, 2 players = face-off
   const [playing, setPlaying] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [player1State, setPlayer1State] = useState({
@@ -45,14 +45,6 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
   const audioRef = useRef(null);
 
   const faceOffMode = playing && players.length >= 2;
-
-  // Initialize words from props on first mount
-  useEffect(() => {
-    if (propWords && propWords.length > 0 && words.length === 0) {
-      setWords(propWords);
-    }
-  }, []);
-
   const validWords = words.filter(w => w.word?.trim());
   const currentWord = validWords[currentWordIndex];
 
@@ -65,18 +57,19 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
 
   const handleLetterClick = (letter, playerNum) => {
     if (!currentWord) return;
-    
-    const wordLetters = currentWord.word.toUpperCase().split('').filter(l => l.trim());
+
+    // Get unique letters only
+    const uniqueLetters = [...new Set(currentWord.word.toUpperCase().split('').filter(l => l.trim()))];
     const letterUpper = letter.toUpperCase();
     const key = `${playerNum}-${letter}`;
     const playerState = playerNum === 1 ? player1State : player2State;
     const setPlayerState = playerNum === 1 ? setPlayer1State : setPlayer2State;
-    
+
     // Don't allow clicking if already guessed
     if (playerState.guessedLetters[key] !== undefined) return;
-    
-    const isCorrect = wordLetters.includes(letterUpper);
-    
+
+    const isCorrect = uniqueLetters.includes(letterUpper);
+
     // Update guessed letters and check for completion
     const newGuessedLetters = { ...playerState.guessedLetters, [key]: isCorrect ? 'correct' : 'wrong' };
     setPlayerState(prev => ({
@@ -90,13 +83,12 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
       playSound('wrong');
     }
 
-    // Check if all letters are guessed correctly
-    const allLetters = wordLetters;
-    const allGuessed = allLetters.every(l => newGuessedLetters[`${playerNum}-${l.toLowerCase()}`] === 'correct');
+    // Check if all unique letters are guessed correctly
+    const allGuessed = uniqueLetters.every(l => newGuessedLetters[`${playerNum}-${l.toLowerCase()}`] === 'correct');
 
     if (allGuessed) {
       playSound('win');
-      
+
       // Mark word as completed and increment score
       setPlayerState(prev => ({ ...prev, completed: true, score: prev.score + 1 }));
 
@@ -108,7 +100,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
             setPlayer1State(prev => ({ guessedLetters: {}, completed: false, score: prev.score }));
             setPlayer2State(prev => ({ guessedLetters: {}, completed: false, score: prev.score }));
           } else {
-            setWinner(player1State.score + 1 > player2State.score + 1 ? 'player1' : 
+            setWinner(player1State.score + 1 > player2State.score + 1 ? 'player1' :
                      player2State.score + 1 > player1State.score + 1 ? 'player2' : 'tie');
             setGameOver(true);
           }
@@ -124,7 +116,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
       setPlayer2State({ guessedLetters: {}, completed: false, score: player2State.score });
     } else {
       if (faceOffMode) {
-        setWinner(player1State.score > player2State.score ? 'player1' : 
+        setWinner(player1State.score > player2State.score ? 'player1' :
                  player2State.score > player1State.score ? 'player2' : 'tie');
         setGameOver(true);
       } else {
@@ -138,7 +130,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
   const startGame = () => {
     const wordsToUse = (words.length === 0 && propWords.length > 0) ? propWords : words;
     const validWordsToUse = wordsToUse.filter(w => w.word?.trim());
-    
+
     if (validWordsToUse.length < 1) return;
 
     if (words.length === 0 && propWords.length > 0) {
@@ -161,6 +153,23 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
     setGameOver(false);
     setWinner(null);
   };
+
+  // Initialize words and players from props on first mount
+  useEffect(() => {
+    if (propWords && propWords.length > 0 && words.length === 0) {
+      setWords(propWords);
+    }
+    if (propPlayers && propPlayers.length > 0 && players.length === 0) {
+      setPlayers(propPlayers);
+    }
+  }, []);
+
+  // Sync words from parent when propWords changes (but only if we have words in parent)
+  useEffect(() => {
+    if (propWords && propWords.length > 0) {
+      setWords(propWords);
+    }
+  }, [propWords]);
 
   const renderConfig = () => (
     <div style={{
@@ -458,7 +467,8 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
   const renderPlayerBoard = (playerNum, playerState) => {
     if (!currentWord) return null;
     
-    const wordLetters = currentWord.word.toUpperCase().split('').filter(l => l.trim());
+    // Get unique letters only (one dash per letter)
+    const uniqueLetters = [...new Set(currentWord.word.toUpperCase().split('').filter(l => l.trim()))];
     const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
     const isLeft = playerNum === 1;
 
@@ -499,7 +509,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
           </div>
         </div>
 
-        {/* Word Dashes */}
+        {/* Word Dashes - ONE dash per unique letter */}
         <div style={{
           display: 'flex',
           gap: '6px',
@@ -507,13 +517,13 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
           justifyContent: 'center',
           marginBottom: '10px'
         }}>
-          {wordLetters.map((letter, index) => {
+          {uniqueLetters.map((letter, index) => {
             const key = `${playerNum}-${letter.toLowerCase()}`;
             const isGuessed = playerState.guessedLetters[key] === 'correct';
             
             return (
               <div
-                key={`${currentWord.word}-${index}`}
+                key={`${currentWord.word}-${letter}-${index}`}
                 style={{
                   minWidth: '30px',
                   height: '40px',
@@ -602,7 +612,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
       <div style={{
         width: '100vw',
         height: '100vh',
-        background: faceOffMode ? 
+        background: faceOffMode ?
           'linear-gradient(135deg, #e0ffe0 0%, #ffe0f8 100%)' :
           'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
@@ -611,7 +621,7 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
         padding: '20px',
         overflowY: 'auto'
       }}>
-        {/* Back Button */}
+        {/* Back Button - top left */}
         <button
           onClick={resetGame}
           style={{
@@ -637,26 +647,41 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
           Back
         </button>
 
+        {/* Close Button - top right */}
+        <button
+          onClick={onBack}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            width: '45px',
+            height: '45px',
+            background: 'rgba(255,255,255,0.9)',
+            border: 'none',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            fontSize: '24px',
+            fontWeight: '900',
+            color: '#ef4444',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+          }}
+        >
+          ✕
+        </button>
+
         {/* Main Content */}
         <div style={{
           width: '100%',
-          maxWidth: faceOffMode ? '1200px' : '600px',
+          maxWidth: faceOffMode ? '1400px' : '600px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '50px 20px'
+          padding: '80px 20px 40px 20px'
         }}>
-          {/* Word Progress */}
-          <div style={{
-            marginBottom: '15px',
-            fontSize: '18px',
-            fontWeight: '700',
-            color: 'white',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-          }}>
-            Word {currentWordIndex + 1} of {validWords.length}
-          </div>
-
           {/* Image Display */}
           {currentWord.image && (
             <div style={{
@@ -679,16 +704,27 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
             </div>
           )}
 
-          {/* Game Area */}
+          {/* Game Area - increased gap */}
           <div style={{
             width: '100%',
             display: 'flex',
-            gap: '15px',
+            gap: faceOffMode ? '60px' : '15px',
             flexDirection: faceOffMode ? 'row' : 'column',
             alignItems: 'stretch'
           }}>
             {renderPlayerBoard(1, player1State)}
             {faceOffMode && renderPlayerBoard(2, player2State)}
+          </div>
+
+          {/* Word Count - moved to bottom */}
+          <div style={{
+            marginTop: '20px',
+            fontSize: '18px',
+            fontWeight: '700',
+            color: 'white',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          }}>
+            Word {currentWordIndex + 1} of {validWords.length}
           </div>
 
           {/* Next Word Button */}
@@ -711,22 +747,6 @@ export default function SpellTheWordGame({ onBack, onEditQuestions, words: propW
             Next Word →
           </button>
         </div>
-
-        {/* Vertical Divider for 2-player mode */}
-        {faceOffMode && (
-          <div style={{
-            position: 'fixed',
-            left: '50%',
-            top: '80px',
-            bottom: '40px',
-            width: '3px',
-            background: 'linear-gradient(180deg, #2D3748 0%, #4ECDC4 50%, #2D3748 100%)',
-            transform: 'translateX(-50%)',
-            borderRadius: '2px',
-            boxShadow: '0 0 15px rgba(78, 205, 196, 0.5)',
-            zIndex: 10
-          }} />
-        )}
 
         {/* Game Over Modal */}
         {gameOver && (

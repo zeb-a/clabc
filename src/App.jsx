@@ -72,9 +72,10 @@ function App() {
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
+  const GAME_VIEWS = ['torenado', 'tornado', 'quiz', 'spelltheword', 'memorymatch', 'faceoff', 'motorace', 'horserace', 'liveworksheet'];
   const initialView = (() => {
     const h = (window.location.hash || '#portal').replace(/^#/, '');
-    return ['portal', 'dashboard', 'egg', 'settings', 'setup', 'torenado', 'lesson-planner'].includes(h) ? h : 'portal';
+    return ['portal', 'dashboard', 'egg', 'settings', 'setup', 'lesson-planner', ...GAME_VIEWS].includes(h) ? h : 'portal';
   })();
   const [view, setView] = useState(initialView);
   const [viewHistory, setViewHistory] = useState([initialView]);
@@ -533,7 +534,7 @@ function App() {
         onLogout={onLogout}
         onEditProfile={() => setShowProfile(true)}
         updateClasses={setClasses}
-        onOpenTorenado={() => navigate('torenado')}
+        onOpenTorenado={() => navigate(localStorage.getItem('selected_game_type') || 'tornado')}
         onOpenLessonPlanner={() => navigate('lesson-planner')}
       />
     </>
@@ -604,9 +605,10 @@ function App() {
     );
   }
 
-  // Torenado game
-  if (view === 'torenado') {
-    return <TornadoGameWrapper onBack={handleTornadoBack} classes={classes} />;
+  // Games (tornado, quiz, spelltheword, etc.)
+  if (GAME_VIEWS.includes(view)) {
+    const gameType = view === 'torenado' ? 'tornado' : view;
+    return <TornadoGameWrapper onBack={handleTornadoBack} classes={classes} initialGameType={gameType} />;
   }
 
   // Lesson Planner

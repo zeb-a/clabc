@@ -233,7 +233,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       localStorage.setItem('torenado_config', JSON.stringify({ classId: torenadoSelectedClass.id }));
       setShowTorenadoModal(false);
       if (onOpenTorenado) onOpenTorenado();
-      else window.location.hash = 'torenado';
+      else window.location.hash = selectedGameType || 'tornado';
       return;
     }
 
@@ -294,11 +294,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       classId: torenadoSelectedClass.id
     }));
 
-    // Navigate to torenado view
+    // Navigate to game view
     if (onOpenTorenado) {
       onOpenTorenado();
     } else {
-      window.location.hash = 'torenado';
+      window.location.hash = localStorage.getItem('selected_game_type') || 'tornado';
     }
   };
 
