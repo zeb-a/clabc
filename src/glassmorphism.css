@@ -40,6 +40,7 @@
   --ring-shadow: rgba(76, 175, 80, 0.35);
   --hover-shadow-1: rgba(0, 0, 0, 0.35);
   --hover-shadow-2: rgba(0, 0, 0, 0.25);
+  --hover-orange: #FF9500;
 }
 
 /* Base glassmorphism styles */
@@ -116,6 +117,18 @@ button:hover, .btn:hover, [class*="card"]:hover, nav:hover,
     0 0 0 1px var(--ring-shadow),
     0 0 20px var(--ring-shadow);
   border-color: var(--ring-color);
+}
+
+/* Dark mode: white to orange hover with text scale */
+[data-theme="dark"] button:hover,
+[data-theme="dark"] .btn:hover,
+[data-theme="dark"] [role="button"]:hover {
+  color: var(--hover-orange) !important;
+}
+[data-theme="dark"] button:hover > *,
+[data-theme="dark"] .btn:hover > *,
+[data-theme="dark"] [role="button"]:hover > * {
+  transform: scale(1.05);
 }
 
 /* ACTIVE/CLICK STATE - Press down effect */

@@ -14,16 +14,13 @@ const ThemeProvider = (props) => {
     const userPreference = localStorage.getItem('theme-preference');
     const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = userPreference || (systemPrefersDark ? 'dark' : 'light');
-    console.log('[ThemeContext] Initial theme:', initialTheme);
     return initialTheme;
   });
 
   // Apply theme whenever it changes
   useEffect(() => {
-    console.log('[ThemeContext] Setting data-theme to:', theme);
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
-    console.log('[ThemeContext] data-theme is now:', root.getAttribute('data-theme'));
 
     // Apply dark mode styles
     applyDarkModeStyles(theme === 'dark');
@@ -37,7 +34,6 @@ const ThemeProvider = (props) => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
       const newTheme = e.matches ? 'dark' : 'light';
-      console.log('[ThemeContext] System theme changed to:', newTheme);
       setTheme(newTheme);
     };
     mediaQuery.addEventListener('change', handleChange);

@@ -193,6 +193,15 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
       border-color: #4CAF50 !important;
       color: #4CAF50 !important;
       animation: pulse-border 2s infinite;
+    }
+    /* Optimize emoji picker grid for Chrome */
+    .centerStickerGrid {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+    .centerStickerGrid button {
+      will-change: transform;
     }`;
     document.head.appendChild(style);
     return () => { const el = document.getElementById('settings-mobile-styles'); if (el) el.remove(); };
@@ -229,19 +238,8 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
   React.useEffect(() => {
     const parseEmojis = () => {
       if (typeof window !== 'undefined' && window.twemoji) {
-        // Parse emojis in emoji picker
-        setTimeout(() => {
-          const emojiModal = document.querySelector('[style*="position: fixed"][style*="z-index: 3500"]');
-          if (emojiModal) {
-            window.twemoji.parse(emojiModal, {
-              folder: 'svg',
-              ext: '.svg',
-              className: 'emoji'
-            });
-          }
-        }, 50);
-
-        // Parse emojis in card icons
+        // Skip parsing emoji picker - causes severe lag on hover
+        // Only parse card icons
         const cardIcons = document.querySelectorAll('[style*="width: 44px"][style*="height: 44px"]');
         cardIcons.forEach(icon => {
           if (icon.textContent && /[\u{1F000}-\u{1F9FF}]/u.test(icon.textContent)) {
@@ -255,13 +253,11 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
       }
     };
 
-    parseEmojis();
-
-    // Also parse when emoji picker opens
-    if (openEmojiFor) {
-      setTimeout(parseEmojis, 100);
+    // Only parse on initial mount
+    if (openEmojiFor === null && cards.length > 0) {
+      parseEmojis();
     }
-  }, [openEmojiFor, cards]);
+  }, []);
 
   // SettingsPage.jsx
 // Optimistic close: close UI immediately, save in background
@@ -777,7 +773,6 @@ const styles = {
     height: 180,
     boxSizing: 'border-box',
     boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-    transition: 'box-shadow 0.2s',
   },
   itemInfo: { display: 'flex', alignItems: 'center', gap: '20px' },
   itemIcon: { fontSize: '28px' },

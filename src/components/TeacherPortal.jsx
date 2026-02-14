@@ -150,6 +150,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTorenadoModal, setShowTorenadoModal] = useState(false);
+
   const [torenadoSelectedClass, setTorenadoSelectedClass] = useState(null);
   const [torenadoPlayers, setTorenadoPlayers] = useState([]);
   const [playerCount, setPlayerCount] = useState(2);
@@ -525,19 +526,37 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               <button
                 onClick={onOpenLessonPlanner}
                 style={{
-                  ...styles.logoutBtn,
-                  background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
-                  border: '2px solid #66BB6A',
-                  color: '#fff',
-                  boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.5)',
+                  color: '#000',
                   padding: '14px 20px',
-                  fontSize: '16px',
-                  fontWeight: 700
+                  borderRadius: '16px',
+                  fontSize: '15px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.5)'
                 }}
                 title="Lesson Planner"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)';
+                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(76, 175, 80, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+                }}
               >
                 <BookOpen size={18} />
-                <span style={{ marginLeft: 6 }}>Lesson Planner</span>
+                <span>Lesson Planner</span>
               </button>
             )}
             <button
@@ -552,27 +571,75 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 setShowTorenadoModal(true);
               }}
               style={{
-                ...styles.logoutBtn,
-                background: 'linear-gradient(135deg, #8B5CF6, #EC4899)',
-                border: '2px solid #A78BFA',
-                color: '#fff',
-                boxShadow: '0 6px 20px rgba(139, 92, 246, 0.5)',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(139, 92, 246, 0.5)',
+                color: '#8B5CF6',
                 padding: '14px 20px',
-                fontSize: '18px',
-                fontWeight: 800
+                borderRadius: '16px',
+                fontSize: '15px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 8px 32px rgba(139, 92, 246, 0.25)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                textShadow: 'none'
               }}
               title={t('teacher_portal.play_games')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 1)';
+                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 32px rgba(139, 92, 246, 0.25)';
+              }}
             >
               <Zap size={18} />
-              <span style={{ marginLeft: 6, fontWeight: 700, fontSize: '16px' }}>{t('teacher_portal.play_games')}</span>
+              <span>{t('games.title')}</span>
             </button>
-            <InlineHelpButton pageId="teacher-portal" />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={() => setLogoutConfirm(true)} title={t('teacher_portal.logout')} style={styles.logoutBtn}>
-              <LogOut size={14} />
-              <span style={{ marginLeft: 4, fontWeight: 600 }}>{t('teacher_portal.logout')}</span>
+            <InlineHelpButton pageId="teacher-portal" />
+            <button
+              onClick={() => setLogoutConfirm(true)}
+              title={t('teacher_portal.logout')}
+              style={{
+                background: 'rgba(239, 68, 68, 0.15)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#EF4444',
+                padding: '14px 20px',
+                borderRadius: '16px',
+                fontSize: '15px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 8px 32px rgba(239, 68, 68, 0.15)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
+                e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+                e.currentTarget.style.boxShadow = '0 12px 40px rgba(239, 68, 68, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                e.currentTarget.style.boxShadow = '0 8px 32px rgba(239, 68, 68, 0.15)';
+              }}
+            >
+              <LogOut size={18} />
+              <span>{t('teacher_portal.logout')}</span>
             </button>
           </div>
         </div>

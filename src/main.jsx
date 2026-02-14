@@ -105,7 +105,6 @@ if (typeof window !== 'undefined') {
       if (style) style.remove();
     }
 
-    console.log('[main.jsx] Set data-theme to:', isDark ? 'dark' : 'light');
   };
   applyTheme();
 

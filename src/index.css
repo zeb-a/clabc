@@ -139,6 +139,37 @@ button:hover:not(:disabled) {
   background: rgba(156, 163, 175, 0.4) !important;
 }
 
+/* Debug: show dark mode is active */
+[data-theme="dark"] {
+  background-color: #1a1a1a !important;
+}
+
+/* Dark mode hover effect - white to orange with scale */
+[data-theme="dark"] button:not(:disabled) {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="dark"] button:hover:not(:disabled) {
+  color: #FF9500 !important;
+  transform: scale(1.05);
+}
+
+[data-theme="dark"] button:hover:not(:disabled) span,
+[data-theme="dark"] button:hover:not(:disabled) div,
+[data-theme="dark"] button:hover:not(:disabled) svg {
+  color: #FF9500 !important;
+}
+
+/* Also apply to btn classes */
+[data-theme="dark"] [class*="btn"]:not(:disabled) {
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="dark"] [class*="btn"]:hover:not(:disabled) {
+  color: #FF9500 !important;
+  transform: scale(1.05);
+}
+
 /* Fix jumpy scrollbars by making them always present but invisible */
 *::-webkit-scrollbar {
   opacity: 1;

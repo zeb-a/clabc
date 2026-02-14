@@ -1175,7 +1175,6 @@ class TornadoScene extends Phaser.Scene {
         onEditComplete: (newName, container) => {
           // Update the image data when text is edited
           imageData.name = newName;
-          console.log(`Updated image name to: ${newName}`);
         }
       });
       

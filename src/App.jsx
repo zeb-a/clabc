@@ -373,7 +373,6 @@ function App() {
 
   // --- THIS BLOCK MUST BE HERE (ABOVE THE MAIN RETURN) ---
   if (isAssignmentStudioOpen) {
-    console.log("App.jsx: Rendering AssignmentsPage now!");
     return (
     
       <AssignmentsPage
@@ -421,25 +420,19 @@ function App() {
               }
               return c;
             });
-            console.log("Teacher just updated classes. New assignments:", newClasses.find(c => c.id === activeClass.id)?.assignments);
             return newClasses;
           });
 
           // Wait for state update to flush, then save the same newClasses to backend
           setTimeout(async () => {
             try {
-              console.log("Saving assignments to backend...");
               await api.saveClasses(user.email, newClasses, behaviors);
-              console.log("Assignment successfully saved to backend");
             } catch (error) {
-              console.error("Error saving assignment to backend:", error);
             }
           }, 0);
 
           // Simulate a notification to students that a new assignment is available
           // This would trigger updates in the student portals
-          console.log("Assignment published successfully:", newAsn.title);
-          console.log("Assigned to:", newAsn.assignedTo, "Assigned to all:", newAsn.assignedToAll);
 
           setIsAssignmentStudioOpen(false);
         }}
@@ -622,7 +615,7 @@ function App() {
 
   // Fallback to portal
   return (
-    <TeacherPortal classes={classes} onSelectClass={onSelectClass} onAddClass={onAddClass} onLogout={onLogout} />
+    <TeacherPortal classes={classes} onSelectClass={onSelectClass} onAddClass={onAddClass} onLogout={onLogout} onOpenLessonPlanner={() => navigate('lesson-planner')} />
   );
 }
 
