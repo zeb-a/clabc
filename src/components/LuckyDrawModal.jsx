@@ -118,7 +118,7 @@ export default function LuckyDrawModal({ students, onClose, onWinner, onRequestA
           maxHeight: '90vh' // Prevents button from going off-screen
         }}>
           <X onClick={onClose} style={modalStyles.closeIcon} />
-          <div style={modalStyles.headerLabel}>{rolling ? "Selecting..." : "Selections!"}</div>
+          <div style={modalStyles.headerLabel}>{rolling ? 'Selecting...' : 'Selections!'}</div>
 
           <div style={{
             ...modalStyles.cardsWrapper,

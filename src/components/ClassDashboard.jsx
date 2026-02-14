@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable no-dupe-keys */
+ 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -563,7 +563,7 @@ export default function ClassDashboard({
       );
       setSubmissions(data.items || []);
     } catch (err) {
-      console.error("Failed to fetch submissions:", err);
+      console.error('Failed to fetch submissions:', err);
     } finally {
       setLoadingSubmissions(false);
     }
@@ -609,8 +609,8 @@ export default function ClassDashboard({
       // Refresh local data so the UI updates instantly
       await fetchFreshSubmissions();
     } catch (err) {
-      console.error("Grade submit failed", err);
-      alert("Failed to save grade. Check console.");
+      console.error('Grade submit failed', err);
+      alert('Failed to save grade. Check console.');
     }
   };
 
@@ -1307,7 +1307,7 @@ export default function ClassDashboard({
 
                   {/* The Updated KidTimer handles the width internally now */}
                   <KidTimer onClose={() => setViewMode('students')} // Now the 'X' will work
-                    onComplete={() => ("Time is up! 🎉")} />
+                    onComplete={() => ('Time is up! 🎉')} />
 
                 </div>
               </div>
@@ -2450,4 +2450,4 @@ const styles = {
     fontSize: '13px',
     transition: 'all 0.16s ease'
   },
-}
+};

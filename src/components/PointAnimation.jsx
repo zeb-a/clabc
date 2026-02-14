@@ -346,7 +346,7 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
             animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%', rotate: 0 }}
             exit={{ opacity: 0, scale: 0.5, x: '-50%', y: '-40%', rotate: 10 }}
             transition={{
-              type: "spring",
+              type: 'spring',
               damping: performanceConfig.transform ? 16 : 12, // Smoother on low-end devices
               stiffness: performanceConfig.transform ? 250 : 300 // Gentler spring on low-end devices
             }}
@@ -476,7 +476,7 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
                   duration: performanceConfig.animationDuration * 0.75,
                   repeat: Infinity,
                   repeatDelay: performanceConfig.repeatDelay,
-                  ease: isPositive ? "easeOut" : "easeInOut"
+                  ease: isPositive ? 'easeOut' : 'easeInOut'
                 }}
                 style={{
                   fontSize: '100px',
@@ -556,7 +556,7 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
                       repeat: Infinity,
                       repeatDelay: performanceConfig.repeatDelay,
                       delay: i * 0.15,
-                      ease: "linear"
+                      ease: 'linear'
                     }}
                     style={{
                       position: 'absolute',

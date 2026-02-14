@@ -90,7 +90,7 @@ async getStudentByParentCode(code) {
         }
         return null;
     } catch (e) {
-        console.error("Search error", e);
+        console.error('Search error', e);
         return null;
     }
 },
@@ -135,7 +135,7 @@ async getStudentByParentCode(code) {
       // Return null if no match found
       return null;
     } catch (err) {
-      console.error("[API] Portal login error:", err);
+      console.error('[API] Portal login error:', err);
       throw err;
     }
   },

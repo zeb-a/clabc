@@ -89,11 +89,11 @@
             if (item.type === 'positive') {
                 if (language === 'zh') {
                     const chinesePositives = {
-                        "Great work": "表现出色",
-                        "Homework": "作业完成得好",
-                        "Helping others": "乐于助人",
-                        "Participation": "积极参与",
-                        "Kindness": "善良友善"
+                        'Great work': '表现出色',
+                        'Homework': '作业完成得好',
+                        'Helping others': '乐于助人',
+                        'Participation': '积极参与',
+                        'Kindness': '善良友善'
                     };
 
                     const behaviorZh = chinesePositives[item.card] || item.card;
@@ -108,11 +108,11 @@
             } else {
                 if (language === 'zh') {
                     const chineseNegatives = {
-                        "Off-task": "注意力不集中",
-                        "Disrespectful": "不尊重他人",
-                        "Late": "迟到",
-                        "Incomplete work": "作业未完成",
-                        "Disruptive": "扰乱秩序"
+                        'Off-task': '注意力不集中',
+                        'Disrespectful': '不尊重他人',
+                        'Late': '迟到',
+                        'Incomplete work': '作业未完成',
+                        'Disruptive': '扰乱秩序'
                     };
 
                     const behaviorZh = chineseNegatives[item.card] || item.card;

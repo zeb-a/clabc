@@ -15,7 +15,7 @@ import { LogOut } from 'lucide-react';
 import PasswordResetPage from './components/PasswordResetPage';
 import ConfirmAccountPage from './components/ConfirmAccountPage';
 import SearchableGuide from './components/SearchableGuide';
-import AssignmentsPage from "./components/AssignmentsPage";
+import AssignmentsPage from './components/AssignmentsPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import LessonPlannerPage from './components/lesson-planner/LessonPlannerPage';
 import TornadoGameWrapper from './components/TornadoGameWrapper';
@@ -310,7 +310,7 @@ function App() {
           const key = `classABC_data_${user.email}`;
           localStorage.setItem(key, JSON.stringify(next));
         }
-      // eslint-disable-next-line no-unused-vars, no-empty
+      // eslint-disable-next-line no-unused-vars
       } catch (e) { }
       return next;
     });
@@ -334,7 +334,7 @@ function App() {
           const key = `classABC_data_${user.email}`;
           localStorage.setItem(key, JSON.stringify(next));
         }
-      // eslint-disable-next-line no-unused-vars, no-empty
+      // eslint-disable-next-line no-unused-vars
       } catch (e) { }
       return next;
     });
@@ -374,7 +374,7 @@ function App() {
 
   // --- THIS BLOCK MUST BE HERE (ABOVE THE MAIN RETURN) ---
   if (isAssignmentStudioOpen) {
-    console.log("App.jsx: Rendering AssignmentsPage now!");
+    console.log('App.jsx: Rendering AssignmentsPage now!');
     return (
     
       <AssignmentsPage
@@ -422,25 +422,25 @@ function App() {
               }
               return c;
             });
-            console.log("Teacher just updated classes. New assignments:", newClasses.find(c => c.id === activeClass.id)?.assignments);
+            console.log('Teacher just updated classes. New assignments:', newClasses.find(c => c.id === activeClass.id)?.assignments);
             return newClasses;
           });
 
           // Wait for state update to flush, then save the same newClasses to backend
           setTimeout(async () => {
             try {
-              console.log("Saving assignments to backend...");
+              console.log('Saving assignments to backend...');
               await api.saveClasses(user.email, newClasses, behaviors);
-              console.log("Assignment successfully saved to backend");
+              console.log('Assignment successfully saved to backend');
             } catch (error) {
-              console.error("Error saving assignment to backend:", error);
+              console.error('Error saving assignment to backend:', error);
             }
           }, 0);
 
           // Simulate a notification to students that a new assignment is available
           // This would trigger updates in the student portals
-          console.log("Assignment published successfully:", newAsn.title);
-          console.log("Assigned to:", newAsn.assignedTo, "Assigned to all:", newAsn.assignedToAll);
+          console.log('Assignment published successfully:', newAsn.title);
+          console.log('Assigned to:', newAsn.assignedTo, 'Assigned to all:', newAsn.assignedToAll);
 
           setIsAssignmentStudioOpen(false);
         }}

@@ -222,7 +222,7 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
                   {importResult.success ? (
                     importResult.imported && importResult.imported > 0 ?
                       `Imported ${importResult.imported} new card${importResult.imported > 1 ? 's' : ''}.` :
-                      `You're all set — no new cards to import.`
+                      'You\'re all set — no new cards to import.'
                   ) : (
                     `Import failed: ${importResult.message}`
                   )}

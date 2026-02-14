@@ -11,22 +11,22 @@ import useWindowSize from '../hooks/useWindowSize';
 
 const translations = {
   en: {
-    logout: "Logout", refresh: "Refresh", points: "Total Points",
-    completed: "Completed", todo: "To Do", title: "My Assignments",
-    questions: "Questions", done: "Done", open: "Open",
-    hideTask: "Hide Task?", hideWarn: "This will remove the assignment from your dashboard. You won't be able to see it again.",
-    cancel: "Cancel", yesHide: "Yes, Hide it", noAsn: "No assignments yet!",
+    logout: 'Logout', refresh: 'Refresh', points: 'Total Points',
+    completed: 'Completed', todo: 'To Do', title: 'My Assignments',
+    questions: 'Questions', done: 'Done', open: 'Open',
+    hideTask: 'Hide Task?', hideWarn: "This will remove the assignment from your dashboard. You won't be able to see it again.",
+    cancel: 'Cancel', yesHide: 'Yes, Hide it', noAsn: 'No assignments yet!',
     refreshPrompt: 'If your teacher just sent one, click "Refresh".',
-    langToggle: "中文"
+    langToggle: '中文'
   },
   zh: {
-    logout: "登出", refresh: "刷新", points: "总积分",
-    completed: "已完成", todo: "待办", title: "我的作业项目",
-    questions: "个问题", done: "完成", open: "开启",
-    hideTask: "隐藏任务？", hideWarn: "这将从您的仪表板中删除该作业。您将无法再次看到它。",
-    cancel: "取消", yesHide: "是的，隐藏它", noAsn: "暂无作业！",
-    refreshPrompt: "如果老师刚发送了作业，请点击“刷新”。",
-    langToggle: "English"
+    logout: '登出', refresh: '刷新', points: '总积分',
+    completed: '已完成', todo: '待办', title: '我的作业项目',
+    questions: '个问题', done: '完成', open: '开启',
+    hideTask: '隐藏任务？', hideWarn: '这将从您的仪表板中删除该作业。您将无法再次看到它。',
+    cancel: '取消', yesHide: '是的，隐藏它', noAsn: '暂无作业！',
+    refreshPrompt: '如果老师刚发送了作业，请点击“刷新”。',
+    langToggle: 'English'
   }
 };
 
@@ -59,7 +59,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
     try {
       const saved = localStorage.getItem('classABC_student_portal');
       return saved ? JSON.parse(saved) : null;
-    // eslint-disable-next-line no-unused-vars
+     
     } catch (e) { return null; }
   }, []);
 
@@ -160,7 +160,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
     try {
       const saved = localStorage.getItem('classABC_hidden_assignments');
       return saved ? JSON.parse(saved) : [];
-    // eslint-disable-next-line no-unused-vars
+     
     } catch (e) { return []; }
   });
 

@@ -1,10 +1,10 @@
-import React, { StrictMode, useEffect } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import './glassmorphism.css'
-import App from './App.jsx'
-import { LanguageProvider } from './i18n'
-import ThemeProvider, { useTheme } from './ThemeContext'
+import React, { StrictMode, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import './glassmorphism.css';
+import App from './App.jsx';
+import { LanguageProvider } from './i18n';
+import ThemeProvider, { useTheme } from './ThemeContext';
 import './global-polyfill';
 
 // Apply dark mode immediately before React renders
@@ -197,4 +197,4 @@ createRoot(document.getElementById('root')).render(
       </LanguageProvider>
     </ThemeProvider>
   </StrictMode>,
-)
+);

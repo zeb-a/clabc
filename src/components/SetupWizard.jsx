@@ -4,11 +4,11 @@ import { Plus } from 'lucide-react';
 const SetupWizard = ({ onComplete }) => {
   const [step, setStep] = useState(1);
   const [classInfo, setClassInfo] = useState({ name: '', grade: '3rd Grade' });
-  const [studentInput, setStudentInput] = useState("");
+  const [studentInput, setStudentInput] = useState('');
 
   const handleFinish = () => {
     // Convert text area lines into student objects
-    const names = studentInput.split('\n').filter(name => name.trim() !== "");
+    const names = studentInput.split('\n').filter(name => name.trim() !== '');
     const newStudents = names.map((name, index) => ({
       id: Date.now() + index,
       name: name.trim(),

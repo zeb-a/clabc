@@ -3378,7 +3378,7 @@ const TornadoGameWrapper = ({ onBack, classes: externalClasses, isReplay: extern
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <input
                   type="text"
-                  placeholder={t('games.enter_word') + " - e.g., apple, banana, cat, dog..."}
+                  placeholder={t('games.enter_word') + ' - e.g., apple, banana, cat, dog...'}
                   id="horserace-words-input"
                   style={{
                     flex: 1,

@@ -42,7 +42,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
   const handleSubmit = async () => {
 
     if (!classId) {
-      alert("Error: Class ID is missing. Please refresh and try again.");
+      alert('Error: Class ID is missing. Please refresh and try again.');
       return;
     }
 
@@ -85,7 +85,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
 
 
       if (existingSubmission.items && existingSubmission.items.length > 0) {
-        alert("You have already submitted this worksheet.");
+        alert('You have already submitted this worksheet.');
         setIsSubmitting(false);
         // Reload completed assignments from backend to get the correct IDs
         if (onCompletion) {
@@ -107,7 +107,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
       answers: answers,
       status: 'submitted',
       grade_data: {},
-      grade: "0"
+      grade: '0'
     };
     try {
       await api.pbRequest('/collections/submissions/records', {
@@ -126,7 +126,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
       console.error('Submission Error:', error);
       // Check for duplicate submission error
       if (error.message && error.message.includes('duplicate')) {
-        alert("You have already submitted this worksheet.");
+        alert('You have already submitted this worksheet.');
       } else {
         alert(`Error: ${error.message}`);
       }

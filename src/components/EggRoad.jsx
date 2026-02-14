@@ -18,12 +18,12 @@ export default function EggRoad({ classData, onBack }) {
 
   // 3. Define the Levels (The higher the score, the higher the world)
   const levels = [
-    { id: 1, name: "Green Forest", color: "#2ecc71", icon: "🌳", min: 0 },
-    { id: 2, name: "Cloud Kingdom", color: "#3498db", icon: "☁️", min: 500 },
-    { id: 3, name: "Star Galaxy", color: "#9b59b6", icon: "✨", min: 1000 },
-    { id: 4, name: "Golden Victory", color: "#f1c40f", icon: "👑", min: 2000 },
-    { id: 5, name: "Star Galaxy", color: "#2f3033ff", icon: "✨", min: 5000 },
-    { id: 6, name: "Golden Victory", color: "#f10f0fff", icon: "👑", min: 10000 }
+    { id: 1, name: 'Green Forest', color: '#2ecc71', icon: '🌳', min: 0 },
+    { id: 2, name: 'Cloud Kingdom', color: '#3498db', icon: '☁️', min: 500 },
+    { id: 3, name: 'Star Galaxy', color: '#9b59b6', icon: '✨', min: 1000 },
+    { id: 4, name: 'Golden Victory', color: '#f1c40f', icon: '👑', min: 2000 },
+    { id: 5, name: 'Star Galaxy', color: '#2f3033ff', icon: '✨', min: 5000 },
+    { id: 6, name: 'Golden Victory', color: '#f10f0fff', icon: '👑', min: 10000 }
 
   ];
 
@@ -42,7 +42,7 @@ export default function EggRoad({ classData, onBack }) {
     try {
       const style = document.createElement('style');
       style.id = 'eggroad-mobile-styles';
-      style.innerHTML = `@media (max-width:768px){ .eggroad-root { padding-left: 12px !important; padding-right: 12px !important; padding-bottom: 12px !important; } .eggroad-root .header { padding: 12px !important; } .eggroad-root .avatarGroup { width: 95% !important; } .eggroad-root .topFiveContainer { gap: 8px; overflow-x: auto; padding: 10px; } }`;
+      style.innerHTML = '@media (max-width:768px){ .eggroad-root { padding-left: 12px !important; padding-right: 12px !important; padding-bottom: 12px !important; } .eggroad-root .header { padding: 12px !important; } .eggroad-root .avatarGroup { width: 95% !important; } .eggroad-root .topFiveContainer { gap: 8px; overflow-x: auto; padding: 10px; } }';
       document.head.appendChild(style);
       return () => { const el = document.getElementById('eggroad-mobile-styles'); if (el) el.remove(); };
     } catch (e) {
@@ -73,7 +73,7 @@ export default function EggRoad({ classData, onBack }) {
             style={styles.trackFill}
             initial={{ height: 0 }}
             animate={{ height: `${progressPercentage}%` }}
-            transition={{ duration: 2, ease: "easeOut" }}
+            transition={{ duration: 2, ease: 'easeOut' }}
           />
 
           {/* Level Markers */}

@@ -42,6 +42,18 @@ const HELP_GUIDES = {
 
 ---
 
+#### **Games Button**
+- Click **Games** to play classroom games with your students
+- Choose from various interactive games (Tornado, FaceOff, Memory Match, Quiz, etc.)
+- Select a class and start playing
+
+#### **Lesson Planner Button**
+- Click **Lesson Planner** to access your lesson planning tools
+- Create and organize your lesson plans
+- View daily, weekly, monthly, and yearly templates
+
+---
+
 *All changes save automatically.*`
     },
     'class-dashboard': {
@@ -614,6 +626,18 @@ Click the **X** or close button to return to the dashboard.
 - 悬停在班级卡片上
 - 点击铅笔图标编辑（名称/头像）
 - 点击垃圾桶图标删除（需确认）
+
+---
+
+#### **游戏按钮**
+|- 点击 **游戏** 与学生一起玩课堂游戏
+|- 从各种互动游戏中选择（龙卷风、对战、记忆配对、测验等）
+|- 选择班级并开始游戏
+
+#### **课程规划按钮**
+|- 点击 **课程规划** 访问您的课程规划工具
+|- 创建和组织您的课程计划
+|- 查看每日、每周、每月和每年的模板
 
 ---
 

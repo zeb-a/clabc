@@ -509,7 +509,7 @@ const TRANSLATIONS = {
 		// --- Landing: Games section ---
 	'landing.games.title': 'Engaging classroom games',
 	'landing.games.subtitle': 'Play together and award points in seconds. Pick a game, choose your class, and go!',
-	'teacher_portal.play_games': 'Play Games',
+	'teacher_portal.games': 'Games',
 
 	// --- Game UI Strings (Additional) ---
 		'games.mode': 'Game Mode',

@@ -116,7 +116,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
     // Trigger the actual publish and go back after a short delay
     setTimeout(() => {
       onPublish({
-        title: title || "New Worksheet",
+        title: title || 'New Worksheet',
         questions,
         date: new Date().toISOString(),
         assignedTo: assignToAll ? 'all' : selectedStudents.map(id => String(id)),
@@ -402,7 +402,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
                             flex: 1,
                             marginBottom: 0
                           }}
-                          placeholder={isInvalid ? "Type your question here..." : getPlaceholder(q.type)}
+                          placeholder={isInvalid ? 'Type your question here...' : getPlaceholder(q.type)}
                           value={q.question}
                           onChange={e => {
                             const newQs = [...questions];
