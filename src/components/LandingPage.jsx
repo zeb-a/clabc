@@ -788,6 +788,95 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         </MotionButton>
       </section>
 
+      {/* --- PREMIUM FEATURES SHOWCASE --- */}
+      <section style={{ ...modernStyles.featuresShowcase, ...(isMobile ? modernStyles.featuresShowcaseMobile : {}) }}>
+        <div style={modernStyles.featuresHeader}>
+          <h2 style={{ fontSize: '38px', fontWeight: 900, marginBottom: '16px', ...(isDark ? { color: '#fff' } : {}) }}>
+            Premium Features
+          </h2>
+          <p style={{ fontSize: '18px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), maxWidth: '600px' }}>
+            Everything you need to create engaging, interactive classroom experiences
+          </p>
+        </div>
+
+        <div style={{ ...modernStyles.featuresGrid, ...(isMobile ? modernStyles.featuresGridMobile : {}) }}>
+          {/* Lesson Planner Feature Card */}
+          <MotionCard
+            className="lp-feature-card"
+            style={{ ...modernStyles.featureCard, ...(isDark ? modernStyles.featureCardDark : {}) }}
+          >
+            <div style={{ ...modernStyles.featureIconWrapper, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
+              <BookOpen size={36} color="#fff" />
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
+              Lesson Planner
+            </h3>
+            <p style={{ fontSize: '15px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), lineHeight: 1.6, marginBottom: '20px' }}>
+              Plan, organize, and schedule your lessons with ease. Create structured learning paths and track student progress throughout the semester.
+            </p>
+            <div style={{ ...modernStyles.featureScreenshot, ...(isDark ? modernStyles.featureScreenshotDark : {}) }}>
+              <div style={{ textAlign: 'center', color: '#94A3B8', ...(isDark ? { color: '#a1a1aa' } : {}) }}>
+                <div style={{ fontSize: '48px', marginBottom: '8px' }}>📋</div>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>Lesson Planner Preview</div>
+              </div>
+            </div>
+            <MotionButton
+              className="lp-cta"
+              onClick={() => navigateModal('signup')}
+              style={{ ...modernStyles.featureCta, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
+            >
+              Try Lesson Planner <ArrowRight size={16} />
+            </MotionButton>
+          </MotionCard>
+
+          {/* Play Games Feature Card */}
+          <MotionCard
+            className="lp-feature-card"
+            style={{ ...modernStyles.featureCard, ...(isDark ? modernStyles.featureCardDark : {}) }}
+          >
+            <div style={{ ...modernStyles.featureIconWrapper, background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}>
+              <Dices size={36} color="#fff" />
+            </div>
+            <h3 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
+              Play Games
+            </h3>
+            <p style={{ fontSize: '15px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), lineHeight: 1.6, marginBottom: '20px' }}>
+              Make learning fun with interactive games! From Tornado to Memory Match, engage students with gamified activities that boost participation.
+            </p>
+            <div style={{ ...modernStyles.featureScreenshot, ...(isDark ? modernStyles.featureScreenshotDark : {}) }}>
+              <div style={{ textAlign: 'center', color: '#94A3B8', ...(isDark ? { color: '#a1a1aa' } : {}) }}>
+                <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎮</div>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>Interactive Games Preview</div>
+              </div>
+            </div>
+            <MotionButton
+              className="lp-cta"
+              onClick={() => navigateModal('signup')}
+              style={{ ...modernStyles.featureCta, background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}
+            >
+              Start Playing <ArrowRight size={16} />
+            </MotionButton>
+          </MotionCard>
+        </div>
+
+        {/* Bottom CTA for Features */}
+        <div style={{ ...modernStyles.featuresBottomCta, ...(isDark ? modernStyles.featuresBottomCtaDark : {}) }}>
+          <h3 style={{ fontSize: '28px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
+            Ready to transform your classroom?
+          </h3>
+          <p style={{ fontSize: '16px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), marginBottom: '24px' }}>
+            Join thousands of teachers who are already using ClassABC to engage their students
+          </p>
+          <MotionButton
+            className="lp-cta"
+            onClick={() => navigateModal('signup')}
+            style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}
+          >
+            Create Free Account <ArrowRight size={18} />
+          </MotionButton>
+        </div>
+      </section>
+
       {/* --- MODAL SYSTEM --- */}
       {modalMode && (
         <div style={{ ...modernStyles.overlay, ...(isDark ? modernStyles.overlayDark : {}) }} className="modal-overlay-in">
@@ -1669,4 +1758,18 @@ const modernStyles = {
     boxSizing: 'border-box'
   },
   mainCtaMobile: { padding: '12px 18px', fontSize: '14px' },
+  // Premium Features Showcase styles
+  featuresShowcase: { padding: '100px 60px', maxWidth: '1400px', margin: '0 auto' },
+  featuresShowcaseMobile: { padding: '40px 20px' },
+  featuresHeader: { textAlign: 'center', marginBottom: '60px' },
+  featuresGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '40px' },
+  featuresGridMobile: { gridTemplateColumns: 'repeat(1, 1fr)', gap: '30px' },
+  featureCard: { background: '#fff', border: '1px solid #E2E8F0', borderRadius: '32px', padding: '40px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 6px rgba(0,0,0,0.02)', transition: 'all 0.3s ease' },
+  featureCardDark: { background: '#18181b', border: '1px solid rgba(255,255,255,0.1)' },
+  featureIconWrapper: { width: '80px', height: '80px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' },
+  featureScreenshot: { width: '100%', height: '200px', background: '#F8FAFC', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', border: '2px dashed #E2E8F0', overflow: 'hidden' },
+  featureScreenshotDark: { background: '#27272a', border: '2px dashed rgba(255,255,255,0.1)' },
+  featureCta: { color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', marginTop: 'auto' },
+  featuresBottomCta: { marginTop: '80px', textAlign: 'center', padding: '60px', background: 'linear-gradient(135deg, #F0FDF4 0%, #DBEAFE 100%)', borderRadius: '32px', border: '1px solid rgba(0,0,0,0.05)' },
+  featuresBottomCtaDark: { background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)' },
 };

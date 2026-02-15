@@ -35,11 +35,20 @@ const PERIODS = [
 
 const selectStyle = {
   padding: '10px 14px',
-  borderRadius: 10,
-  border: '1px solid #E5E7EB',
+  borderRadius: 8,
+  border: '1px solid #cbd5e1',
   fontSize: 14,
   fontFamily: 'inherit',
-  minWidth: 140
+  minWidth: 140,
+  color: '#1e293b',
+  background: 'white',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  appearance: 'none',
+  backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%23475569\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E")',
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: 'right 10px center',
+  paddingRight: '32px'
 };
 
 function formatPlanDate(dateStr) {
@@ -78,6 +87,13 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showExportToClass, setShowExportToClass] = useState(false);
   const [showImportFromClass, setShowImportFromClass] = useState(false);
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pastedContent, setPastedContent] = useState('');
+  const [dateFrom, setDateFrom] = useState(() => new Date().toISOString().slice(0, 10));
+  const [dateTo, setDateTo] = useState(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+  const [monthYear, setMonthYear] = useState(() => new Date().toISOString().slice(0, 7));
+  const [year, setYear] = useState(() => new Date().getFullYear().toString());
+  const [expandedInputs, setExpandedInputs] = useState({});
   const autoSaveRef = useRef(null);
 
   const selectedClass = classes?.find((c) => c.id === classId);
@@ -174,12 +190,17 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
     if (!user?.email || !period || !classId) return;
     setSaving(true);
     try {
+      const dateValue = 
+        period === 'daily' ? date :
+        period === 'weekly' ? `${dateFrom},${dateTo}` :
+        period === 'monthly' ? monthYear :
+        period === 'yearly' ? year : null;
       const payload = {
         teacher: user.email,
         class_id: classId,
         period,
         title: title || `${period} plan`,
-        date: period === 'daily' ? date : null,
+        date: dateValue,
         data
       };
       if (planId) {
@@ -206,12 +227,17 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
     if (!period || !classId || !user?.email) return;
     const id = setInterval(async () => {
       try {
+        const dateValue = 
+          period === 'daily' ? date :
+          period === 'weekly' ? `${dateFrom},${dateTo}` :
+          period === 'monthly' ? monthYear :
+          period === 'yearly' ? year : null;
         const payload = {
           teacher: user.email,
           class_id: classId,
           period,
           title: title || `${period} plan`,
-          date: period === 'daily' ? date : null,
+          date: dateValue,
           data
         };
         if (planId) {
@@ -227,10 +253,15 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       }
     }, 30000);
     return () => clearInterval(id);
-  }, [period, classId, user?.email, data, title, date, planId, loadAllPlans]);
+  }, [period, classId, user?.email, data, title, date, dateFrom, dateTo, monthYear, year, planId, loadAllPlans]);
 
   const handleExportPDF = async () => {
-    const plan = { id: planId, period, title, date, data };
+    const dateInfo = 
+      period === 'daily' ? date :
+      period === 'weekly' ? `${dateFrom} to ${dateTo}` :
+      period === 'monthly' ? monthYear :
+      period === 'yearly' ? year : '';
+    const plan = { id: planId, period, title, date: dateInfo, data };
     setExporting('pdf');
     try {
       await exportLessonPlanToPDF(plan, className);
@@ -240,7 +271,12 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
   };
 
   const handleExportDOCX = async () => {
-    const plan = { id: planId, period, title, date, data };
+    const dateInfo = 
+      period === 'daily' ? date :
+      period === 'weekly' ? `${dateFrom} to ${dateTo}` :
+      period === 'monthly' ? monthYear :
+      period === 'yearly' ? year : '';
+    const plan = { id: planId, period, title, date: dateInfo, data };
     setExporting('docx');
     try {
       await exportLessonPlanToDOCX(plan, className);
@@ -279,6 +315,58 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
     setData(sourcePlan.data || getInitialDataForPeriod(sourcePlan.period));
     setPlanId(null);
     setShowImportFromClass(false);
+  };
+
+  const handlePasteTable = () => {
+    if (!pastedContent.trim() || !period) {
+      alert('Please select a period first and paste table data.');
+      return;
+    }
+
+    try {
+      // Parse tab-separated or comma-separated data
+      const lines = pastedContent.trim().split('\n');
+      const parsedRows = lines.map(line => {
+        const cells = line.split(/\t|,/).map(cell => cell.trim());
+        return cells;
+      }).filter(row => row.some(cell => cell)); // Filter empty rows
+
+      if (parsedRows.length === 0) {
+        alert('No valid data found to paste.');
+        return;
+      }
+
+      // Update data based on period
+      const updatedData = { ...data };
+
+      if (period === 'weekly' || period === 'monthly' || period === 'yearly') {
+        // For table-based periods, update rows
+        const rowKey = 'rows';
+        if (!updatedData[rowKey]) {
+          updatedData[rowKey] = [];
+        }
+
+        // Map pasted data to existing row structure
+        parsedRows.forEach((row, idx) => {
+          if (updatedData[rowKey][idx]) {
+            const keys = Object.keys(updatedData[rowKey][idx]).filter(k => k !== 'day' && k !== 'phase' && k !== 'section');
+            keys.forEach((key, cellIdx) => {
+              if (cellIdx < row.length) {
+                updatedData[rowKey][idx][key] = row[cellIdx];
+              }
+            });
+          }
+        });
+      }
+
+      setData(updatedData);
+      setPastedContent('');
+      setShowPasteModal(false);
+      alert('Table data pasted successfully!');
+    } catch (err) {
+      console.error('Paste error:', err);
+      alert('Error parsing pasted data. Make sure it\'s tab or comma-separated.');
+    }
   };
 
   const renderTemplate = () => {
@@ -583,6 +671,60 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     />
                   </div>
                 )}
+                {period === 'weekly' && (
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                        From
+                      </label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        style={selectStyle}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                        To
+                      </label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        style={selectStyle}
+                      />
+                    </div>
+                  </>
+                )}
+                {period === 'monthly' && (
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                      Month & Year
+                    </label>
+                    <input
+                      type="month"
+                      value={monthYear}
+                      onChange={(e) => setMonthYear(e.target.value)}
+                      style={selectStyle}
+                    />
+                  </div>
+                )}
+                {period === 'yearly' && (
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                      Year
+                    </label>
+                    <input
+                      type="number"
+                      min="2000"
+                      max="2100"
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      style={{ ...selectStyle, width: '120px' }}
+                    />
+                  </div>
+                )}
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
                     Title
@@ -631,6 +773,23 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     >
                       {saving ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={18} />}
                       Save
+                    </button>
+                    <button
+                      onClick={() => setShowPasteModal(true)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '12px 20px',
+                        borderRadius: 10,
+                        border: '1px solid #e2e8f0',
+                        background: 'white',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Upload size={18} />
+                      Paste Table
                     </button>
                     <button
                       onClick={handleExportPDF}
@@ -862,8 +1021,131 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
         </div>
       )}
 
+      {showPasteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowPasteModal(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 12,
+              padding: 24,
+              width: '90%',
+              maxWidth: 500,
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+              cursor: 'default'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 style={{ margin: '0 0 8px 0', fontSize: 20, color: '#1e293b' }}>Paste Table Data</h2>
+            <p style={{ margin: '0 0 16px 0', fontSize: 13, color: '#64748b' }}>
+              Paste tab or comma-separated values. First row will be used as headers.
+            </p>
+            
+            <textarea
+              value={pastedContent}
+              onChange={e => setPastedContent(e.target.value)}
+              placeholder="Paste your table data here (tab or comma-separated)&#10;&#10;Example:&#10;Monday	Introduction	30 min&#10;Tuesday	Practice	45 min"
+              style={{
+                width: '100%',
+                minHeight: 180,
+                padding: 12,
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                fontFamily: 'monospace',
+                fontSize: 12,
+                resize: 'vertical',
+                boxSizing: 'border-box',
+                color: '#1e293b'
+              }}
+            />
+            
+            <div
+              style={{
+                marginTop: 20,
+                display: 'flex',
+                gap: 12,
+                justifyContent: 'flex-end'
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowPasteModal(false);
+                  setPastedContent('');
+                }}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: '#64748b'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (pastedContent.trim()) {
+                    handlePasteTable();
+                    setShowPasteModal(false);
+                    setPastedContent('');
+                  }
+                }}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: '#0ea5e9',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        select {
+          outline: none;
+        }
+        
+        select:hover {
+          border-color: #94a3b8;
+          background-color: #f8fafc;
+        }
+        
+        select:focus {
+          border-color: #0ea5e9;
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+          outline: none;
+        }
+        
+        select:disabled {
+          background-color: #f1f5f9;
+          color: #94a3b8;
+          cursor: not-allowed;
+        }
       `}</style>
     </div>
   );

@@ -151,6 +151,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTorenadoModal, setShowTorenadoModal] = useState(false);
 
+  console.log('TeacherPortal onOpenLessonPlanner:', onOpenLessonPlanner);
   const [torenadoSelectedClass, setTorenadoSelectedClass] = useState(null);
   const [torenadoPlayers, setTorenadoPlayers] = useState([]);
   const [playerCount, setPlayerCount] = useState(2);

@@ -2,7 +2,7 @@
  * Lesson Plan Export - PDF and DOCX
  */
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel } from 'docx';
 import {
   DAILY_STAGES,
@@ -54,11 +54,33 @@ export async function exportLessonPlanToPDF(plan, className) {
     pdf.setFontSize(10);
   };
 
-  addHeading(`Lesson Plan - ${plan.period}`);
-  addText(`Class: ${className || plan.class_id}`);
-  if (plan.title) addText(`Title: ${plan.title}`);
-  if (plan.date) addText(`Date: ${plan.date}`);
-  y += 5;
+  // Header block: render period as heading, then metadata each on its own line
+  if (y > maxY - 30) { pdf.addPage(); y = 15; }
+  pdf.setFontSize(16);
+  pdf.setFont(undefined, 'bold');
+  pdf.text(`Lesson Plan - ${String(plan.period || '').toUpperCase()}`, margin, y);
+  y += 10;
+
+  pdf.setFontSize(11);
+  pdf.setFont(undefined, 'normal');
+  pdf.text(`Class: ${className || plan.class_id || '—'}`, margin, y);
+  y += 7;
+
+  if (plan.title) {
+    pdf.setFont(undefined, 'bold');
+    pdf.setFontSize(12);
+    pdf.text(`Title: ${plan.title}`, margin, y);
+    y += 8;
+    pdf.setFont(undefined, 'normal');
+    pdf.setFontSize(10);
+  }
+
+  if (plan.date) {
+    pdf.text(`Date: ${plan.date}`, margin, y);
+    y += 8;
+  }
+
+  y += 2;
 
   const data = plan.data || {};
 
@@ -83,7 +105,7 @@ export async function exportLessonPlanToPDF(plan, className) {
           sanitize(st.assessment || s.assessmentPlaceholder)
         ]);
       });
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: y,
         head: [tableData[0]],
         body: tableData.slice(1),
@@ -97,7 +119,7 @@ export async function exportLessonPlanToPDF(plan, className) {
           4: { cellWidth: 45 }
         }
       });
-      y = pdf.lastAutoTable.finalY + 10;
+      y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : y + 10;
       if (data.notes) {
         addHeading('Notes');
         addText(data.notes);
@@ -112,7 +134,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         const r = wRows[i] || {};
         wTable.push([day, sanitize(r.focus), sanitize(r.languageTarget), sanitize(r.assessment)]);
       });
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: y,
         head: [wTable[0]],
         body: wTable.slice(1),
@@ -120,7 +142,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         styles: { fontSize: 8 },
         columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 50 }, 2: { cellWidth: 50 }, 3: { cellWidth: 50 } }
       });
-      y = pdf.lastAutoTable.finalY + 10;
+      y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : y + 10;
       if (data.notes) {
         addHeading('Notes');
         addText(data.notes);
@@ -135,7 +157,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         const r = mRows[i] || {};
         mTable.push([phase, sanitize(r.focus), sanitize(r.languageTarget), sanitize(r.assessment)]);
       });
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: y,
         head: [mTable[0]],
         body: mTable.slice(1),
@@ -143,7 +165,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         styles: { fontSize: 8 },
         columnStyles: { 0: { cellWidth: 28 }, 1: { cellWidth: 50 }, 2: { cellWidth: 50 }, 3: { cellWidth: 50 } }
       });
-      y = pdf.lastAutoTable.finalY + 10;
+      y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : y + 10;
       if (data.notes) {
         addHeading('Notes');
         addText(data.notes);
@@ -159,7 +181,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         const r = yRows[i] || {};
         yTable.push([section, sanitize(r.focus), sanitize(r.languageTarget), sanitize(r.assessment)]);
       });
-      pdf.autoTable({
+      autoTable(pdf, {
         startY: y,
         head: [yTable[0]],
         body: yTable.slice(1),
@@ -167,7 +189,7 @@ export async function exportLessonPlanToPDF(plan, className) {
         styles: { fontSize: 8 },
         columnStyles: { 0: { cellWidth: 38 }, 1: { cellWidth: 48 }, 2: { cellWidth: 48 }, 3: { cellWidth: 48 } }
       });
-      y = pdf.lastAutoTable.finalY + 10;
+      y = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 10 : y + 10;
       if (data.notes) {
         addHeading('Notes');
         addText(data.notes);
@@ -176,13 +198,48 @@ export async function exportLessonPlanToPDF(plan, className) {
     }
   }
 
-  const blob = pdf.output('blob');
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `lesson-plan-${plan.period}-${plan.id || Date.now()}.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const filename = `lesson-plan-${plan.period}-${plan.id || Date.now()}.pdf`;
+  try {
+    // Preferred approach: create blob and click an anchor
+    const blob = pdf.output && typeof pdf.output === 'function' ? pdf.output('blob') : null;
+    if (blob && typeof URL !== 'undefined' && URL.createObjectURL) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      // Some environments require the anchor to be in the document
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      return;
+    }
+  } catch (err) {
+    // Fall through to fallback
+    console.warn('Blob download failed, falling back to save()', err);
+  }
+
+  try {
+    // Fallback: let jsPDF trigger its own save dialog
+    if (typeof pdf.save === 'function') {
+      pdf.save(filename);
+      return;
+    }
+  } catch (err) {
+    console.error('PDF save fallback failed', err);
+  }
+
+  // Last resort: open as data URL in new tab
+  try {
+    const dataUrl = pdf.output && typeof pdf.output === 'function' ? pdf.output('dataurlstring') : null;
+    if (dataUrl) {
+      const w = window.open('', '_blank');
+      if (w) w.document.write('<iframe src="' + dataUrl + '" style="width:100%;height:100%;border:none;"></iframe>');
+    }
+  } catch (err) {
+    console.error('All PDF download methods failed', err);
+    alert('Unable to download PDF: your browser may be blocking downloads.');
+  }
 }
 
 // ============ DOCX ============
