@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import InlineHelpButton from './InlineHelpButton';
 import {
   Plus, Send, Trash2, ChevronLeft, ChevronRight, Image as ImageIcon,
   Type, List, AlignLeft, Grid, FileText, X, GripVertical,
@@ -190,7 +189,6 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
         border: '2px solid #E2E8F0',
         cursor: 'pointer',
       }}>
-        <InlineHelpButton pageId="assignments" />
       </div>
       {showSuccess && (
         <div style={{

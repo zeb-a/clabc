@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import {
-  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus, HelpCircle
+  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useTranslation } from '../i18n';
@@ -602,30 +602,6 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         <UserPlus size={18} />
                         <span>{t('nav.signup')}</span>
                       </button>
-                      <button
-                        onClick={() => { showSearchGuide(); setShowMobileMenu(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '12px 14px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          background: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          textAlign: 'left',
-                          color: isDark ? '#e5e5e5' : '#1A1A1A',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                      >
-                        <HelpCircle size={18} />
-                        <span>{t('nav.help')}</span>
-                      </button>
                     </div>
                   </div>
                 )}
@@ -645,7 +621,6 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   {isDark ? <Moon size={16} /> : <Sun size={16} />}
                 </button>
                 <LanguageSelector />
-                <button className="lp-nav-link" onClick={showSearchGuide} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.help')}</button>
                 <button className="lp-nav-link" onClick={() => navigateModal('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>
                 <button className="lp-signup-btn" onClick={() => navigateModal('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>{t('nav.signup')}</button>
               </div>
@@ -779,14 +754,6 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
           <p style={{ ...modernStyles.bentoText, ...(isDark ? modernStyles.bentoTextDark : {}) }}>{t('features.settings.desc')}</p>
         </div>
       </div>
-
-      {/* --- FOOTER CTA --- */}
-      <section style={{ ...modernStyles.ctaSection, ...(isDark ? modernStyles.ctaSectionDark : {}) }}>
-        <h2 style={{ fontSize: '36px', fontWeight: 900, marginBottom: '20px', ...(isDark ? { color: '#fff' } : {}) }}>{t('cta.ready')}</h2>
-        <MotionButton className="lp-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
-          {t('cta.join_today')}
-        </MotionButton>
-      </section>
 
       {/* --- PREMIUM FEATURES SHOWCASE --- */}
       <section style={{ ...modernStyles.featuresShowcase, ...(isMobile ? modernStyles.featuresShowcaseMobile : {}) }}>

@@ -570,6 +570,145 @@ Click the **X** or close button to return to the dashboard.
 ---
 
 *The badge on the messages icon shows how many submissions are waiting for review.*`
+    },
+    'lesson-planner': {
+      title: 'Lesson Planner',
+      body: `### Plan Your Lessons
+
+Create and organize lessons with calendars and templates.
+
+---
+
+#### **Getting Started**
+
+**Open Lesson Planner**
+- From the Teacher Portal, click **Lesson Planner** (or the calendar icon)
+- You'll see your monthly view and any saved templates
+
+**Monthly View**
+- See all days of the month at a glance
+- Click a day to add or edit lessons
+- Use arrows to change month
+
+---
+
+#### **Templates**
+
+**Use a Template**
+- Pick a template to structure your week or day
+- Fill in subjects and activities
+- Save to apply the plan to your calendar
+
+**Create Your Own**
+- Build custom templates for your schedule
+- Reuse them across weeks or months
+
+---
+
+#### **Tips**
+
+- Plan ahead for the whole month
+- Duplicate a week to save time
+- Export or print your plan if needed
+
+---
+
+*Lesson plans are saved automatically.*`
+    },
+    'games': {
+      title: 'Games',
+      body: `### Classroom Games
+
+Play fun games with your class: Tornado, Memory Match, Quiz, and more.
+
+---
+
+#### **Opening Games**
+
+**From the Portal**
+- On the Teacher Portal, click **Games** (or the game controller icon)
+- Choose a game from the list
+
+**From the Dashboard**
+- Some games can be launched from the class dashboard sidebar
+- Lucky Draw is in the sidebar; full games open from the portal
+
+---
+
+#### **Game Types**
+
+**Tornado**
+- Spin the wheel to pick students or options
+- Great for random selection and rewards
+
+**Memory Match**
+- Flip cards to find pairs
+- Use your own images or default sets
+
+**Quiz**
+- Multiple choice or short answer
+- Add your own questions
+
+**Others**
+- Face Off, Moto Race, Horse Race, Spell the Word, and more
+- Each game has its own rules and setup
+
+---
+
+#### **During the Game**
+
+- Fullscreen mode for class display
+- Use the back button to return to the game list or portal
+
+---
+
+*Games work best when the whole class can see the screen.*`
+    },
+    'games-config': {
+      title: 'Games Configuration',
+      body: `### Set Up Your Games
+
+Configure game options, images, and content before playing.
+
+---
+
+#### **Where to Configure**
+
+**Before Starting a Game**
+- Many games show a setup screen where you choose options
+- Set number of players, time limits, or topics
+
+**Tornado / Wheel**
+- Add or edit segments (names or options)
+- Upload images for custom wheels
+
+**Memory Match**
+- Choose or upload image pairs
+- Set grid size and difficulty
+
+**Quiz**
+- Add questions and correct answers
+- Choose question type (multiple choice, true/false, etc.)
+
+---
+
+#### **Saving Settings**
+
+- Options are often saved for the current session
+- Reopen the same game to reuse your last setup
+- Custom images are stored with your account
+
+---
+
+#### **Tips**
+
+- Test a game once before using it in class
+- Use clear, simple images for Memory Match
+- Keep quiz questions short for on-screen display
+
+---
+
+*Change settings anytime before you start the game.*`
     }
   },
 
@@ -1145,8 +1284,177 @@ Click the **X** or close button to return to the dashboard.
 ---
 
 *消息图标上的徽章显示有多少提交等待审阅。*`
+    },
+    'lesson-planner': {
+      title: '课程计划',
+      body: `### 规划您的课程
+
+使用日历和模板创建和整理课程。
+
+---
+
+#### **入门**
+
+**打开课程计划**
+- 在教师门户中点击 **课程计划**（或日历图标）
+- 您会看到月视图和已保存的模板
+
+**月视图**
+- 一览当月所有日期
+- 点击某天添加或编辑课程
+- 使用箭头切换月份
+
+---
+
+#### **模板**
+
+**使用模板**
+- 选择模板来安排您的一周或一天
+- 填写科目和活动
+- 保存以将计划应用到日历
+
+**自定义**
+- 为您的日程创建自定义模板
+- 在周或月中重复使用
+
+---
+
+*课程计划会自动保存。*`
+    },
+    'games': {
+      title: '课堂游戏',
+      body: `### 课堂游戏
+
+与班级一起玩趣味游戏： Tornado、记忆配对、测验等。
+
+---
+
+#### **打开游戏**
+
+**从门户**
+- 在教师门户点击 **游戏**（或游戏手柄图标）
+- 从列表中选择游戏
+
+**游戏类型**
+- Tornado：转盘随机选择
+- 记忆配对：翻牌配对
+- 测验：选择题或简答题
+- 其他：Face Off、赛车、拼写等
+
+---
+
+*游戏适合全班一起观看大屏幕。*`
+    },
+    'games-config': {
+      title: '游戏配置',
+      body: `### 设置游戏
+
+在开始前配置游戏选项、图片和内容。
+
+---
+
+#### **配置位置**
+
+**开始前**
+- 许多游戏在开始前有设置界面
+- 设置人数、时间、主题等
+
+**Tornado / 转盘**
+- 添加或编辑选项
+- 上传自定义图片
+
+**记忆配对**
+- 选择或上传图片对
+- 设置网格大小
+
+**测验**
+- 添加题目和正确答案
+- 选择题型
+
+---
+
+*随时在开始游戏前更改设置。*`
     }
   }
 };
+
+/** Get help entry for a page (with fallback to en and inbox alias). */
+export function getHelpEntry(guides, lang, pageId) {
+  let entry = (guides[lang] && guides[lang][pageId]) || (guides.en && guides.en[pageId]);
+  if (!entry && pageId === 'inbox') {
+    entry = (guides[lang] && guides[lang]['Messages & Grading']) || (guides.en && guides.en['Messages & Grading']);
+  }
+  return entry || { title: 'Help', body: 'No help available for this page.' };
+}
+
+/** Strip ** from heading text for display and suggestions. */
+function stripBold(s) {
+  return (s || '').replace(/\*\*/g, '').trim();
+}
+
+/** Normalize help body so ** in headings and standalone lines don't show as literal asterisks. */
+export function normalizeHelpBody(body) {
+  if (!body) return '';
+  let out = body
+    .replace(/^(#{3,4}\s*)\*\*([^*]*)\*\*/gm, '$1$2')
+    .replace(/\n\*\*([^*]+)\*\*(\s*)/gm, '\n$1$2');
+  return out;
+}
+
+/** Parse entry body into sections (by ### or #### headings). Each section has { title, body } with title stripped of **. */
+export function parseSections(entry) {
+  if (!entry || !entry.body) return [];
+  const sections = [];
+  const re = /^(#{3,4})\s+(.+)$/gm;
+  let lastHeadingEnd = 0;
+  let m;
+  let lastTitle = null;
+  while ((m = re.exec(entry.body)) !== null) {
+    const rawTitle = m[2];
+    const title = stripBold(rawTitle);
+    const thisHeadingEnd = m.index + m[0].length;
+    if (lastTitle !== null) {
+      const body = entry.body.slice(lastHeadingEnd, m.index).replace(/^\s+|\s+$/g, '');
+      sections.push({ title: lastTitle, body: body || '(No content)' });
+    }
+    lastTitle = title;
+    lastHeadingEnd = thisHeadingEnd;
+  }
+  if (lastTitle !== null) {
+    const body = entry.body.slice(lastHeadingEnd).replace(/^\s+|\s+$/g, '');
+    sections.push({ title: lastTitle, body: body || '(No content)' });
+  }
+  return sections;
+}
+
+/** Extract suggested questions (section titles, no **). */
+export function getSuggestedQuestions(entry) {
+  const sections = parseSections(entry);
+  return sections.map(s => s.title).slice(0, 12);
+}
+
+/** Find the best matching section for a question (keyword overlap). Returns { title, body } or null. */
+export function getMatchingSection(entry, question) {
+  const sections = parseSections(entry);
+  if (!sections.length) return null;
+  const q = (question || '').toLowerCase().replace(/[?.,!]/g, '');
+  const words = q.split(/\s+/).filter(w => w.length > 1);
+  if (!words.length) return null;
+  let best = null;
+  let bestScore = 0;
+  for (const section of sections) {
+    const text = (section.title + ' ' + section.body).toLowerCase();
+    let score = 0;
+    for (const w of words) {
+      if (text.includes(w)) score += 1;
+      if (section.title.toLowerCase().includes(w)) score += 2;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      best = section;
+    }
+  }
+  return bestScore > 0 ? best : null;
+}
 
 export default HELP_GUIDES;

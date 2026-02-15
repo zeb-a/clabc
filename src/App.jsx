@@ -14,9 +14,10 @@ import VerifyEmailPage from './components/VerifyEmailPage';
 import { LogOut } from 'lucide-react';
 import PasswordResetPage from './components/PasswordResetPage';
 import ConfirmAccountPage from './components/ConfirmAccountPage';
-import SearchableGuide from './components/SearchableGuide';
 import AssignmentsPage from "./components/AssignmentsPage";
 import ErrorBoundary from './components/ErrorBoundary';
+import { PageHelpProvider, usePageHelp } from './PageHelpContext';
+import HelpChatBubble from './components/HelpChatBubble';
 import LessonPlannerPage from './components/lesson-planner/LessonPlannerPage';
 import TornadoGameWrapper from './components/TornadoGameWrapper';
 import './components/ModalAnimations.css';
@@ -55,6 +56,34 @@ const INITIAL_BEHAVIORS = [
 // Note: this file now centralizes app state and delegates UI to components in `/src/components`.
 // The large in-file LandingPage/TeacherPortal implementations were replaced with
 // imports so each component can be maintained separately.
+
+// Sync current app view to help context (so bubble shows page-relevant help)
+function PageHelpViewSyncer({ view }) {
+  const { setPageId } = usePageHelp();
+  useEffect(() => {
+    const map = {
+      portal: 'teacher-portal',
+      dashboard: 'class-dashboard',
+      settings: 'settings-cards',
+      egg: 'class-dashboard',
+      'lesson-planner': 'lesson-planner',
+      torenado: 'games',
+      setup: 'teacher-portal'
+    };
+    setPageId(map[view] || 'teacher-portal');
+  }, [view, setPageId]);
+  return null;
+}
+
+function LoggedInLayout({ view, children }) {
+  return (
+    <PageHelpProvider>
+      <PageHelpViewSyncer view={view} />
+      {children}
+      <HelpChatBubble />
+    </PageHelpProvider>
+  );
+}
 
 // ==========================================
 // 3. MAIN APP (THE TRAFFIC CONTROLLER)
@@ -97,6 +126,8 @@ function App() {
       window.history.pushState({ view: newView, appHistoryIndex: ++historyRef.current }, '', `#${newView}`);
     }
   };
+
+  const handleTorenadoBack = () => navigate('portal');
 
   // Listen for browser back events (popstate) - This handles swipe-back
   useEffect(() => {
@@ -144,7 +175,6 @@ function App() {
   // 1. Add state to track if we are in the assignment studio
   const [isAssignmentStudioOpen, setIsAssignmentStudioOpen] = useState(false);
 
-  const [showGuide, setShowGuide] = useState(false);
 
   const saveTimeoutRef = useRef(null);
 
@@ -450,42 +480,27 @@ function App() {
     return <ConfirmAccountPage token={hashRoute.token} onSuccess={() => { window.location.hash = ''; }} />;
   }
 
-      // Landing page (no user logged in)
+      // Landing page (no user logged in) — no help bubble here
   if (!user) {
     return (
-      <>
-        <LandingPage
-          onLoginSuccess={onLoginSuccess}
-          classes={classes}
-          setClasses={setClasses}
-          refreshClasses={refreshClasses}
-          showSearchGuide={() => setShowGuide(true)}
-          openModal={(action) => {
-            // Handle guide action clicks - close guide and set modal mode
-            setShowGuide(false);
-            // The LandingPage component will handle the actual modal rendering based on its internal state
-            // We need to communicate this back to LandingPage
-            window.dispatchEvent(new CustomEvent('guide-action', { detail: action }));
-          }}
-        />
-    {showGuide && (
-      <SearchableGuide
-        onClose={() => setShowGuide(false)}
-        onTriggerAction={(action) => {
-          setShowGuide(false);
+      <LandingPage
+        onLoginSuccess={onLoginSuccess}
+        classes={classes}
+        setClasses={setClasses}
+        refreshClasses={refreshClasses}
+        showSearchGuide={() => {}}
+        openModal={(action) => {
           window.dispatchEvent(new CustomEvent('guide-action', { detail: action }));
         }}
       />
-    )}
-  </>
-  );
+    );
   }
 
   // Profile modal
-
-  // Profile modal
   if (showProfile) {
-    return <ProfileModal user={user} onSave={async (data) => {
+    return (
+      <LoggedInLayout view={view}>
+        <ProfileModal user={user} onSave={async (data) => {
       try {
         const result = await api.updateProfile({ ...data, id: user.id });
         if (result && result.user) {
@@ -511,13 +526,15 @@ function App() {
         }
         alert(msg);
       }
-    }} onClose={() => setShowProfile(false)} />;
+    }} onClose={() => setShowProfile(false)} />
+      </LoggedInLayout>
+    );
   }
 
   // Portal (list of classes)
   if (view === 'portal') {
     return (
-      <>
+      <LoggedInLayout view={view}>
       <TeacherPortal
         user={user}
         classes={classes}
@@ -529,14 +546,14 @@ function App() {
         onOpenTorenado={() => navigate('torenado')}
         onOpenLessonPlanner={() => navigate('lesson-planner')}
       />
-    </>
+    </LoggedInLayout>
     );
   }
 
   // Dashboard for a selected class
   if (view === 'dashboard' && activeClass) {
     return (
-      <>
+      <LoggedInLayout view={view}>
         <ClassDashboard
           user={user}
           activeClass={activeClass}
@@ -549,13 +566,13 @@ function App() {
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onOpenAssignments={() => setIsAssignmentStudioOpen(true)}
         />
-      </>
+      </LoggedInLayout>
     );
   }
 
   if (view === 'egg' && activeClass) {
     return (
-      <>
+      <LoggedInLayout view={view}>
         <EggRoad
           classData={activeClass}
           onBack={() => navigate('dashboard')}
@@ -569,13 +586,13 @@ function App() {
             setClasses(updated);
           }}
         />
-      </>
+      </LoggedInLayout>
     );
   }
 
   if (view === 'settings' && activeClass) {
     return (
-      <>
+      <LoggedInLayout view={view}>
         <SettingsPage
           activeClass={activeClass}
           behaviors={behaviors}
@@ -583,39 +600,49 @@ function App() {
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onUpdateStudents={(nextStudents) => updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, students: nextStudents } : c))}
         />
-      </>
+      </LoggedInLayout>
     );
   }
 
   if (view === 'setup') {
     return (
-      <SetupWizard onComplete={(newStudents, className) => {
-        const newClass = { id: Date.now(), name: className || 'New Class', students: newStudents };
-        onAddClass(newClass);
-        navigate('portal');
-      }} />
+      <LoggedInLayout view={view}>
+        <SetupWizard onComplete={(newStudents, className) => {
+          const newClass = { id: Date.now(), name: className || 'New Class', students: newStudents };
+          onAddClass(newClass);
+          navigate('portal');
+        }} />
+      </LoggedInLayout>
     );
   }
 
   // Torenado game
   if (view === 'torenado') {
-    return <TornadoGameWrapper onBack={handleTornadoBack} classes={classes} />;
+    return (
+      <LoggedInLayout view={view}>
+        <TornadoGameWrapper onBack={handleTorenadoBack} classes={classes} />
+      </LoggedInLayout>
+    );
   }
 
   // Lesson Planner
   if (view === 'lesson-planner') {
     return (
-      <LessonPlannerPage
-        user={user}
-        classes={classes}
-        onBack={() => navigate('portal')}
-      />
+      <LoggedInLayout view={view}>
+        <LessonPlannerPage
+          user={user}
+          classes={classes}
+          onBack={() => navigate('portal')}
+        />
+      </LoggedInLayout>
     );
   }
 
   // Fallback to portal
   return (
-    <TeacherPortal classes={classes} onSelectClass={onSelectClass} onAddClass={onAddClass} onLogout={onLogout} onOpenLessonPlanner={() => navigate('lesson-planner')} />
+    <LoggedInLayout view={view}>
+      <TeacherPortal classes={classes} onSelectClass={onSelectClass} onAddClass={onAddClass} onLogout={onLogout} onOpenLessonPlanner={() => navigate('lesson-planner')} />
+    </LoggedInLayout>
   );
 }
 

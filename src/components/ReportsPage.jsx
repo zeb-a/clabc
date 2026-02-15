@@ -9,8 +9,6 @@
     import html2canvas from 'html2canvas';
     import jsPDF from 'jspdf';
     ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
-    import InlineHelpButton from './InlineHelpButton';
-
     /* ================= 🌐 LANGUAGE SELECTION ================= */
     const translations = {
         en: {

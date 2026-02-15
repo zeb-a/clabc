@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import ReportsPage from './ReportsPage'; 
-import InlineHelpButton from './InlineHelpButton';
 import { Lock, LogOut } from 'lucide-react';
 
 export default function ParentPortal({ onBack, initialStudentData }) {
@@ -36,7 +35,6 @@ export default function ParentPortal({ onBack, initialStudentData }) {
               </h2>
               <p style={{ color: '#64748B', margin: 0, fontWeight: 600 }}>Student Progress Report</p>
             </div>
-            <InlineHelpButton pageId="parent-portal" />
           </div>
 
           {/* BIGGER ANIMATED LOGOUT BUTTON */}
@@ -87,7 +85,6 @@ export default function ParentPortal({ onBack, initialStudentData }) {
             <h2 style={{ fontWeight: 900, marginBottom: '10px', fontSize: '24px' }}>Parent Access</h2>
             <p style={{ color: '#64748B', marginBottom: '30px' }}>Enter your 5-digit parent code</p>
           </div>
-          <InlineHelpButton pageId="parent-portal" />
         </div>
         
         <form onSubmit={handleLogin}>

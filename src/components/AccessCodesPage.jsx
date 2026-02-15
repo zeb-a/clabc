@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { X, Search, Check, Download } from 'lucide-react';
-import InlineHelpButton from './InlineHelpButton';
 
 const AccessCodesPage = ({ activeClass, onBack }) => {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -256,7 +255,6 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           </div>
           <h2 className={`codes-header-title ${searchOpen ? 'hidden' : ''}`}>Access Codes</h2>
           <div className="codes-header-actions">
-            <InlineHelpButton pageId="access-codes" />
             <button 
               onClick={onBack} 
               style={{ background: '#F1F5F9', color: '#64748B', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Edit2, Plus, X, RefreshCw, Trash2, Save, Minus } from 'lucide-react';
 import api from '../services/api';
-import InlineHelpButton from './InlineHelpButton';
 
 // Modern, fun stickers for kids - using high-quality SVG graphics from reliable CDN
 // These are styled as modern flat illustrations with bold colors
@@ -335,7 +334,6 @@ const handleBackClick = () => {
         
         <div className="settings-header-actions" style={{ ...styles.headerActions, flexDirection: 'row' }}>
           <div className="header-action-group" style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
-          <InlineHelpButton pageId="settings-cards" />
             <Tooltip text="Reset all behavior cards to default">
             <button
               aria-label="Reset behaviors"

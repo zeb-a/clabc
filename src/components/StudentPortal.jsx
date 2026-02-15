@@ -4,7 +4,6 @@ import {
   Trophy, Star, BookOpen, Ghost, LogOut,
   CheckCircle, AlertCircle, Globe
 } from 'lucide-react';
-import InlineHelpButton from './InlineHelpButton';
 import StudentWorksheetSolver from './StudentWorksheetSolver';
 import api from '../services/api';
 import useWindowSize from '../hooks/useWindowSize';
@@ -342,7 +341,6 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
             <h2 style={{ margin: 0, fontWeight: 900, fontSize: '24px' }}>{currentStudent?.name || session.studentName}</h2>
             <span style={{ color: '#64748B', fontSize: '14px', fontWeight: 700 }}>{liveClass?.name || 'Classroom'}</span>
           </div>
-          <InlineHelpButton pageId="student-portal" />
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} style={{ background: '#F1F5F9', border: 'none', padding: '12px 20px', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>

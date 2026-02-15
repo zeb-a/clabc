@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText, BookOpen } from 'lucide-react';
-import InlineHelpButton from './InlineHelpButton';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
@@ -607,7 +606,6 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <InlineHelpButton pageId="teacher-portal" />
             <button
               onClick={() => setLogoutConfirm(true)}
               title={t('teacher_portal.logout')}

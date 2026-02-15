@@ -24,9 +24,9 @@ import { Presentation } from 'lucide-react'; // Wide board icon
 import AssignmentsPage from './AssignmentsPage'; // Add this line at the top
 import AccessCodesPage from './AccessCodesPage'; // Add this line
 import SettingsPage from './SettingsPage';
-import InlineHelpButton from './InlineHelpButton';
 import PointsHistoryView from './PointsHistoryView';
 import { useTranslation } from '../i18n';
+import { usePageHelp } from '../PageHelpContext';
 
 // Helper function for documentation of clamp usage in inline styles
 const clamp = (min, val, max) => val;
@@ -468,6 +468,24 @@ export default function ClassDashboard({
   // --- SUBMISSIONS & MESSAGES STATE ---
   const [viewMode, setViewMode] = useState('students'); // 'students', 'reports', 'assignments', etc.
   const viewModeRef = useRef('students');
+  const { setPageId } = usePageHelp();
+
+  // Sync dashboard sub-view to help bubble (page-relevant help)
+  useEffect(() => {
+    const map = {
+      students: 'class-dashboard',
+      assignments: 'assignments',
+      messages: 'inbox',
+      codes: 'access-codes',
+      settings: 'settings',
+      reports: 'class-dashboard',
+      timer: 'class-dashboard',
+      whiteboard: 'whiteboard',
+      luckyDraw: 'class-dashboard',
+      eggroad: 'class-dashboard'
+    };
+    setPageId(map[viewMode] || 'class-dashboard');
+  }, [viewMode, setPageId]);
 
   // Use existing state declarations from earlier in the file (isLuckyDrawOpen, showWhiteboard, buzzerState)
   const modalRef = useRef(null);
@@ -1402,7 +1420,6 @@ export default function ClassDashboard({
                           DEMO
                         </span>
                       )}
-                      <InlineHelpButton pageId="class-dashboard" />
                       {isAttendanceMode && (
                         <div style={{ background: '#FEF3C7', color: '#92400E', padding: '8px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: 700, display: 'flex', gap: 10, alignItems: 'center' }}>
                           <span style={{ fontWeight: 700, fontSize: '13px' }}>{t('dashboard.attendance_tip')}</span>
