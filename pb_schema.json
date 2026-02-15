@@ -172,5 +172,52 @@
         "default": 0
       }
     ]
+  },
+  {
+    "id": "lesson_plans_col",
+    "name": "lesson_plans",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "teacher_field",
+        "name": "teacher",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "class_id_field",
+        "name": "class_id",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "period_field",
+        "name": "period",
+        "type": "text",
+        "required": true
+      },
+      {
+        "system": false,
+        "id": "title_field",
+        "name": "title",
+        "type": "text"
+      },
+      {
+        "system": false,
+        "id": "date_field",
+        "name": "date",
+        "type": "date"
+      },
+      {
+        "system": false,
+        "id": "data_field",
+        "name": "data",
+        "type": "json"
+      }
+    ]
   }
 ]

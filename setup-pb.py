@@ -5,8 +5,8 @@ import json
 import time
 
 BASE_URL = "http://localhost:4002/api"
-ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "password"
+ADMIN_EMAIL = "admin@classabc.app"
+ADMIN_PASSWORD = "password123"
 
 def make_request(method, path, data=None, token=None):
     """Make an API request"""
