@@ -11,7 +11,11 @@ import {
   Download,
   Upload,
   Calendar,
-  BookOpen
+  BookOpen,
+  PanelLeftClose,
+  PanelLeft,
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 import DailyTemplate from './DailyTemplate';
 import WeeklyTemplate from './WeeklyTemplate';
@@ -35,8 +39,8 @@ const PERIODS = [
 
 const selectStyle = {
   padding: '10px 14px',
-  borderRadius: 8,
-  border: '1px solid #cbd5e1',
+  borderRadius: 10,
+  border: '1px solid #E5E7EB',
   fontSize: 14,
   fontFamily: 'inherit',
   minWidth: 140,
@@ -72,6 +76,38 @@ function groupPlansByPeriod(plans) {
   return byPeriod;
 }
 
+/** Returns { isEmpty: boolean, emptyCells: Record<string, true> } - empty table or cells with no content */
+function getTableValidation(data, period) {
+  const emptyCells = {};
+  const isStrEmpty = (v) => v == null || String(v).trim() === '';
+
+  if (period === 'daily') {
+    const stages = data.stages || [];
+    stages.forEach((s, i) => {
+      if (!s) return;
+      Object.keys(s).forEach((f) => {
+        if (isStrEmpty(s[f])) emptyCells[`${i}-${f}`] = true;
+      });
+    });
+    const isEmpty = stages.length === 0 || !stages.some(s => Object.values(s || {}).some(v => !isStrEmpty(v)));
+    return { isEmpty, emptyCells };
+  }
+
+  if (['weekly', 'monthly', 'yearly'].includes(period)) {
+    const rows = data.rows || [];
+    rows.forEach((r, i) => {
+      if (!r) return;
+      Object.keys(r).forEach((col) => {
+        if (isStrEmpty(r[col])) emptyCells[`${i}-${col}`] = true;
+      });
+    });
+    const isEmpty = rows.length === 0 || !rows.some(r => Object.values(r || {}).some(v => !isStrEmpty(v)));
+    return { isEmpty, emptyCells };
+  }
+
+  return { isEmpty: true, emptyCells };
+}
+
 export default function LessonPlannerPage({ user, classes, onBack }) {
   const [classId, setClassId] = useState('');
   const [period, setPeriod] = useState('');
@@ -94,7 +130,31 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
   const [monthYear, setMonthYear] = useState(() => new Date().toISOString().slice(0, 7));
   const [year, setYear] = useState(() => new Date().getFullYear().toString());
   const [expandedInputs, setExpandedInputs] = useState({});
-  const autoSaveRef = useRef(null);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [showSaveConfirmModal, setShowSaveConfirmModal] = useState(false);
+  const [emptyCellsHighlight, setEmptyCellsHighlight] = useState({});
+  const [planOrder, setPlanOrder] = useState(() => {
+    try {
+      const saved = localStorage.getItem('lessonPlanner_planOrder');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [draggingPlanId, setDraggingPlanId] = useState(null);
+  const [dragOverPlanId, setDragOverPlanId] = useState(null);
+  const [toast, setToast] = useState({ message: '', type: 'info', visible: false });
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, plan: null });
+
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type, visible: true });
+  }, []);
+
+  useEffect(() => {
+    if (!toast.visible) return;
+    const t = setTimeout(() => setToast((prev) => ({ ...prev, visible: false })), 4000);
+    return () => clearTimeout(t);
+  }, [toast.visible, toast.message]);
 
   const selectedClass = classes?.find((c) => c.id === classId);
   const className = selectedClass?.name || '';
@@ -155,6 +215,95 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       .finally(() => setLoadingPlans(false));
   }, [user?.email]);
 
+  const handleDeletePlanClick = (e, plan) => {
+    e.stopPropagation();
+    setDeleteConfirm({ show: true, plan });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const plan = deleteConfirm.plan;
+    setDeleteConfirm({ show: false, plan: null });
+    if (!plan) return;
+    try {
+      await api.deleteLessonPlan(plan.id);
+      if (planId === plan.id) {
+        setPlanId(null);
+        setPeriod('');
+        setTitle('');
+        setData({});
+      }
+      loadAllPlans();
+      showToast('Lesson plan deleted.', 'success');
+    } catch (err) {
+      showToast(err?.message || 'Failed to delete lesson plan.', 'error');
+    }
+  };
+
+  const persistPlanOrder = useCallback((next) => {
+    setPlanOrder(next);
+    try {
+      localStorage.setItem('lessonPlanner_planOrder', JSON.stringify(next));
+    } catch {}
+  }, []);
+
+  const getOrderedPlansForPeriod = useCallback((period, plans) => {
+    const order = planOrder[classId]?.[period];
+    if (!order?.length) return plans;
+    const byId = Object.fromEntries(plans.map(p => [p.id, p]));
+    const ordered = [];
+    order.forEach(id => {
+      if (byId[id]) { ordered.push(byId[id]); delete byId[id]; }
+    });
+    Object.values(byId).forEach(p => ordered.push(p));
+    return ordered;
+  }, [planOrder, classId]);
+
+  const handleDragStart = (e, plan, period) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ planId: plan.id, period }));
+    e.dataTransfer.setData('application/json', JSON.stringify({ planId: plan.id, period }));
+    setDraggingPlanId(plan.id);
+  };
+
+  const handleDragOver = (e, plan) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverPlanId(plan.id);
+  };
+
+  const handleDragLeave = () => setDragOverPlanId(null);
+
+  const handleDrop = (e, targetPlan, period) => {
+    e.preventDefault();
+    setDraggingPlanId(null);
+    setDragOverPlanId(null);
+    let data;
+    try {
+      data = JSON.parse(e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain'));
+    } catch {
+      return;
+    }
+    const { planId: sourceId } = data;
+    if (!sourceId || sourceId === targetPlan.id) return;
+    const plans = groupedPlans[period] || [];
+    const sourceIdx = plans.findIndex(p => p.id === sourceId);
+    const targetIdx = plans.findIndex(p => p.id === targetPlan.id);
+    if (sourceIdx < 0 || targetIdx < 0) return;
+    const reordered = [...plans];
+    const [removed] = reordered.splice(sourceIdx, 1);
+    reordered.splice(targetIdx, 0, removed);
+    const newOrder = reordered.map(p => p.id);
+    const next = { ...planOrder };
+    if (!next[classId]) next[classId] = {};
+    next[classId] = { ...next[classId], [period]: newOrder };
+    persistPlanOrder(next);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingPlanId(null);
+    setDragOverPlanId(null);
+  };
+
   useEffect(() => {
     loadAllPlans();
   }, [loadAllPlans]);
@@ -186,9 +335,11 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
     setData({});
   };
 
-  const handleSave = async () => {
+  const performSave = async () => {
     if (!user?.email || !period || !classId) return;
     setSaving(true);
+    setShowSaveConfirmModal(false);
+    setEmptyCellsHighlight({});
     try {
       const dateValue = 
         period === 'daily' ? date :
@@ -217,43 +368,27 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       loadAllPlans();
     } catch (err) {
       console.error('Save failed:', err);
-      alert(err?.message || 'Failed to save lesson plan.');
+      showToast(err?.message || 'Failed to save lesson plan.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  useEffect(() => {
-    if (!period || !classId || !user?.email) return;
-    const id = setInterval(async () => {
-      try {
-        const dateValue = 
-          period === 'daily' ? date :
-          period === 'weekly' ? `${dateFrom},${dateTo}` :
-          period === 'monthly' ? monthYear :
-          period === 'yearly' ? year : null;
-        const payload = {
-          teacher: user.email,
-          class_id: classId,
-          period,
-          title: title || `${period} plan`,
-          date: dateValue,
-          data
-        };
-        if (planId) {
-          await api.updateLessonPlan(planId, { title: payload.title, date: payload.date, data: payload.data });
-        } else {
-          const created = await api.createLessonPlan(payload);
-          setPlanId(created.id);
-        }
-        setSavedAt(Date.now());
-        loadAllPlans();
-      } catch (e) {
-        console.warn('Auto-save failed:', e);
-      }
-    }, 30000);
-    return () => clearInterval(id);
-  }, [period, classId, user?.email, data, title, date, dateFrom, dateTo, monthYear, year, planId, loadAllPlans]);
+  const handleSave = async () => {
+    if (!user?.email || !period || !classId) return;
+    const { isEmpty, emptyCells } = getTableValidation(data, period);
+    if (isEmpty) {
+      showToast('Cannot save: the lesson plan table is empty. Add content to at least one cell before saving.', 'warning');
+      return;
+    }
+    const emptyCount = Object.keys(emptyCells).length;
+    if (emptyCount > 0) {
+      setEmptyCellsHighlight(emptyCells);
+      setShowSaveConfirmModal(true);
+      return;
+    }
+    await performSave();
+  };
 
   const handleExportPDF = async () => {
     const dateInfo = 
@@ -300,7 +435,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       setShowExportToClass(false);
       loadAllPlans();
     } catch (err) {
-      alert(err?.message || 'Failed to copy plan.');
+      showToast(err?.message || 'Failed to copy plan.', 'error');
     } finally {
       setSaving(false);
     }
@@ -319,7 +454,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
 
   const handlePasteTable = () => {
     if (!pastedContent.trim() || !period) {
-      alert('Please select a period first and paste table data.');
+      showToast('Please select a period first and paste table data.', 'warning');
       return;
     }
 
@@ -332,7 +467,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       }).filter(row => row.some(cell => cell)); // Filter empty rows
 
       if (parsedRows.length === 0) {
-        alert('No valid data found to paste.');
+        showToast('No valid data found to paste.', 'warning');
         return;
       }
 
@@ -362,16 +497,17 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
       setData(updatedData);
       setPastedContent('');
       setShowPasteModal(false);
-      alert('Table data pasted successfully!');
+      showToast('Table data pasted successfully!', 'success');
     } catch (err) {
       console.error('Paste error:', err);
-      alert('Error parsing pasted data. Make sure it\'s tab or comma-separated.');
+      showToast('Error parsing pasted data. Make sure it\'s tab or comma-separated.', 'error');
     }
   };
 
   const renderTemplate = () => {
     if (!period) return null;
-    const common = { data, onChange: setData };
+    const highlightEmpty = showSaveConfirmModal ? emptyCellsHighlight : {};
+    const common = { data, onChange: setData, highlightEmpty };
     switch (period) {
       case 'daily':
         return <DailyTemplate {...common} />;
@@ -389,12 +525,14 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
   const otherClasses = (classes || []).filter((c) => c.id !== classId);
   const plansFromOtherClasses = allPlans.filter((p) => p.class_id !== classId);
 
+  const emptyCount = Object.keys(emptyCellsHighlight).length;
+
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: '#f1f5f9',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        background: '#f8fafc',
+        fontFamily: 'inherit',
         display: 'flex',
         flexDirection: 'column'
       }}
@@ -403,11 +541,12 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
         className="safe-area-top"
         style={{
           padding: '12px 20px',
-          background: '#0f172a',
-          color: '#fff',
+          background: '#fff',
+          color: '#1e293b',
           display: 'flex',
           alignItems: 'center',
-          gap: 16
+          gap: 16,
+          borderBottom: '1px solid #E5E7EB'
         }}
       >
         <button
@@ -418,9 +557,9 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
             gap: 6,
             padding: '8px 12px',
             borderRadius: 8,
-            border: 'none',
-            background: 'rgba(255,255,255,0.1)',
-            color: '#fff',
+            border: '1px solid #E5E7EB',
+            background: '#fff',
+            color: '#374151',
             cursor: 'pointer',
             fontSize: 14,
             fontWeight: 600
@@ -428,24 +567,41 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
         >
           <ChevronLeft size={18} /> Back
         </button>
-        <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Lesson Plans</h1>
+        <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#1e293b', flex: 1 }}>Lesson Plans</h1>
+        <button
+          onClick={() => setSidebarVisible(!sidebarVisible)}
+          title={sidebarVisible ? 'Hide sidebar' : 'Show sidebar'}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 8,
+            borderRadius: 8,
+            border: '1px solid #E5E7EB',
+            background: '#fff',
+            color: '#374151',
+            cursor: 'pointer'
+          }}
+        >
+          {sidebarVisible ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
+        </button>
       </nav>
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* LEFT SIDEBAR - Plan storage */}
+        {sidebarVisible && (
         <aside
           style={{
             width: 300,
             minWidth: 280,
             background: '#fff',
-            borderRight: '1px solid #e2e8f0',
+            borderRight: '1px solid #E5E7EB',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden'
           }}
         >
-          <div style={{ padding: 16, borderBottom: '1px solid #e2e8f0' }}>
-            <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 8, color: '#475569' }}>
+          <div style={{ padding: 16, borderBottom: '1px solid #E5E7EB' }}>
+            <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 8, color: '#374151' }}>
               Class
             </label>
             <select
@@ -464,7 +620,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
 
           {classId && (
             <>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #E5E7EB' }}>
                 <div style={{ position: 'relative' }}>
                   <Search
                     size={16}
@@ -477,10 +633,11 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px 12px 10px 36px',
-                      borderRadius: 8,
-                      border: '1px solid #e2e8f0',
-                      fontSize: 13
+                      padding: '10px 14px 10px 36px',
+                      borderRadius: 10,
+                      border: '1px solid #E5E7EB',
+                      fontSize: 14,
+                      fontFamily: 'inherit'
                     }}
                   />
                 </div>
@@ -518,8 +675,9 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                   </div>
                 ) : (
                   Object.entries(groupedPlans).map(
-                    ([periodKey, plans]) =>
-                      plans.length > 0 && (
+                    ([periodKey, plans]) => {
+                      const orderedPlans = getOrderedPlansForPeriod(periodKey, plans);
+                      return orderedPlans.length > 0 && (
                         <div key={periodKey} style={{ marginBottom: 20 }}>
                           <div
                             style={{
@@ -535,33 +693,87 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                             {periodKey}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                            {plans.map((p) => (
-                              <button
+                            {orderedPlans.map((p) => (
+                              <div
                                 key={p.id}
-                                onClick={() => loadPlan(p)}
+                                onDragOver={(e) => handleDragOver(e, p)}
+                                onDragLeave={handleDragLeave}
+                                onDrop={(e) => handleDrop(e, p, periodKey)}
                                 style={{
-                                  padding: '10px 12px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  padding: '6px 8px',
                                   borderRadius: 8,
-                                  border: 'none',
                                   background: planId === p.id ? '#e0f2fe' : '#f8fafc',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  fontSize: 13,
-                                  color: planId === p.id ? '#0369a1' : '#334155',
-                                  borderLeft: planId === p.id ? '3px solid #0ea5e9' : '3px solid transparent'
+                                  borderLeft: planId === p.id ? '3px solid #0ea5e9' : '3px solid transparent',
+                                  opacity: draggingPlanId === p.id ? 0.5 : 1,
+                                  outline: dragOverPlanId === p.id ? '2px dashed #0ea5e9' : 'none'
                                 }}
                               >
-                                <div style={{ fontWeight: 600, marginBottom: 2 }}>
-                                  {p.title || `${p.period} plan`}
+                                <div
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, p, periodKey)}
+                                  onDragEnd={handleDragEnd}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    color: '#94a3b8',
+                                    cursor: 'grab',
+                                    flexShrink: 0,
+                                    padding: 2
+                                  }}
+                                  title="Drag to reorder"
+                                >
+                                  <GripVertical size={14} />
                                 </div>
-                                <div style={{ fontSize: 11, color: '#94a3b8' }}>
-                                  {formatPlanDate(p.date)}
-                                </div>
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => loadPlan(p)}
+                                  style={{
+                                    flex: 1,
+                                    padding: '4px 4px',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    fontSize: 13,
+                                    color: planId === p.id ? '#0369a1' : '#334155',
+                                    minWidth: 0
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 600, marginBottom: 2 }}>
+                                    {p.title || `${p.period} plan`}
+                                  </div>
+                                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                    {formatPlanDate(p.date)}
+                                  </div>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleDeletePlanClick(e, p)}
+                                  title="Delete plan"
+                                  style={{
+                                    padding: 4,
+                                    borderRadius: 6,
+                                    border: 'none',
+                                    background: 'rgba(239,68,68,0.15)',
+                                    color: '#ef4444',
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             ))}
                           </div>
                         </div>
-                      )
+                      );
+                    }
                   )
                 )}
               </div>
@@ -577,7 +789,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     gap: 6,
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid #E5E7EB',
                     background: '#fff',
                     fontSize: 12,
                     fontWeight: 600,
@@ -598,7 +810,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     gap: 6,
                     padding: '10px 12px',
                     borderRadius: 8,
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid #E5E7EB',
                     background: '#fff',
                     fontSize: 12,
                     fontWeight: 600,
@@ -612,9 +824,10 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
             </>
           )}
         </aside>
+        )}
 
         {/* MAIN CONTENT - Create/Edit */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <main style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', minWidth: 0, transition: 'padding 0.3s ease' }}>
           {!classId ? (
             <div
               style={{
@@ -642,7 +855,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 }}
               >
                 <div>
-                  <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                     Period
                   </label>
                   <select
@@ -660,7 +873,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 </div>
                 {period === 'daily' && (
                   <div>
-                    <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                       Date
                     </label>
                     <input
@@ -674,7 +887,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 {period === 'weekly' && (
                   <>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                      <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                         From
                       </label>
                       <input
@@ -685,7 +898,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                      <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                         To
                       </label>
                       <input
@@ -699,7 +912,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 )}
                 {period === 'monthly' && (
                   <div>
-                    <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                       Month & Year
                     </label>
                     <input
@@ -712,7 +925,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 )}
                 {period === 'yearly' && (
                   <div>
-                    <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                    <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                       Year
                     </label>
                     <input
@@ -726,7 +939,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                   </div>
                 )}
                 <div style={{ flex: 1, minWidth: 180 }}>
-                  <label style={{ display: 'block', fontWeight: 600, fontSize: 12, marginBottom: 6, color: '#475569' }}>
+                  <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6, color: '#374151' }}>
                     Title
                   </label>
                   <input
@@ -748,7 +961,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                       padding: 28,
                       boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                       marginBottom: 24,
-                      border: '1px solid #e2e8f0'
+                      border: '1px solid #E5E7EB'
                     }}
                   >
                     {renderTemplate()}
@@ -782,7 +995,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                         gap: 8,
                         padding: '12px 20px',
                         borderRadius: 10,
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid #E5E7EB',
                         background: 'white',
                         fontWeight: 600,
                         cursor: 'pointer'
@@ -800,7 +1013,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                         gap: 8,
                         padding: '12px 20px',
                         borderRadius: 10,
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid #E5E7EB',
                         background: 'white',
                         fontWeight: 600,
                         cursor: exporting ? 'not-allowed' : 'pointer'
@@ -822,7 +1035,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                         gap: 8,
                         padding: '12px 20px',
                         borderRadius: 10,
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid #E5E7EB',
                         background: 'white',
                         fontWeight: 600,
                         cursor: exporting ? 'not-allowed' : 'pointer'
@@ -899,7 +1112,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                   style={{
                     padding: '12px 16px',
                     borderRadius: 10,
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid #E5E7EB',
                     background: '#fff',
                     textAlign: 'left',
                     fontWeight: 600,
@@ -919,7 +1132,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 marginTop: 16,
                 padding: '10px 16px',
                 borderRadius: 8,
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E5E7EB',
                 background: '#f8fafc',
                 cursor: 'pointer'
               }}
@@ -969,7 +1182,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                     style={{
                       padding: '12px 16px',
                       borderRadius: 10,
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #E5E7EB',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -1010,7 +1223,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 marginTop: 16,
                 padding: '10px 16px',
                 borderRadius: 8,
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E5E7EB',
                 background: '#f8fafc',
                 cursor: 'pointer'
               }}
@@ -1063,7 +1276,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 width: '100%',
                 minHeight: 180,
                 padding: 12,
-                border: '1px solid #e2e8f0',
+                border: '1px solid #E5E7EB',
                 borderRadius: 8,
                 fontFamily: 'monospace',
                 fontSize: 12,
@@ -1089,7 +1302,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 style={{
                   padding: '10px 16px',
                   borderRadius: 8,
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid #E5E7EB',
                   background: '#f8fafc',
                   cursor: 'pointer',
                   fontWeight: 600,
@@ -1120,6 +1333,195 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Save confirmation modal - empty cells warning */}
+      {showSaveConfirmModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100
+          }}
+          onClick={() => { setShowSaveConfirmModal(false); setEmptyCellsHighlight({}); }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 24,
+              padding: 32,
+              width: 420,
+              maxWidth: '92vw',
+              boxShadow: '0 24px 48px rgba(0,0,0,0.2)',
+              border: '1px solid rgba(239, 68, 68, 0.2)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 800, color: '#1e293b' }}>
+              Are you sure you want to save?
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: 15, color: '#64748b', lineHeight: 1.5 }}>
+              {emptyCount} empty cell{emptyCount !== 1 ? 's' : ''} {emptyCount !== 1 ? 'are' : 'is'} highlighted in red. You can save anyway or go back and fill them in.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => { setShowSaveConfirmModal(false); setEmptyCellsHighlight({}); }}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: 12,
+                  border: '1px solid #E5E7EB',
+                  background: '#f8fafc',
+                  color: '#64748b',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontSize: 14
+                }}
+              >
+                No, go back
+              </button>
+              <button
+                onClick={performSave}
+                disabled={saving}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: '#0ea5e9',
+                  color: 'white',
+                  fontWeight: 700,
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontSize: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {saving ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+                Yes, save anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm.show && deleteConfirm.plan && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100
+          }}
+          onClick={() => setDeleteConfirm({ show: false, plan: null })}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: 16,
+              padding: 24,
+              width: 380,
+              maxWidth: '92vw',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
+              border: '1px solid #E5E7EB'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: '#1e293b' }}>
+              Delete lesson plan?
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: 14, color: '#64748b', lineHeight: 1.5 }}>
+              &ldquo;{deleteConfirm.plan.title || deleteConfirm.plan.period + ' plan'}&rdquo; will be permanently deleted.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm({ show: false, plan: null })}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 10,
+                  border: '1px solid #E5E7EB',
+                  background: '#f8fafc',
+                  color: '#64748b',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: 14
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#ef4444',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: 14
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast.visible && toast.message && (
+        <div
+          role="alert"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1200,
+            maxWidth: 'calc(100vw - 48px)',
+            padding: '14px 20px',
+            borderRadius: 12,
+            fontSize: 14,
+            fontWeight: 600,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+            border: '1px solid rgba(0,0,0,0.06)',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+            ...(toast.type === 'error' && {
+              background: '#fef2f2',
+              color: '#b91c1c',
+              borderColor: '#fecaca'
+            }),
+            ...(toast.type === 'success' && {
+              background: '#f0fdf4',
+              color: '#15803d',
+              borderColor: '#bbf7d0'
+            }),
+            ...(toast.type === 'warning' && {
+              background: '#fffbeb',
+              color: '#b45309',
+              borderColor: '#fde68a'
+            }),
+            ...(toast.type === 'info' && {
+              background: '#f0f9ff',
+              color: '#0369a1',
+              borderColor: '#bae6fd'
+            })
+          }}
+        >
+          {toast.message}
         </div>
       )}
 

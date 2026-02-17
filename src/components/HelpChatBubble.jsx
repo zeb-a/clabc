@@ -47,6 +47,21 @@ export default function HelpChatBubble() {
   const [suggestionFocus, setSuggestionFocus] = useState(-1);
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const panelRef = useRef(null);
+  const bubbleRef = useRef(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      const panel = panelRef.current;
+      const bubble = bubbleRef.current;
+      if (panel?.contains(e.target) || bubble?.contains(e.target)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
 
   const entry = useMemo(() => {
     if (!pageId || pageId === 'landing') return null;
@@ -135,6 +150,7 @@ export default function HelpChatBubble() {
   const bubbleContent = (
     <>
       <motion.button
+        ref={bubbleRef}
         aria-label="Help"
         onClick={() => setOpen(!open)}
         style={{
@@ -202,6 +218,7 @@ export default function HelpChatBubble() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, y: 24, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.92 }}

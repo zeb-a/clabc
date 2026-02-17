@@ -575,7 +575,7 @@ Click the **X** or close button to return to the dashboard.
       title: 'Lesson Planner',
       body: `### Plan Your Lessons
 
-Create and organize lessons with calendars and templates.
+Create and organize lessons with editable tables for Daily, Weekly, Monthly, and Yearly plans.
 
 ---
 
@@ -583,37 +583,51 @@ Create and organize lessons with calendars and templates.
 
 **Open Lesson Planner**
 - From the Teacher Portal, click **Lesson Planner** (or the calendar icon)
-- You'll see your monthly view and any saved templates
+- Select a class and choose a period: **Yearly**, **Monthly**, **Weekly**, or **Daily**
 
-**Monthly View**
-- See all days of the month at a glance
-- Click a day to add or edit lessons
-- Use arrows to change month
+**Sidebar Toggle**
+- Use the sidebar button (panel icon) in the header to show or hide the plans list
+- The table stretches to fill the space when the sidebar is hidden
 
 ---
 
-#### **Templates**
+#### **Editable Tables**
 
-**Use a Template**
-- Pick a template to structure your week or day
-- Fill in subjects and activities
-- Save to apply the plan to your calendar
+**Headers & Cells**
+- All column and row headers are editable—click and type to customize labels
+- Every cell is editable like a regular text area
+- Textareas stretch both horizontally and vertically for comfortable writing
 
-**Create Your Own**
-- Build custom templates for your schedule
-- Reuse them across weeks or months
+**Add & Delete**
+- **Add Row** and **Add Column** buttons let you extend any table
+- Use the trash icon next to each row or column header to delete it
+- Tables require at least one row and one data column
+
+---
+
+#### **Saving & Validation**
+
+**Empty Table**
+- Empty tables (no content) are not saved
+- A message prompts you to add content before saving
+
+**Partial Fill**
+- If some cells are empty, a confirmation appears: "Are you sure you want to save?"
+- Empty cells are highlighted in red so you can find them easily
+- Choose **Yes, save anyway** or **No, go back** to fill them in
 
 ---
 
 #### **Tips**
 
-- Plan ahead for the whole month
-- Duplicate a week to save time
-- Export or print your plan if needed
+- Use the sidebar toggle for more workspace on small screens
+- Paste table data (tab or comma-separated) via **Paste Table**
+- Export to PDF or DOCX when ready
+- Import or export plans to other classes
 
 ---
 
-*Lesson plans are saved automatically.*`
+*Click Save to store your lesson plan.*`
     },
     'games': {
       title: 'Games',
@@ -1289,7 +1303,7 @@ Configure game options, images, and content before playing.
       title: '课程计划',
       body: `### 规划您的课程
 
-使用日历和模板创建和整理课程。
+使用可编辑表格创建和整理每日、每周、每月和年度课程计划。
 
 ---
 
@@ -1297,29 +1311,51 @@ Configure game options, images, and content before playing.
 
 **打开课程计划**
 - 在教师门户中点击 **课程计划**（或日历图标）
-- 您会看到月视图和已保存的模板
+- 选择班级和周期：**年度**、**月度**、**每周** 或 **每日**
 
-**月视图**
-- 一览当月所有日期
-- 点击某天添加或编辑课程
-- 使用箭头切换月份
-
----
-
-#### **模板**
-
-**使用模板**
-- 选择模板来安排您的一周或一天
-- 填写科目和活动
-- 保存以将计划应用到日历
-
-**自定义**
-- 为您的日程创建自定义模板
-- 在周或月中重复使用
+**侧边栏切换**
+- 使用标题栏的侧边栏按钮（面板图标）显示或隐藏计划列表
+- 侧边栏隐藏时，表格会拉伸填满空间
 
 ---
 
-*课程计划会自动保存。*`
+#### **可编辑表格**
+
+**表头和单元格**
+- 所有列和行表头均可编辑，点击输入即可自定义标签
+- 每个单元格都可编辑，像普通文本框一样
+- 文本框可水平和垂直拉伸
+
+**添加和删除**
+- **添加行** 和 **添加列** 按钮可扩展任何表格
+- 使用每行或列表头旁的垃圾桶图标删除
+- 表格至少需要一行和一个数据列
+
+---
+
+#### **保存与验证**
+
+**空表格**
+- 空表格（无内容）不会保存
+- 会提示您在保存前添加内容
+
+**部分填写**
+- 若部分单元格为空，会显示确认：“确定要保存吗？”
+- 空单元格以红色高亮显示，便于查找
+- 选择 **是，仍然保存** 或 **否，返回填写**
+
+---
+
+#### **提示**
+
+- 小屏幕上使用侧边栏切换获得更多工作空间
+- 通过 **粘贴表格** 粘贴制表符或逗号分隔的数据
+- 准备好后可导出为 PDF 或 DOCX
+- 可将计划导入或导出到其他班级
+
+---
+
+*点击保存以存储您的课程计划。*`
     },
     'games': {
       title: '课堂游戏',
