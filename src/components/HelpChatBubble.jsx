@@ -47,21 +47,6 @@ export default function HelpChatBubble() {
   const [suggestionFocus, setSuggestionFocus] = useState(-1);
   const inputRef = useRef(null);
   const listRef = useRef(null);
-  const panelRef = useRef(null);
-  const bubbleRef = useRef(null);
-
-  // Close on click outside
-  useEffect(() => {
-    if (!open) return;
-    const handleClickOutside = (e) => {
-      const panel = panelRef.current;
-      const bubble = bubbleRef.current;
-      if (panel?.contains(e.target) || bubble?.contains(e.target)) return;
-      setOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
 
   const entry = useMemo(() => {
     if (!pageId || pageId === 'landing') return null;
@@ -99,13 +84,119 @@ export default function HelpChatBubble() {
 
   const handleSubmit = (e) => {
     e?.preventDefault();
-    const q = (input || '').trim();
+    const q = (input || '').trim().toLowerCase();
     if (!q) return;
     setInput('');
     setSuggestionFocus(-1);
-    const match = entry ? getMatchingSection(entry, q) : null;
+
+    // Enhanced direct answer system with precise matching
+    let match = null;
+
+    if (entry) {
+      // First try exact section title matching
+      const exactMatch = sections.find(s =>
+        s.title.toLowerCase() === q ||
+        q.includes(s.title.toLowerCase())
+      );
+
+      if (exactMatch) {
+        match = exactMatch;
+      } else {
+        // Try semantic matching for common button questions
+        match = findSemanticMatch(q, sections, entry);
+
+        // Fallback to existing matching logic
+        if (!match) {
+          match = getMatchingSection(entry, q);
+        }
+      }
+    }
+
     setAnswer(match || entry);
     if (inputRef.current) inputRef.current.focus();
+  };
+
+  // Semantic matching for common button/functionality questions
+  const findSemanticMatch = (query, sections, entry) => {
+    const q = query.toLowerCase();
+    const keywords = q.split(/\s+/).filter(w => w.length > 2);
+
+    // Keywords to section mapping
+    const keywordMap = {
+      'sort': ['Sort Students'],
+      'student': ['Sort Students', 'Add a Student', 'Edit a Student'],
+      'name': ['Sort Students'],
+      'point': ['Sort Students', 'Giving Points to Students'],
+      'display': ['Display Options'],
+      'size': ['Display Options', 'Change Grid Size'],
+      'grid': ['Display Options', 'Change Grid Size'],
+      'compact': ['Change Grid Size'],
+      'regular': ['Change Grid Size'],
+      'spacious': ['Change Grid Size'],
+      'fullscreen': ['Fullscreen Mode'],
+      'expand': ['Fullscreen Mode'],
+      'attendance': ['Attendance', 'Student Management'],
+      'absent': ['Attendance', 'Student Management'],
+      'present': ['Attendance', 'Student Management'],
+      'lucky': ['Lucky Draw'],
+      'draw': ['Lucky Draw'],
+      'random': ['Lucky Draw'],
+      'winner': ['Lucky Draw'],
+      'timer': ['Timer'],
+      'countdown': ['Timer'],
+      'buzzer': ['Attention Buzzer'],
+      'attention': ['Attention Buzzer'],
+      'whiteboard': ['Whiteboard'],
+      'draw': ['Whiteboard'],
+      'settings': ['Settings', 'Point Cards'],
+      'card': ['Point Cards', 'Add a Card', 'Edit a Card', 'Delete a Card'],
+      'emoji': ['Point Cards', 'Add a Card', 'Edit a Card'],
+      'assign': ['Assignments', 'Assign & Publish'],
+      'worksheet': ['Assignments'],
+      'question': ['Question Types', 'Add Questions'],
+      'grade': ['Grade a Submission'],
+      'inbox': ['Inbox — Review Submissions', 'View Submissions'],
+      'message': ['Inbox — Review Submissions', 'Messages & Grading'],
+      'submission': ['Inbox — Review Submissions', 'View Submissions'],
+      'code': ['Access Codes', 'Generated Codes'],
+      'report': ['Reports', 'Time Periods', 'Report Card Contents', 'Edit Feedback', 'Export Options'],
+      'analytics': ['Reports', 'Report Card Contents', 'Behavior Distribution Chart'],
+      'progress': ['Reports', 'Report Card Contents', 'Student Info'],
+      'chart': ['Reports', 'Report Card Contents', 'Behavior Distribution Chart', 'Behavior Ratio'],
+      'feedback': ['Reports', 'AI Teacher Feedback', 'Edit Feedback'],
+      'pdf': ['Reports', 'Export Options', 'Download PDF'],
+      'print': ['Reports', 'Export Options', 'Print'],
+      'export': ['Reports', 'Export Options'],
+      'time': ['Reports', 'Time Periods'],
+      'period': ['Reports', 'Time Periods'],
+      'week': ['Reports', 'Time Periods'],
+      'month': ['Reports', 'Time Periods'],
+      'year': ['Reports', 'Time Periods'],
+      'road': ['Progress Road'],
+      'milestone': ['Progress Road'],
+      'avatar': ['Student Management', 'Edit a Student']
+    };
+
+    // Find matching sections based on keywords
+    const matchingSections = new Set();
+    for (const keyword of keywords) {
+      for (const [key, sectionTitles] of Object.entries(keywordMap)) {
+        if (keyword.includes(key) || key.includes(keyword)) {
+          sectionTitles.forEach(title => matchingSections.add(title));
+        }
+      }
+    }
+
+    // Find the first matching section
+    if (matchingSections.size > 0) {
+      for (const section of sections) {
+        if (matchingSections.has(section.title)) {
+          return section;
+        }
+      }
+    }
+
+    return null;
   };
 
   const handleKeyDown = (e) => {
@@ -150,7 +241,6 @@ export default function HelpChatBubble() {
   const bubbleContent = (
     <>
       <motion.button
-        ref={bubbleRef}
         aria-label="Help"
         onClick={() => setOpen(!open)}
         style={{
@@ -218,7 +308,6 @@ export default function HelpChatBubble() {
       <AnimatePresence>
         {open && (
           <motion.div
-            ref={panelRef}
             initial={{ opacity: 0, y: 24, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.92 }}
@@ -349,6 +438,7 @@ export default function HelpChatBubble() {
                       h1: ({ children }) => <h1 style={{ margin: '12px 0 8px', fontSize: 16, fontWeight: 800, color: isDark ? '#fff' : '#1E293B' }}>{children}</h1>,
                       h2: ({ children }) => <h2 style={{ margin: '12px 0 6px', fontSize: 15, fontWeight: 700, color: isDark ? '#f4f4f5' : '#334155' }}>{children}</h2>,
                       h3: ({ children }) => <h3 style={{ margin: '10px 0 4px', fontSize: 14, fontWeight: 700, color: isDark ? '#e5e5e5' : '#475569' }}>{children}</h3>,
+                      h4: ({ children }) => <h4 style={{ margin: '10px 0 4px', fontSize: 14, fontWeight: 700, color: isDark ? '#e5e5e5' : '#475569' }}>{children}</h4>,
                       p: ({ children }) => <p style={{ margin: '6px 0' }}>{children}</p>,
                       ul: ({ children }) => <ul style={{ margin: '6px 0', paddingLeft: 20 }}>{children}</ul>,
                       ol: ({ children }) => <ol style={{ margin: '6px 0', paddingLeft: 20 }}>{children}</ol>,

@@ -4,8 +4,9 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import {
   Dices, Trophy, Settings, Home, UserPlus, Camera, SmilePlus,
-  ChevronLeft, ChevronRight, Sliders, ChevronDown, ArrowUpDown,
-  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical, X, Check, Users
+  Sliders, ChevronDown, ArrowUpDown,
+  CheckSquare, BarChart2, QrCode, ClipboardList, Maximize, Minimize, MessageSquare, Clock, CheckCircle, Siren, Zap, MoreVertical, X, Check, Users,
+  Menu, X as CloseIcon
 } from 'lucide-react';
 
 import ReportsPage from './ReportsPage';
@@ -146,6 +147,79 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
 }
 };
 
+// Advanced Animated Hamburger Icon Component
+const AnimatedHamburger = ({ isOpen, ...props }) => {
+  return (
+    <div
+      {...props}
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        ...props.style
+      }}
+    >
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Top line - becomes \ side of X when open */}
+        <line
+          x1="5"
+          y1="6"
+          x2="19"
+          y2="6"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          style={{
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isOpen ? 'translate(0, 6px) rotate(45deg)' : 'translate(0, 0) rotate(0deg)',
+            transformOrigin: '12px 6px',
+            opacity: 1
+          }}
+        />
+        {/* Middle line - fades out */}
+        <line
+          x1="5"
+          y1="12"
+          x2="19"
+          y2="12"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          style={{
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: isOpen ? 0 : 1
+          }}
+        />
+        {/* Bottom line - becomes / side of X when open */}
+        <line
+          x1="5"
+          y1="18"
+          x2="19"
+          y2="18"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          style={{
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isOpen ? 'translate(0, -6px) rotate(-45deg)' : 'translate(0, 0) rotate(0deg)',
+            transformOrigin: '12px 18px',
+            opacity: 1
+          }}
+        />
+      </svg>
+    </div>
+  );
+};
+
   // Reusable icon button with hover tooltip (for header controls)
 const IconButton = React.forwardRef(({ title, onClick, children, style }, ref) => {
   const [hovered, setHovered] = React.useState(false);
@@ -272,7 +346,7 @@ export default function ClassDashboard({
   // TEMPORARY: default to visible so we can verify the aside and chevron are rendered.
   // Change this back to `false` after verifying in the browser.
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
-  const [sidebarVisible, setSidebarVisible] = useState(isMobile ? false : true);
+  const [sidebarVisible, setSidebarVisible] = useState(true); // Always visible by default
   const [displaySize, setDisplaySize] = useState(isMobile ? 'compact' : 'spacious');
   const [selectedStudents, setSelectedStudents] = useState(new Set());
   const [showClassBehaviorModal, setShowClassBehaviorModal] = useState(false);
@@ -419,6 +493,7 @@ export default function ClassDashboard({
   }, [showHeaderMenu, showSortMenu, showGridMenu]);
 
   // Hide the sidebar/aside when clicking anywhere outside it (but not when clicking the chevron toggle)
+  // Applies on both mobile and desktop
   useEffect(() => {
     const onAnyClick = (e) => {
       const target = e.target;
@@ -976,7 +1051,10 @@ export default function ClassDashboard({
                 transition: 'transform 0.25s ease',
                 boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.06)' : 'none',
                 outline: '3px solid rgba(99,102,241,0.12)',
-                borderRight: '1px solid rgba(0,0,0,0.04)'
+                borderRight: '1px solid rgba(0,0,0,0.04)',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingBottom: 16
               };
             }
             // Default (desktop): wider sidebar with icon + text
@@ -998,7 +1076,10 @@ export default function ClassDashboard({
                 boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
                 outline: '3px solid rgba(99,102,241,0.08)',
                 boxSizing: 'border-box',
-                marginTop: '7px'
+                marginTop: '7px',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                paddingBottom: 16
               };
           })()}
         >
@@ -1132,13 +1213,32 @@ export default function ClassDashboard({
         </nav>
 
           <style>{`
-            @keyframes chevronBounce {
-              0% { transform: translateY(0); }
-              1.6% { transform: translateY(-8px); }
-              3.2% { transform: translateY(0); }
-              4.8% { transform: translateY(-6px); }
-              6.4% { transform: translateY(0); }
-              100% { transform: translateY(0); }
+            @keyframes hamburgerPulse {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+              }
+              50% { 
+                transform: scale(1.05);
+                box-shadow: 0 8px 24px rgba(99,102,241,0.25);
+              }
+            }
+            @keyframes hamburgerGlow {
+              0%, 100% {
+                box-shadow: 0 6px 18px rgba(0,0,0,0.12), 0 0 0 0 rgba(99,102,241,0);
+              }
+              50% {
+                box-shadow: 0 8px 24px rgba(99,102,241,0.2), 0 0 20px 2px rgba(99,102,241,0.1);
+              }
+            }
+            @keyframes hamburgerIconRotate {
+              0%, 100% { transform: rotate(0deg); }
+              25% { transform: rotate(-5deg); }
+              75% { transform: rotate(5deg); }
+            }
+            @keyframes hamburgerFadeIn {
+              0% { opacity: 0; transform: translateX(-20px); }
+              100% { opacity: 1; transform: translateX(0); }
             }
           `}</style>
 
@@ -1147,62 +1247,71 @@ export default function ClassDashboard({
             onMouseDown={(e) => e.stopPropagation()} // prevent document listener from firing on click
             onClick={(e) => { e.stopPropagation(); setSidebarVisible(prev => !prev); }}
             style={(() => {
-              // Hide chevron when modals or overlays are open
-              const isOverlayOpen = isLuckyDrawOpen || showWhiteboard || showHistory || buzzerState !== 'idle' ||
-                                   viewMode === 'timer' || viewMode === 'settings' ||
-                                   viewMode === 'reports' || viewMode === 'assignments' ||
-                                   viewMode === 'codes' || viewMode === 'messages' ||
-                                   selectedStudent || showClassBehaviorModal || isAddStudentOpen ||
-                                   editingStudentId || deleteConfirmStudentId;
-
-              if (isOverlayOpen) {
-                return { display: 'none' };
-              }
-
-              if (isMobile) {
-                // Mobile: chevron sits at the left and retracts to the far left when aside is hidden
-                return {
-                  position: 'fixed',
-                  left: sidebarVisible ? '82px' : '0',
-                  top: '50px',
-                  zIndex: 11010,
-                  background: 'white',
-                  border: '2px solid rgba(99,102,241,0.12)',
-                  borderRadius: '0 8px 8px 0',
-                  width: '48px',
-                  height: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 22px rgba(0,0,0,0.18)',
-                  transition: 'all 0.25s ease',
-                  // Subtle pulse when sidebar is hidden to hint at its presence
-                  animation: !sidebarVisible ? 'pulseChevron 1.6s ease-in-out infinite' : 'none',
-                  willChange: 'transform'
-                };
-              }
-              return {
+              const baseStyles = {
                 position: 'fixed',
-                left: sidebarVisible ? '218px' : '8px',
-                top: 53,
                 zIndex: 11010,
-                background: 'white',
-                border: '2px solid rgba(99,102,241,0.12)',
-                borderRadius: '0 8px 8px 0',
-                width: '40px',
-                height: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
-                transition: 'all 0.28s ease',
-                willChange: 'transform'
+                color: '#636E72',
+                willChange: 'transform, left',
+              };
+
+              if (isMobile) {
+                // Mobile: hamburger sits at the left with smooth slide animation
+                return {
+                  ...baseStyles,
+                  left: sidebarVisible ? '82px' : '12px',
+                  top: '12px',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  border: sidebarVisible
+                    ? '2px solid rgba(99,102,241,0.3)'
+                    : '2px solid rgba(99,102,241,0.12)',
+                  borderRadius: '12px',
+                  width: '48px',
+                  height: '48px',
+                  boxShadow: sidebarVisible
+                    ? '0 8px 24px rgba(99,102,241,0.2)'
+                    : '0 6px 20px rgba(0,0,0,0.1)',
+                  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                  animation: !sidebarVisible ? 'hamburgerGlow 2.5s ease-in-out infinite' : 'none',
+                  overflow: 'hidden',
+                };
+              }
+              // Desktop: hamburger button with enhanced styling - moved 38px up total (53 -> 15)
+              return {
+                ...baseStyles,
+                left: sidebarVisible ? '218px' : '12px',
+                top: 15,
+                background: sidebarVisible
+                  ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                  : 'linear-gradient(135deg, #EEF2FF 0%, #ffffff 100%)',
+                border: sidebarVisible
+                  ? '2px solid rgba(99,102,241,0.3)'
+                  : '2px solid rgba(99,102,241,0.15)',
+                borderRadius: '12px',
+                width: '44px',
+                height: '48px',
+                boxShadow: sidebarVisible
+                  ? '0 8px 24px rgba(99,102,241,0.15)'
+                  : '0 4px 16px rgba(99,102,241,0.12)',
+                transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                overflow: 'hidden',
               };
             })()}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.08)';
+              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)';
+              e.currentTarget.style.color = '#4F46E5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.borderColor = sidebarVisible ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.12)';
+              e.currentTarget.style.color = '#636E72';
+            }}
           >
-            {sidebarVisible ? <ChevronLeft size={isMobile ? 20 : 22} style={{ transition: 'transform 220ms ease' }} /> : <ChevronRight size={isMobile ? 20 : 22} style={{ transition: 'transform 220ms ease' }} />}
+            <AnimatedHamburger isOpen={sidebarVisible} />
           </button>
 
         {/* BUZZER OVERLAY */}
@@ -1403,7 +1512,7 @@ export default function ClassDashboard({
                     <div style={{ width: isMobile ? '40px' : '100px' }}></div>
 
                     {/* Center: Class name */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: '9px' }}>
                       <h2 style={{ fontSize: isMobile ? '18px' : '1.5rem', fontWeight: 900, color: '#0F172A', margin: 0 }}>
                         {activeClass.name}
                       </h2>
@@ -1426,18 +1535,6 @@ export default function ClassDashboard({
                         </div>
                       )}
                     </div>
-
-                    {/* Right side: Controls */}
-                      {!isMobile && (
-                      <div style={{ width: '100px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
-                        <IconButton
-                          title={t('dashboard.points_history')}
-                          onClick={() => setShowHistory(true)}
-                        >
-                          <Clock size={22} />
-                        </IconButton>
-                      </div>
-                    )}
 
                     {/* Right side: Controls */}
                     {isMobile ? (
@@ -1618,19 +1715,6 @@ export default function ClassDashboard({
                                 <span style={{ flex: 1, textAlign: 'left' }}>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
                               </button>
 
-                              {/* Points History */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowHeaderMenu(false);
-                                  setShowHistory(true);
-                                }}
-                                style={{ ...styles.gridOption, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}
-                              >
-                                <Clock size={18} />
-                                <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.points_history')}</span>
-                              </button>
-
                               {/* Select Multiple */}
                               <button
                                 onClick={(e) => {
@@ -1713,6 +1797,14 @@ export default function ClassDashboard({
                             </div>
                           )}
                         </div>
+
+                        {/* Points History */}
+                        <IconButton
+                          title={t('dashboard.points_history')}
+                          onClick={() => setShowHistory(true)}
+                        >
+                          <Clock size={22} />
+                        </IconButton>
 
                         <div style={{ position: 'relative' }}>
                           <IconButton

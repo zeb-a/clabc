@@ -1,14 +1,15 @@
-    import React, { useState, useEffect, useMemo, useRef } from 'react';
-    import SimpleWysiwyg from 'react-simple-wysiwyg';
-    import { Bar, Doughnut } from 'react-chartjs-2';
-    import { X, Download, Printer } from 'lucide-react';
-    import {
-        Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
-    } from 'chart.js';
-    import { boringAvatar } from '../utils/avatar'; // Ensure this path is correct
-    import html2canvas from 'html2canvas';
-    import jsPDF from 'jspdf';
-    ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import SimpleWysiwyg from 'react-simple-wysiwyg';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import { X, Download, Printer } from 'lucide-react';
+import {
+    Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend
+} from 'chart.js';
+import { boringAvatar } from '../utils/avatar'; // Ensure this path is correct
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { usePageHelp } from '../PageHelpContext';
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
     /* ================= 🌐 LANGUAGE SELECTION ================= */
     const translations = {
         en: {
@@ -191,6 +192,13 @@
     /* ================= 📊 MAIN COMPONENT ================= */
 
     export default function ReportsPage({ activeClass, studentId, isParentView, onBack }) {
+        const { setPageId } = usePageHelp();
+
+        // Set page ID for help context
+        useEffect(() => {
+            setPageId('reports');
+        }, [setPageId]);
+
         // Editable feedback state
         const [editingFeedback, setEditingFeedback] = useState({}); // { [studentId]: true/false }
         const [feedback, setFeedback] = useState({}); // { [studentId]: text }

@@ -54,22 +54,35 @@ This is where you manage everything for a single class.
 
 #### **Sidebar Tools**
 
-| Icon | Tool | Purpose |
-|-------|-------|---------|
-| 🏠 | Dashboard | Return to your classes list |
-| 📋 | Assignments | Create worksheets and send to students |
-| 💬 | Messages & Grading | Review student submissions and assign grades |
-| 🎲 | Lucky Draw | Randomly select student winners |
-| 🏆 | Progress Road | View class milestone progress |
-| ✅ | Attendance | Mark which students are present/absent |
-| 🔳 | Access Codes | View student & parent login codes |
-| 📊 | Reports | View class & student analytics |
-| ⏰ | Timer | Start countdown timers for activities |
-| 🔔 | Attention Buzzer | Get the class's attention quickly |
-| 🎨 | Whiteboard | Draw, write, and share with class |
-| ⚙️ | Settings | Customize point cards and options |
+| | |
+|---|---|
+| 🏠 | Return to your classes list |
+| 📋 | Create worksheets and send to students |
+| 💬 | Review student submissions and assign grades |
+| 🎲 | Randomly select student winners |
+| 🏆 | View class milestone progress |
+| ✅ | Mark which students are present/absent |
+| 🔳 | View student & parent login codes |
+| 📊 | View class & student analytics |
+| ⏰ | Start countdown timers for activities |
+| 🔔 | Get the class's attention quickly |
+| 🎨 | Draw, write, and share with class |
+| ⚙️ | Customize point cards and options |
 
 ---
+
+#### **Header Action Buttons**
+
+| | |
+|---|---|
+| 🕐 | View all points awarded to students with timestamps and behavior labels |
+| ↕️ | Sort by Name (A-Z) or Highest Points |
+| |||| | Change grid size: Compact, Regular, or Spacious |
+| ⛶/⤡ | Toggle fullscreen view of the dashboard |
+| ☐ | Enable multi-select mode to give points to multiple students at once |
+
+---
+
 
 #### **Giving Points to Students**
 
@@ -83,6 +96,60 @@ This is where you manage everything for a single class.
 - Select a point card
 - ALL present students receive the same points
 
+**Multiple Students**
+- Click **Select Multiple** (✅ icon)
+- Click on student cards to select them
+- Click "Give Points" button
+- Select a point card to award to all selected students
+
+---
+
+#### **Sort Students**
+
+- Click the up/down arrows icon (⬆️⬇️) in the top right
+- A dropdown menu appears with two options:
+  - **Name (A-Z)** - Sort students alphabetically
+  - **Highest Points** - Sort by total score (highest first)
+- Click your preferred sorting option
+
+---
+
+#### **Display Size**
+
+- Click the sliders icon (🎚️) in the top right
+- Choose a grid size:
+  - **Compact** - Small cards, shows many students
+  - **Regular** - Medium cards, balanced view
+  - **Spacious** - Large cards, easy to read
+
+---
+
+#### **Points History**
+
+- Click the clock icon (⏱️) in the top right
+- View a complete log of all points awarded
+- Filter by student or date
+- See behavior labels and timestamps
+- Use for tracking and record-keeping
+
+---
+
+#### **Fullscreen Mode**
+
+- Click the expand icon (⛶) to show dashboard fullscreen
+- Use for classroom display on projector
+- Click the **shrink icon** (⬇) or press **Esc** to exit
+
+---
+
+#### **Select Multiple**
+
+- Click the check icon (✅) to enable multi-select mode
+- Student cards show checkboxes
+- Click cards to select multiple students
+- Click "Give Points" to award points to all selected
+- Click "Select Multiple" again to disable
+
 ---
 
 #### **Student Management**
@@ -92,13 +159,13 @@ This is where you manage everything for a single class.
 - Enter student name
 - Choose an avatar or upload a photo
 - Click save
-
+---
 **Edit a Student**
 - Hover over a student card
 - Click the pencil icon
 - Change name or avatar
 - Click save
-
+---
 **Delete a Student**
 - Hover over a student card
 - Click the trash icon
@@ -126,11 +193,11 @@ This is where you manage everything for a single class.
 **Change Grid Size**
 - Click the sliders icon (top right)
 - Choose: Compact, Regular, or Spacious
-
+---
 **Sort Students**
 - Click the up/down arrows icon (top right)
 - Sort by: Name (A-Z) or Highest Points
-
+---
 **Fullscreen Mode**
 - Click the expand icon to show dashboard fullscreen
 - Click again to exit
@@ -149,19 +216,19 @@ This is where you manage everything for a single class.
 
 ---
 
-#### **Question Types**
+#### **Question Type Buttons**
 
-| Type | Use For |
-|-------|----------|
-| Short Answer | Free-text responses |
-| Multiple Choice | Students pick from options |
-| Fill-in-the-Blank | Type \`[blank]\` where answers go |
-| Matching | Match items on left to right |
-| Reading Comprehension | Include a passage with questions |
-| True/False | Simple true or false answers |
-| Numeric Answer | Numbers only |
-| Sentence Ordering | Drag parts to reorder sentences |
-| Sorting | Categorize items into groups |
+| | |
+|---|---|
+| 📝 | Free-text responses |
+| ☑️ | Students pick from options |
+| 🔤 | Type \`[blank]\` where answers go |
+| ↔️ | Match items on left to right |
+| 📖 | Include a passage with questions |
+| ✅ | Simple true or false answers |
+| 🔢 | Numbers only |
+| ↕️ | Drag parts to reorder sentences |
+| 📊 | Categorize items into groups |
 
 ---
 
@@ -219,11 +286,9 @@ This is where you manage everything for a single class.
     },
     'settings': {
       title: 'Settings',
-      body: `### Configure Your Class
+      body: `### Configure Points cards
 
-This page is for managing your class setup.
-
----
+ Configure Points cards **Add**, **Edit**, **Remove cards**
 
 #### **Point Cards**
 
@@ -237,25 +302,25 @@ These are the rewards and penalties you give students.
   - Point value (+1, +2, -1, etc.)
 
 **Add a Card**
-- Click **Add Card** in the header
+- Click **Add Card** (➕) in the header
 - Enter card name
 - Choose emoji from the sticker picker
 - Set point value (positive or negative)
 - Click save
 
 **Edit a Card**
-- Click the pencil icon on any card
+- Click the ✏️ (pencil) icon on any card
 - Change name, emoji, or points
 - Click save icon (✅)
 
 **Delete a Card**
-- Click the trash icon on any card
+- Click the 🗑️ (trash) icon on any card
 - Confirm deletion
 
 ---
 
 #### **Reset to Defaults**
-- Click **Reset** to restore the original set of point cards
+- Click **Reset** (🔄) to restore the original set of point cards
 - This replaces all your custom cards
 
 ---
@@ -382,8 +447,8 @@ The whiteboard is a blank canvas for classroom activities.
 
 #### **Drawing Tools** (right side)
 
-| Tool | What It Does |
-|-------|-------------|
+| | |
+|---|---|
 | ✏️ Pencil | Draw freely on the canvas |
 | 🖍️ Highlighter | Transparent color overlay |
 | 📝 Text | Type text and press Enter to place |
@@ -575,7 +640,7 @@ Click the **X** or close button to return to the dashboard.
       title: 'Lesson Planner',
       body: `### Plan Your Lessons
 
-Create and organize lessons with editable tables for Daily, Weekly, Monthly, and Yearly plans.
+Create and organize lessons with calendars and templates.
 
 ---
 
@@ -583,51 +648,37 @@ Create and organize lessons with editable tables for Daily, Weekly, Monthly, and
 
 **Open Lesson Planner**
 - From the Teacher Portal, click **Lesson Planner** (or the calendar icon)
-- Select a class and choose a period: **Yearly**, **Monthly**, **Weekly**, or **Daily**
+- You'll see your monthly view and any saved templates
 
-**Sidebar Toggle**
-- Use the sidebar button (panel icon) in the header to show or hide the plans list
-- The table stretches to fill the space when the sidebar is hidden
-
----
-
-#### **Editable Tables**
-
-**Headers & Cells**
-- All column and row headers are editable—click and type to customize labels
-- Every cell is editable like a regular text area
-- Textareas stretch both horizontally and vertically for comfortable writing
-
-**Add & Delete**
-- **Add Row** and **Add Column** buttons let you extend any table
-- Use the trash icon next to each row or column header to delete it
-- Tables require at least one row and one data column
+**Monthly View**
+- See all days of the month at a glance
+- Click a day to add or edit lessons
+- Use arrows to change month
 
 ---
 
-#### **Saving & Validation**
+#### **Templates**
 
-**Empty Table**
-- Empty tables (no content) are not saved
-- A message prompts you to add content before saving
+**Use a Template**
+- Pick a template to structure your week or day
+- Fill in subjects and activities
+- Save to apply the plan to your calendar
 
-**Partial Fill**
-- If some cells are empty, a confirmation appears: "Are you sure you want to save?"
-- Empty cells are highlighted in red so you can find them easily
-- Choose **Yes, save anyway** or **No, go back** to fill them in
+**Create Your Own**
+- Build custom templates for your schedule
+- Reuse them across weeks or months
 
 ---
 
 #### **Tips**
 
-- Use the sidebar toggle for more workspace on small screens
-- Paste table data (tab or comma-separated) via **Paste Table**
-- Export to PDF or DOCX when ready
-- Import or export plans to other classes
+- Plan ahead for the whole month
+- Duplicate a week to save time
+- Export or print your plan if needed
 
 ---
 
-*Click Save to store your lesson plan.*`
+*Lesson plans are saved automatically.*`
     },
     'games': {
       title: 'Games',
@@ -723,6 +774,93 @@ Configure game options, images, and content before playing.
 ---
 
 *Change settings anytime before you start the game.*`
+    },
+    'reports': {
+      title: 'Reports',
+      body: `### View Student Progress & Analytics
+
+This page shows detailed reports and analytics for your students.
+
+---
+
+#### **Time Periods**
+
+Change the time range to view data:
+- **Week** - Last 7 days
+- **Month** - Last 30 days
+- **Year** - Last 12 months
+
+---
+
+#### **Student Selection**
+
+- View reports for all students or select one student
+- Use the dropdown to filter by specific student
+- Each student shows their individual report card
+
+---
+
+#### **Report Card Contents**
+
+Each student report includes:
+
+**Student Info**
+- Name and ID
+- Avatar or character image
+- Total points earned
+
+**AI Teacher Feedback**
+- Automatically generated summary
+- Highlights strengths and areas for improvement
+- Based on behavior patterns
+- Editable by teachers (click Edit button)
+
+**Behavior Distribution Chart**
+- Daily points over the selected time period
+- Bar chart showing point trends
+- Positive behaviors in green
+- Negative behaviors in red
+
+**Behavior Ratio**
+- Doughnut chart showing positive vs negative
+- Visual breakdown of behavior types
+- Exact counts for each category
+
+---
+
+#### **Edit Feedback**
+
+Teachers can customize the AI-generated feedback:
+- Click **Edit** next to the feedback
+- Modify the text as needed
+- Click **Save** to keep your changes
+- Parents see your edited version
+
+---
+
+#### **Export Options**
+
+**Download PDF**
+- Click the PDF button (top right)
+- Downloads the report as a PDF file
+- Includes all charts and data
+- Perfect for printing or sharing
+
+**Print**
+- Click the Print button
+- Opens print dialog
+- Print directly to paper or PDF
+- Optimized for A4 paper
+
+---
+
+#### **Language**
+
+Toggle between English and 中文 to change report language for bilingual families.
+
+---
+
+*Reports help teachers track student progress and communicate with parents.*`
     }
   },
 
@@ -782,20 +920,20 @@ Configure game options, images, and content before playing.
 
 #### **侧边栏工具**
 
-| 图标 | 工具 | 用途 |
-|-------|-------|---------|
-| 🏠 | 仪表盘 | 返回班级列表 |
-| 📋 | 作业 | 创建并发送给学生 |
-| 💬 | 消息与评分 | 审阅学生提交并打分 |
-| 🎲 | 抽奖 | 随机选择学生获奖者 |
-| 🏆 | 进度路线 | 查看班级里程碑进度 |
-| ✅ | 考勤 | 标记学生出勤/缺勤 |
-| 🔳 | 访问码 | 查看学生和家长登录代码 |
-| 📊 | 报告 | 查看班级与学生分析 |
-| ⏰ | 计时器 | 为活动启动倒计时 |
-| 🔔 | 提醒器 | 快速吸引班级注意力 |
-| 🎨 | 白板 | 绘制、书写并分享给班级 |
-| ⚙️ | 设置 | 自定义积分卡和选项 |
+| | |
+|---|---|
+| 🏠 | 返回班级列表 |
+| 📋 | 创建并发送给学生 |
+| 💬 | 审阅学生提交并打分 |
+| 🎲 | 随机选择学生获奖者 |
+| 🏆 | 查看班级里程碑进度 |
+| ✅ | 标记学生出勤/缺勤 |
+| 🔳 | 查看学生和家长登录代码 |
+| 📊 | 查看班级与学生分析 |
+| ⏰ | 为活动启动倒计时 |
+| 🔔 | 快速吸引班级注意力 |
+| 🎨 | 绘制、书写并分享给班级 |
+| ⚙️ | 自定义积分卡和选项 |
 
 ---
 
@@ -879,8 +1017,8 @@ Configure game options, images, and content before playing.
 
 #### **题目类型**
 
-| 类型 | 用途 |
-|-------|----------|
+| | |
+|---|---|
 | 简答题 | 自由文本回答 |
 | 选择题 | 从选项中选择 |
 | 填空题 | 在答案处输入 \`[blank]\` |
@@ -1110,8 +1248,8 @@ Configure game options, images, and content before playing.
 
 #### **绘图工具**（右侧）
 
-| 工具 | 功能 |
-|-------|-------------|
+| | |
+|---|---|
 | ✏️ 铅笔 | 在画布上自由绘制 |
 | 🖍️ 荧光笔 | 半透明颜色覆盖 |
 | 📝 文本 | 输入文本并按回车键放置 |
@@ -1303,7 +1441,7 @@ Configure game options, images, and content before playing.
       title: '课程计划',
       body: `### 规划您的课程
 
-使用可编辑表格创建和整理每日、每周、每月和年度课程计划。
+使用日历和模板创建和整理课程。
 
 ---
 
@@ -1311,51 +1449,29 @@ Configure game options, images, and content before playing.
 
 **打开课程计划**
 - 在教师门户中点击 **课程计划**（或日历图标）
-- 选择班级和周期：**年度**、**月度**、**每周** 或 **每日**
+- 您会看到月视图和已保存的模板
 
-**侧边栏切换**
-- 使用标题栏的侧边栏按钮（面板图标）显示或隐藏计划列表
-- 侧边栏隐藏时，表格会拉伸填满空间
-
----
-
-#### **可编辑表格**
-
-**表头和单元格**
-- 所有列和行表头均可编辑，点击输入即可自定义标签
-- 每个单元格都可编辑，像普通文本框一样
-- 文本框可水平和垂直拉伸
-
-**添加和删除**
-- **添加行** 和 **添加列** 按钮可扩展任何表格
-- 使用每行或列表头旁的垃圾桶图标删除
-- 表格至少需要一行和一个数据列
+**月视图**
+- 一览当月所有日期
+- 点击某天添加或编辑课程
+- 使用箭头切换月份
 
 ---
 
-#### **保存与验证**
+#### **模板**
 
-**空表格**
-- 空表格（无内容）不会保存
-- 会提示您在保存前添加内容
+**使用模板**
+- 选择模板来安排您的一周或一天
+- 填写科目和活动
+- 保存以将计划应用到日历
 
-**部分填写**
-- 若部分单元格为空，会显示确认：“确定要保存吗？”
-- 空单元格以红色高亮显示，便于查找
-- 选择 **是，仍然保存** 或 **否，返回填写**
-
----
-
-#### **提示**
-
-- 小屏幕上使用侧边栏切换获得更多工作空间
-- 通过 **粘贴表格** 粘贴制表符或逗号分隔的数据
-- 准备好后可导出为 PDF 或 DOCX
-- 可将计划导入或导出到其他班级
+**自定义**
+- 为您的日程创建自定义模板
+- 在周或月中重复使用
 
 ---
 
-*点击保存以存储您的课程计划。*`
+*课程计划会自动保存。*`
     },
     'games': {
       title: '课堂游戏',
@@ -1410,6 +1526,93 @@ Configure game options, images, and content before playing.
 ---
 
 *随时在开始游戏前更改设置。*`
+    },
+    'reports': {
+      title: '报告',
+      body: `### 查看学生进度与分析
+
+此页面显示学生的详细报告和分析。
+
+---
+
+#### **时间段**
+
+更改时间范围以查看数据：
+- **周** - 最近 7 天
+- **月** - 最近 30 天
+- **年** - 最近 12 个月
+
+---
+
+#### **学生选择**
+
+- 查看所有学生的报告或选择一名学生
+- 使用下拉列表筛选特定学生
+- 每个学生显示各自的报告卡片
+
+---
+
+#### **报告卡片内容**
+
+每个学生报告包括：
+
+**学生信息**
+- 姓名和 ID
+- 头像或角色图片
+- 获得的总积分
+
+**AI 教师反馈**
+- 自动生成的摘要
+- 突出优势和需要改进的领域
+- 基于行为模式
+- 教师可编辑（点击编辑按钮）
+
+**行为分布图表**
+- 所选时间段内的每日积分
+- 显示积分趋势的柱状图
+- 积极行为显示为绿色
+- 需要改进的行为显示为红色
+
+**行为比例**
+- 显示积极与消极的环形图
+- 行为类型的视觉分解
+- 每个类别的确切计数
+
+---
+
+#### **编辑反馈**
+
+教师可以自定义 AI 生成的反馈：
+- 点击反馈旁边的 **编辑**
+- 根据需要修改文本
+- 点击 **保存** 保留您的更改
+- 家长看到您编辑的版本
+
+---
+
+#### **导出选项**
+
+**下载 PDF**
+- 点击 PDF 按钮（右上角）
+- 将报告下载为 PDF 文件
+- 包含所有图表和数据
+- 适合打印或分享
+
+**打印**
+- 点击打印按钮
+- 打开打印对话框
+- 直接打印到纸张或 PDF
+- 针对 A4 纸优化
+
+---
+
+#### **语言**
+
+在英语和中文之间切换，为双语家庭更改报告语言。
+
+---
+
+*报告帮助教师跟踪学生进度并与家长沟通。*`
     }
   }
 };
@@ -1428,12 +1631,11 @@ function stripBold(s) {
   return (s || '').replace(/\*\*/g, '').trim();
 }
 
-/** Normalize help body so ** in headings and standalone lines don't show as literal asterisks. */
+/** Normalize help body so ** in headings don't show as literal asterisks. */
 export function normalizeHelpBody(body) {
   if (!body) return '';
   let out = body
-    .replace(/^(#{3,4}\s*)\*\*([^*]*)\*\*/gm, '$1$2')
-    .replace(/\n\*\*([^*]+)\*\*(\s*)/gm, '\n$1$2');
+    .replace(/^(#{3,4}\s*)\*\*([^*]*)\*\*/gm, '$1$2');
   return out;
 }
 
