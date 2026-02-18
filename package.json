@@ -69,7 +69,9 @@
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.0.18",
     "react-simple-wysiwyg": "^3.4.1",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "docx": "^8.5.0"  
+
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
