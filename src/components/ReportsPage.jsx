@@ -238,7 +238,6 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 
                 for (const student of displayStudents) {
                     const studentHistory = student.history || [];
-                    // eslint-disable-next-line react-hooks/immutability
                     const filteredHistory = filterHistoryByTimePeriod(studentHistory, timePeriod);
                     const positiveBehaviors = filteredHistory.filter(h => h.pts > 0);
                     const negativeBehaviors = filteredHistory.filter(h => h.pts < 0);
