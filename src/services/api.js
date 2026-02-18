@@ -1,11 +1,18 @@
 // api.js
+function normalizeApiBase(input) {
+  if (!input || typeof input !== 'string') return null;
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+  const noTrailingSlash = trimmed.replace(/\/+$/, '');
+  if (noTrailingSlash.endsWith('/api')) return noTrailingSlash;
+  return `${noTrailingSlash}/api`;
+}
+
 const base = (() => {
-  // In development, use /api (will be proxied by Vite)
-  if (import.meta.env.DEV) {
-    return '/api';
-  }
-  // In production, use Zeabur domain
-  return 'https://clasz.zeabur.app/api';
+  // Prefer an env override if you intentionally host the API elsewhere.
+  // Otherwise default to relative "/api" so the app works on whatever domain it’s deployed to.
+  const envBase = normalizeApiBase(import.meta.env.VITE_API_BASE_URL);
+  return envBase || '/api';
 })();
 
 
@@ -35,7 +42,7 @@ async function pbRequest(path, opts = {}) {
     if (!silent) {
       try {
         console.error('[API] Request failed:', { url, status: res.status, requestBody: requestOpts.body, responseBody: data });
-      } catch (e) { /* ignore logging errors */ }
+      } catch { /* ignore logging errors */ }
     }
     // Provide user-friendly error messages for common auth errors
     let errorMessage = data.message || `request-failed:${res.status}`;
@@ -90,7 +97,7 @@ async getStudentByParentCode(code) {
         }
         return null;
     } catch (e) {
-        console.error("Search error", e);
+        console.error('Search error', e);
         return null;
     }
 },
@@ -135,7 +142,7 @@ async getStudentByParentCode(code) {
       // Return null if no match found
       return null;
     } catch (err) {
-      console.error("[API] Portal login error:", err);
+      console.error('[API] Portal login error:', err);
       throw err;
     }
   },
@@ -157,7 +164,7 @@ async getStudentByParentCode(code) {
         method: 'POST',
         body: JSON.stringify({ email })
       });
-    } catch (e) {
+    } catch {
       // ...existing code...
     }
 

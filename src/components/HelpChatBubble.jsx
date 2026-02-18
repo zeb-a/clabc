@@ -147,7 +147,7 @@ export default function HelpChatBubble() {
       'buzzer': ['Attention Buzzer'],
       'attention': ['Attention Buzzer'],
       'whiteboard': ['Whiteboard'],
-      'draw': ['Whiteboard'],
+      'whiteboard_draw': ['Whiteboard'],
       'settings': ['Settings', 'Point Cards'],
       'card': ['Point Cards', 'Add a Card', 'Edit a Card', 'Delete a Card'],
       'emoji': ['Point Cards', 'Add a Card', 'Edit a Card'],
