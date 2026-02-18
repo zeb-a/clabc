@@ -4,8 +4,8 @@ const base = (() => {
   if (import.meta.env.DEV) {
     return '/api';
   }
-  // In production, use Railway domain
-  return 'https://classabc.up.railway.app/api';
+  // In production, use Zeabur domain
+  return 'https://clasz.zeabur.app/api';
 })();
 
 

@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     // In production, connect to Railway deployment
     url: process.env.NODE_ENV === 'development'
       ? 'http://localhost:5173'
-      : 'https://classabc.up.railway.app',
+      : 'https://clasz.zeabur.app',
     cleartext: true,
     androidScheme: 'https'
   },
