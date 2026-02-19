@@ -28,6 +28,7 @@ import SettingsPage from './SettingsPage';
 import PointsHistoryView from './PointsHistoryView';
 import { useTranslation } from '../i18n';
 import { usePageHelp } from '../PageHelpContext';
+import { useTheme } from '../ThemeContext';
 
 // Helper function for documentation of clamp usage in inline styles
 const clamp = (min, val, max) => val;
@@ -304,6 +305,7 @@ export default function ClassDashboard({
   onOpenAssignments
 }) {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   // Handler to merge imported behaviors from another class into the active class.
   // Listens for the custom event dispatched by BehaviorModal when the user requests an import.
   useEffect(() => {
@@ -1254,61 +1256,60 @@ export default function ClassDashboard({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#636E72',
+                color: isDark ? '#E2E8F0' : '#636E72',
                 willChange: 'transform, left',
+                boxSizing: 'border-box',
               };
 
               if (isMobile) {
-                // Mobile: hamburger sits at the left with smooth slide animation
+                // Mobile: when sidebar closed, hamburger at far top left; when open, to the right of sidebar
                 return {
                   ...baseStyles,
-                  left: sidebarVisible ? '82px' : '12px',
-                  top: '12px',
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                  left: sidebarVisible ? '80px' : '8px', // 72px sidebar width + 8px gap
+                  top: '8px',
+                  background: isDark ? '#1E293B' : '#ffffff',
                   border: sidebarVisible
-                    ? '2px solid rgba(99,102,241,0.3)'
-                    : '2px solid rgba(99,102,241,0.12)',
+                    ? (isDark ? '2px solid #475569' : '2px solid rgba(99,102,241,0.3)')
+                    : (isDark ? '2px solid #334155' : '2px solid rgba(99,102,241,0.12)'),
                   borderRadius: '12px',
                   width: '48px',
                   height: '48px',
                   boxShadow: sidebarVisible
-                    ? '0 8px 24px rgba(99,102,241,0.2)'
-                    : '0 6px 20px rgba(0,0,0,0.1)',
+                    ? (isDark ? '0 8px 24px rgba(0,0,0,0.3)' : '0 8px 24px rgba(99,102,241,0.2)')
+                    : (isDark ? '0 6px 20px rgba(0,0,0,0.2)' : '0 6px 20px rgba(0,0,0,0.1)'),
                   transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                   animation: !sidebarVisible ? 'hamburgerGlow 2.5s ease-in-out infinite' : 'none',
                   overflow: 'hidden',
                 };
               }
-              // Desktop: hamburger button with enhanced styling - moved 38px up total (53 -> 15)
+              // Desktop: when sidebar closed, hamburger at far top left; when open, to the right of sidebar
               return {
                 ...baseStyles,
-                left: sidebarVisible ? '218px' : '12px',
-                top: 15,
-                background: sidebarVisible
-                  ? 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
-                  : 'linear-gradient(135deg, #EEF2FF 0%, #ffffff 100%)',
+                left: sidebarVisible ? '218px' : '8px', // 210px sidebar width + 8px gap
+                top: '8px',
+                background: isDark ? '#1E293B' : (sidebarVisible ? '#ffffff' : '#EEF2FF'),
                 border: sidebarVisible
-                  ? '2px solid rgba(99,102,241,0.3)'
-                  : '2px solid rgba(99,102,241,0.15)',
+                  ? (isDark ? '2px solid #475569' : '2px solid rgba(99,102,241,0.3)')
+                  : (isDark ? '2px solid #334155' : '2px solid rgba(99,102,241,0.15)'),
                 borderRadius: '12px',
                 width: '44px',
                 height: '48px',
                 boxShadow: sidebarVisible
-                  ? '0 8px 24px rgba(99,102,241,0.15)'
-                  : '0 4px 16px rgba(99,102,241,0.12)',
+                  ? (isDark ? '0 8px 24px rgba(0,0,0,0.3)' : '0 8px 24px rgba(99,102,241,0.15)')
+                  : (isDark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 4px 16px rgba(99,102,241,0.12)'),
                 transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                 overflow: 'hidden',
               };
             })()}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.08)';
-              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)';
-              e.currentTarget.style.color = '#4F46E5';
+              e.currentTarget.style.borderColor = isDark ? '#64748B' : 'rgba(99,102,241,0.5)';
+              e.currentTarget.style.color = isDark ? '#F1F5F9' : '#4F46E5';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = sidebarVisible ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.12)';
-              e.currentTarget.style.color = '#636E72';
+              e.currentTarget.style.borderColor = isDark ? (sidebarVisible ? '#475569' : '#334155') : (sidebarVisible ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.12)');
+              e.currentTarget.style.color = isDark ? '#E2E8F0' : '#636E72';
             }}
           >
             <AnimatedHamburger isOpen={sidebarVisible} />
@@ -1715,6 +1716,25 @@ export default function ClassDashboard({
                                 <span style={{ flex: 1, textAlign: 'left' }}>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
                               </button>
 
+                              {/* Points History */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowHistory(true);
+                                  setShowHeaderMenu(false);
+                                }}
+                                style={{
+                                  ...styles.gridOption,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10,
+                                  padding: '10px 12px'
+                                }}
+                              >
+                                <Clock size={18} />
+                                <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.points_history')}</span>
+                              </button>
+
                               {/* Select Multiple */}
                               <button
                                 onClick={(e) => {
@@ -1912,31 +1932,66 @@ export default function ClassDashboard({
                           width: 'auto'
                         }}
                       >
-                        {/* Select All Button */}
-                        <button
-                          onClick={() => {
-                            const allStudents = new Set(sortedStudents.map(s => s.id));
-                            setMultiSelectedStudents(allStudents);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: isMobile ? '6px' : '8px',
-                            padding: isMobile ? '10px' : '10px 16px',
-                            borderRadius: '12px',
-                            background: '#EEF2FF',
-                            color: '#4F46E5',
-                            border: 'none',
-                            fontWeight: 700,
-                            fontSize: isMobile ? '11px' : '14px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            flexShrink: 0
-                          }}
-                        >
-                          <Users size={isMobile ? 18 : 18} />
-                          <span>Select All</span>
-                        </button>
+                        {/* Mark as Absent/Present Button - Toggles based on selected students' status */}
+                        {(() => {
+                          const selectedIds = Array.from(multiSelectedStudents);
+                          const selectedStudentsList = selectedIds.map(id => sortedStudents.find(s => s.id === id)).filter(Boolean);
+                          const allAreAbsent = selectedStudentsList.length > 0 && selectedStudentsList.every(s => absentStudents.has(s.id));
+                          const allArePresent = selectedStudentsList.length > 0 && selectedStudentsList.every(s => !absentStudents.has(s.id));
+                          const isMixed = selectedStudentsList.length > 0 && !allAreAbsent && !allArePresent;
+                          
+                          // Determine button text and action
+                          const buttonText = allAreAbsent ? 'Mark as Present' : 'Mark as Absent';
+                          const buttonBg = allAreAbsent ? '#D1FAE5' : '#FEF3C7';
+                          const buttonColor = allAreAbsent ? '#065F46' : '#92400E';
+                          
+                          return (
+                            <button
+                              onClick={() => {
+                                const selectedIds = Array.from(multiSelectedStudents);
+                                const markedStudents = selectedIds.map(id => {
+                                  const student = sortedStudents.find(s => s.id === id);
+                                  return student;
+                                }).filter(Boolean);
+                                
+                                // Toggle absent/present status for selected students
+                                setAbsentStudents(prev => {
+                                  const next = new Set(prev);
+                                  markedStudents.forEach(s => {
+                                    if (next.has(s.id)) {
+                                      next.delete(s.id); // Mark as present
+                                    } else {
+                                      next.add(s.id); // Mark as absent
+                                    }
+                                  });
+                                  return next;
+                                });
+                                
+                                // Clear selections
+                                setMultiSelectedStudents(new Set());
+                                setIsMultiSelectMode(false);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: isMobile ? '6px' : '8px',
+                                padding: isMobile ? '10px' : '10px 16px',
+                                borderRadius: '12px',
+                                background: buttonBg,
+                                color: buttonColor,
+                                border: 'none',
+                                fontWeight: 700,
+                                fontSize: isMobile ? '11px' : '14px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                flexShrink: 0
+                              }}
+                            >
+                              <Users size={isMobile ? 18 : 18} />
+                              <span>{buttonText}</span>
+                            </button>
+                          );
+                        })()}
 
                         {/* Cancel Button */}
                         <button
@@ -2201,6 +2256,7 @@ export default function ClassDashboard({
                             animating={Boolean(animatingStudents && animatingStudents[s.id])}
                             animationType={animatingStudents && animatingStudents[s.id] ? animatingStudents[s.id].type : undefined}
                             disableActions={isMultiSelectMode}
+                            isMultiSelectMode={isMultiSelectMode}
                           />
                           {selectedStudents.has(s.id) && <div style={{ position: 'absolute', inset: 0, borderRadius: displaySize === 'compact' ? '50%' : '24px', border: '3px solid #4CAF50', pointerEvents: 'none', zIndex: 5 }} />}
                           {isAbsentToday && !isAttendanceMode && (
@@ -2492,7 +2548,7 @@ const styles = {
   // REPLACE THESE KEYS IN YOUR styles OBJECT:
   // SURGICAL STYLE UPDATES
   header: {
-    background: 'rgba(255, 255, 255, 0.8)',
+    background: 'rgba(255, 255, 255, 0.98)',
     backdropFilter: 'blur(20px)',
     display: 'flex',
     justifyContent: 'space-between',
@@ -2503,7 +2559,9 @@ const styles = {
     borderRadius: '24px',
     border: '1px solid rgba(226, 232, 240, 0.8)',
     boxSizing: 'border-box',
-    zIndex: 10 // Ensure header stays below dropdowns if needed, but above content
+    zIndex: 10, // Ensure header stays below dropdowns if needed, but above content
+    position: 'sticky',
+    top: 0
   },
 
   actionBtn: {

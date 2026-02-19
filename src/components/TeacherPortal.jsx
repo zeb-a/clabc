@@ -5,6 +5,7 @@ import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
+import { useTheme } from '../ThemeContext';
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -107,8 +108,12 @@ const internalCSS = `
     .game-modal-container {
       width: 95vw !important;
       max-width: 95vw !important;
+      max-height: 90vh !important;
+      min-height: 75vh !important;
       padding: 16px !important;
     }
+  }
+  @media (max-width: 640px) {
     .tab-button {
       padding: 12px 8px !important;
       fontSize: 13px !important;
@@ -138,13 +143,16 @@ const internalCSS = `
 
   @media (min-width: 641px) {
     .game-modal-container {
-      width: 550px !important;
+      width: 600px !important;
+      max-height: 92vh !important;
+      min-height: 560px !important;
     }
   }
 `;
 
 export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado, onOpenLessonPlanner }) {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -352,14 +360,14 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     padding: '8px', borderRadius: '16px', transition: 'all 0.2s'
                   }}
                 >
-                  <SafeAvatar src={boringAvatar(seed)} name={seed} style={{ width: 64, height: 64, borderRadius: '16px' }} />
+                  <SafeAvatar src={boringAvatar(seed)} name={seed} style={{ width: 64, height: 64, borderRadius: '16px', border: `2px solid ${isDark ? '#475569' : '#E2E8F0'}`, boxShadow: isDark ? '0 2px 4px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.1)' }} />
                 </div>
               ))}
             </div>
             <button
               onClick={() => setShowSelector(false)}
               className="btn-secondary"
-              style={{ ...styles.cancelBtn, marginTop: 16 }}
+              style={{ ...styles.cancelBtn, marginTop: 16, ...(isDark ? { border: '2px solid #475569' } : {}) }}
             >
               {t('general.cancel')}
             </button>
@@ -440,7 +448,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               style={{
                 ...styles.saveBtn,
                 opacity: nameValue.trim() ? 1 : 0.6,
-                cursor: nameValue.trim() ? 'pointer' : 'not-allowed'
+                cursor: nameValue.trim() ? 'pointer' : 'not-allowed',
+                ...(isDark ? { border: '2px solid #059669' } : {})
               }}
               disabled={!nameValue.trim()}
             >
@@ -829,8 +838,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 <span style={{ fontSize: '0.85rem', color: '#EF4444' }}>{t('teacher_portal.cannot_undo')}</span>
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => handleDeleteClass(deleteConfirmId)} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '12px 16px' }}>{t('teacher_portal.delete')}</button>
-                <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '12px 16px' }}>{t('general.cancel')}</button>
+                <button onClick={() => handleDeleteClass(deleteConfirmId)} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '12px 16px', ...(isDark ? { border: '2px solid #B91C1C' } : {}) }}>{t('teacher_portal.delete')}</button>
+                <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '12px 16px', ...(isDark ? { border: '2px solid #475569' } : {}) }}>{t('general.cancel')}</button>
               </div>
             </div>
           </div>
@@ -853,8 +862,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 {t('teacher_portal.sure_logout')}
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626' }}>{t('teacher_portal.yes')}</button>
-                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px' }}>{t('teacher_portal.no')}</button>
+                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626', ...(isDark ? { border: '2px solid #B91C1C' } : {}) }}>{t('teacher_portal.yes')}</button>
+                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px', ...(isDark ? { border: '2px solid #475569' } : {}) }}>{t('teacher_portal.no')}</button>
               </div>
             </div>
           </div>
@@ -864,8 +873,29 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {/* --- TORENADO GAME MODAL --- */}
       {showTorenadoModal && (
         <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
-          <div style={styles.gameModalContainer} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs}>
+          <div
+            className="game-modal-container"
+            style={{
+              ...styles.gameModalContainer,
+              ...(isDark ? {
+                background: '#1E293B',
+                border: '2px solid #475569',
+                backgroundImage: 'none',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+              } : {}),
+              maxHeight: '92vh',
+              minHeight: isMobile ? '70vh' : '560px',
+              width: isMobile ? '95vw' : '600px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowTorenadoModal(false)}
+              style={{
+                ...styles.torenadoModalCloseAbs,
+                ...(isDark ? { background: '#334155', color: '#E2E8F0', border: '1px solid #475569' } : {})
+              }}
+            >
               <X size={20} />
             </button>
 
@@ -875,9 +905,9 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 onClick={() => setActiveTab('game')}
                 style={{
                   ...styles.tabButton,
-                  background: activeTab === 'game' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
-                  color: activeTab === 'game' ? 'white' : '#6B7280',
-                  borderColor: activeTab === 'game' ? '#667eea' : '#E5E7EB',
+                  background: activeTab === 'game' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : (isDark ? '#334155' : 'white'),
+                  color: activeTab === 'game' ? 'white' : (isDark ? '#E2E8F0' : '#6B7280'),
+                  borderColor: activeTab === 'game' ? '#667eea' : (isDark ? '#475569' : '#E5E7EB'),
                   boxShadow: activeTab === 'game' ? '0 4px 15px rgba(102, 126, 234, 0.35)' : '0 2px 4px rgba(0,0,0,0.05)'
                 }}
               >
@@ -887,9 +917,9 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 onClick={() => setActiveTab('class')}
                 style={{
                   ...styles.tabButton,
-                  background: activeTab === 'class' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
-                  color: activeTab === 'class' ? 'white' : '#6B7280',
-                  borderColor: activeTab === 'class' ? '#667eea' : '#E5E7EB',
+                  background: activeTab === 'class' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : (isDark ? '#334155' : 'white'),
+                  color: activeTab === 'class' ? 'white' : (isDark ? '#E2E8F0' : '#6B7280'),
+                  borderColor: activeTab === 'class' ? '#667eea' : (isDark ? '#475569' : '#E5E7EB'),
                   boxShadow: activeTab === 'class' ? '0 4px 15px rgba(102, 126, 234, 0.35)' : '0 2px 4px rgba(0,0,0,0.05)'
                 }}
               >
@@ -897,11 +927,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               </button>
             </div>
 
-            {/* Tab Content */}
-            <div style={styles.tabContent}>
+            {/* Tab Content - scrollable so bottom cards are visible */}
+            <div style={{ ...styles.tabContent, overflowY: 'auto', minHeight: 0, flex: 1 }}>
               {activeTab === 'game' ? (
                 /* --- GAME SELECTION TAB --- */
-                <div style={{ ...styles.gameGrid, paddingTop: '5px' }}>
+                <div style={{ ...styles.gameGrid, paddingTop: '5px', paddingBottom: '24px' }}>
                   <button
                     onClick={() => {
                       localStorage.setItem('selected_game_type', 'tornado');
@@ -913,13 +943,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'tornado'
                         ? 'linear-gradient(135deg, #3B82F6, #10B981)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'tornado' ? '#10B981' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'tornado' ? '#10B981' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'tornado' ? '0 4px 15px rgba(16, 185, 129, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🌪️</span>
-                    <span style={styles.gameCardText}>{t('games.tornado')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.tornado')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -932,13 +962,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'faceoff'
                         ? 'linear-gradient(135deg, #FF6B6B, #FF8E8E)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'faceoff' ? '#FF6B6B' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'faceoff' ? '#FF6B6B' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'faceoff' ? '0 4px 15px rgba(255, 107, 107, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>⚡</span>
-                    <span style={styles.gameCardText}>{t('games.faceoff')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.faceoff')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -951,13 +981,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'memorymatch'
                         ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'memorymatch' ? '#8B5CF6' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'memorymatch' ? '#8B5CF6' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'memorymatch' ? '0 4px 15px rgba(139, 92, 246, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🧠</span>
-                    <span style={styles.gameCardText}>{t('games.memorymatch')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.memorymatch')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -970,13 +1000,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'quiz'
                         ? 'linear-gradient(135deg, #0EA5E9, #06B6D4)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'quiz' ? '#0EA5E9' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'quiz' ? '#0EA5E9' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'quiz' ? '0 4px 15px rgba(14, 165, 233, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🎯</span>
-                    <span style={styles.gameCardText}>{t('games.quiz')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.quiz')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -989,13 +1019,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'motorace'
                         ? 'linear-gradient(135deg, #F97316, #EA580C)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'motorace' ? '#F97316' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'motorace' ? '#F97316' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'motorace' ? '0 4px 15px rgba(249, 115, 22, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🏍️</span>
-                    <span style={styles.gameCardText}>{t('games.motorace')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.motorace')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -1008,13 +1038,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'horserace'
                         ? 'linear-gradient(135deg, #8B5CF6, #A78BFA)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'horserace' ? '#8B5CF6' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'horserace' ? '#8B5CF6' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'horserace' ? '0 4px 15px rgba(139, 92, 246, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🐴</span>
-                    <span style={styles.gameCardText}>{t('games.horserace')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.horserace')}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -1027,13 +1057,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'spelltheword'
                         ? 'linear-gradient(135deg, #EC4899, #F59E0B)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'spelltheword' ? '#EC4899' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'spelltheword' ? '#EC4899' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'spelltheword' ? '0 4px 15px rgba(236, 72, 153, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>🔤</span>
-                    <span style={styles.gameCardText}>Spell the Word</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>Spell the Word</span>
                   </button>
                   <button
                     onClick={() => {
@@ -1046,18 +1076,18 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                       ...styles.gameCard,
                       background: localStorage.getItem('selected_game_type') === 'liveworksheet'
                         ? 'linear-gradient(135deg, #EC4899, #8B5CF6)'
-                        : 'white',
-                      borderColor: localStorage.getItem('selected_game_type') === 'liveworksheet' ? '#EC4899' : '#E5E7EB',
+                        : (isDark ? '#334155' : 'white'),
+                      borderColor: localStorage.getItem('selected_game_type') === 'liveworksheet' ? '#EC4899' : (isDark ? '#475569' : '#E5E7EB'),
                       boxShadow: localStorage.getItem('selected_game_type') === 'liveworksheet' ? '0 4px 15px rgba(236, 72, 153, 0.3)' : '0 2px 6px rgba(0,0,0,0.06)'
                     }}
                   >
                     <span style={{ fontSize: '36px' }}>📄</span>
-                    <span style={styles.gameCardText}>{t('games.liveworksheet')}</span>
+                    <span style={{ ...styles.gameCardText, ...(isDark ? { color: '#E2E8F0' } : {}) }}>{t('games.liveworksheet')}</span>
                   </button>
                 </div>
               ) : (
                 /* --- CLASS SELECTION TAB --- */
-                <div style={styles.classGrid}>
+                <div style={{ ...styles.classGrid, maxHeight: '100%', overflowY: 'auto' }}>
                   {classes.map(cls => {
                     const selectedGameType = localStorage.getItem('selected_game_type');
                     const studentCount = cls.students?.length || 0;
@@ -1299,17 +1329,16 @@ const styles = {
     background: 'white',
     padding: '20px',
     borderRadius: '24px',
-    width: '550px',
+    width: '600px',
     maxWidth: '95vw',
-    maxHeight: '85vh',
+    maxHeight: '92vh',
+    minHeight: '560px',
     position: 'relative',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     display: 'flex',
     flexDirection: 'column',
-    border: '3px solid transparent',
-    backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    backgroundOrigin: 'border-box',
-    backgroundClip: 'padding-box, border-box'
+    border: '2px solid #E5E7EB',
+    backgroundImage: 'none'
   },
 
   // Tab Container

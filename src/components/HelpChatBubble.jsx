@@ -45,8 +45,10 @@ export default function HelpChatBubble() {
   const [input, setInput] = useState('');
   const [answer, setAnswer] = useState(null);
   const [suggestionFocus, setSuggestionFocus] = useState(-1);
+  const [showHelpMessage, setShowHelpMessage] = useState(false);
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const prevPageIdRef = useRef(pageId);
 
   const entry = useMemo(() => {
     if (!pageId || pageId === 'landing') return null;
@@ -61,6 +63,18 @@ export default function HelpChatBubble() {
     const q = input.toLowerCase();
     return suggestions.filter(s => s.toLowerCase().includes(q));
   }, [suggestions, input]);
+
+  // Show "I can Help!" message for 2 seconds when pageId changes
+  useEffect(() => {
+    if (pageId && pageId !== 'landing' && pageId !== prevPageIdRef.current) {
+      setShowHelpMessage(true);
+      const timer = setTimeout(() => {
+        setShowHelpMessage(false);
+      }, 2000);
+      prevPageIdRef.current = pageId;
+      return () => clearTimeout(timer);
+    }
+  }, [pageId]);
 
   useEffect(() => {
     if (open) setAnswer(null);
@@ -277,7 +291,7 @@ export default function HelpChatBubble() {
         </motion.span>
       </motion.button>
 
-      {!open && (
+      {!open && showHelpMessage && (
       <motion.div
         style={{
           position: 'fixed',
@@ -299,7 +313,8 @@ export default function HelpChatBubble() {
         }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, type: 'spring', stiffness: 300, damping: 24 }}
+        exit={{ opacity: 0, y: 6 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 24 }}
       >
         ✨ I can help!
       </motion.div>

@@ -5,8 +5,10 @@ import {
   Users, User, AlertCircle, CheckCircle2, Hash, ArrowRightLeft,
   ArrowRight, Calendar, Star, Zap, Brain, Target
 } from 'lucide-react';
+import { useTheme } from '../ThemeContext';
 
 export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
+  const { isDark } = useTheme();
   const [title, setTitle] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -171,7 +173,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
   };
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, background: isDark ? '#0F172A' : '#F1F5F9' }}>
       {/* Floating Help Button */}
       <div style={{
         position: 'fixed',
@@ -221,7 +223,7 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
           </div>
         </div>
       )}
-      <header className="safe-area-top" style={{ ...styles.header }}>
+      <header className="safe-area-top" style={{ ...styles.header, background: isDark ? '#1E293B' : '#fff', borderBottom: `1px solid ${isDark ? '#334155' : '#E2E8F0'}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: 'auto' }}>
           <select
             value={assignMenu}
@@ -307,14 +309,15 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
             return (
               <div key={q.id} style={{
                 ...styles.qCard,
-                borderColor: isInvalid ? '#E11D48' : '#E2E8F0',
+                background: isDark ? '#1E293B' : '#fff',
+                borderColor: isInvalid ? '#E11D48' : (isDark ? '#334155' : '#E2E8F0'),
                 boxShadow: isInvalid ? '0 0 0 1px #E11D48' : '0 2px 4px rgba(0,0,0,0.02)'
               }}>
                 <div style={styles.qCardHeader}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <GripVertical size={16} color="#CBD5E1" />
-                    <span style={styles.qNumber}>Question {idx + 1}</span>
-                    <span style={styles.qBadge}>{q.type.toUpperCase()}</span>
+                    <span style={{ ...styles.qNumber, color: isDark ? '#E2E8F0' : '#64748B' }}>Question {idx + 1}</span>
+                    <span style={{ ...styles.qBadge, background: isDark ? '#334155' : '#EEF2FF', color: isDark ? '#C4B5FD' : '#4F46E5' }}>{q.type.toUpperCase()}</span>
                   </div>
                   <button onClick={() => setQuestions(questions.filter(item => item.id !== q.id))} style={styles.deleteBtn}>
                     <Trash2 size={16} />
@@ -419,14 +422,14 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
                           >
                             {q.image ? <img src={q.image} style={styles.thumb} alt="" /> : <ImageIcon size={22} />}
                           </button>
-                          <span style={{ color: '#E11D48', fontWeight: 700, fontSize: 12, marginTop: 4, textAlign: 'center', maxWidth: 120 }}>
+                          <span style={{ color: isDark ? '#FCA5A5' : '#E11D48', fontWeight: 700, fontSize: 12, marginTop: 4, textAlign: 'center', maxWidth: 120 }}>
                             <AlertCircle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                             Max file Size 1MB
                           </span>
                         </div>
                       </div>
                       {isInvalid && (
-                        <div style={styles.errorText}>
+                        <div style={{ ...styles.errorText, color: isDark ? '#FCA5A5' : '#E11D48', background: isDark ? 'rgba(239, 68, 68, 0.1)' : 'transparent', padding: isDark ? '8px 12px' : '0', borderRadius: isDark ? '8px' : '0' }}>
                           <AlertCircle size={14} /> This question cannot be empty
                         </div>
                       )}
@@ -835,7 +838,9 @@ const styles = {
     flexWrap: 'wrap', // ⚡ ALLOWS BUTTONS TO MOVE TO NEXT LINE
     gap: '10px',      // ⚡ ADDS SPACE BETWEEN WRAPPED ITEMS
     height: 'auto',    // ⚡ ENSURES HEADER GROWS IF ITEMS WRAP
-    width: '98%'
+    width: '98%',
+    position: 'sticky',
+    top: 0
   }, 
   titleInput: { fontSize: '24px', fontWeight: '700', border: '2px solid #E2E8F0', outline: 'none', width: '400px', color: '#1E293B', padding: '16px 20px', borderRadius: '12px', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
   backBtn: { background: '#F8FAFC', border: '2px solid #e2656dff', padding: '6px', borderRadius: '8px', cursor: 'pointer' },

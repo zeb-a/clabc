@@ -4,7 +4,7 @@ import SafeAvatar from './SafeAvatar';
 import { Edit2, Trash2 } from 'lucide-react';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 
-const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, animationType = 'small', isCompact = false, disableActions = false }) => {
+const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, animationType = 'small', isCompact = false, disableActions = false, isMultiSelectMode = false }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const isTouchDevice = useIsTouchDevice();
@@ -30,6 +30,10 @@ const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, an
       className="student-card"
       data-student-id={student.id}
       onClick={(e) => {
+        // Don't allow clicks when in multi-select mode (unless clicking action buttons)
+        if (isMultiSelectMode && !e.target.closest('[data-action-btn]')) {
+          return;
+        }
         if (!e.target.closest('[data-action-btn]')) {
           const rect = e.currentTarget.getBoundingClientRect();
           const centerX = rect.left + rect.width / 2 + window.scrollX;
@@ -46,13 +50,14 @@ const StudentCard = ({ student, onClick, onEdit, onDelete, animating = false, an
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: isAnimating ? (animationType === 'confetti' ? '0 30px 60px rgba(255, 192, 203, 0.3), 0 10px 30px rgba(99,102,241,0.12)' : '0 20px 40px rgba(76,175,80,0.18)') : '0 8px 16px rgba(0,0,0,0.05)',
-          cursor: 'pointer',
+          cursor: isMultiSelectMode ? 'default' : 'pointer',
           transition: isAnimating ? 'transform 200ms cubic-bezier(.2,.9,.2,1), box-shadow 200ms' : 'transform 0.2s',
           transform: isAnimating ? (animationType === 'small' ? 'scale(1.06)' : animationType === 'medium' ? 'scale(1.1) rotate(-1deg)' : animationType === 'large' ? 'scale(1.14)' : 'scale(1.16)') : undefined,
           position: 'relative',
           aspectRatio: '1 / 1',
           width: '100%',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          opacity: isMultiSelectMode ? 0.7 : 1
         }}
       onPointerEnter={(e) => {
         // Ignore touch pointers to avoid accidental scaling on mobile

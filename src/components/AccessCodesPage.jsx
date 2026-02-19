@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { X, Search, Check, Download } from 'lucide-react';
+import { useTheme } from '../ThemeContext';
 
 const AccessCodesPage = ({ activeClass, onBack }) => {
+  const { isDark } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [copiedId, setCopiedId] = useState(null);
@@ -10,7 +12,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
     ? activeClass.students.filter(s => s.name.toLowerCase().includes(searchValue.trim().toLowerCase()))
     : activeClass.students;
   return (
-    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: '#F7F8FA', minHeight: '100vh' }}>
+    <div className="accesscodes-page safe-area-top" style={{ display: 'flex', flexDirection: 'column', background: isDark ? '#0F172A' : '#F7F8FA', minHeight: '100vh' }}>
       <style>{`
         .codes-header {
           display: flex;
@@ -19,8 +21,8 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           justify-content: space-between;
           padding: 10px 24px 10px 24px;
           min-height: 44px;
-          background: #fff;
-          border-bottom: 1px solid #E2E8F0;
+          background: ${isDark ? '#1E293B' : '#fff'};
+          border-bottom: 1px solid ${isDark ? '#334155' : '#E2E8F0'};
           position: sticky;
           top: 0;
           z-index: 10;
@@ -42,7 +44,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           pointer-events: none;
           font-size: 1.25rem;
           font-weight: 800;
-          color: #222;
+          color: ${isDark ? '#F1F5F9' : '#222'};
           margin: 0;
           transition: opacity 0.2s ease;
         }
@@ -81,10 +83,10 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           display: flex;
           flex-direction: column;
           align-items: center;
-          background: #fff;
+          background: ${isDark ? '#1E293B' : '#fff'};
           border-radius: 18px;
           box-shadow: 0 4px 24px rgba(99,102,241,0.07);
-          border: 1px solid #E2E8F0;
+          border: 1px solid ${isDark ? '#334155' : '#E2E8F0'};
           padding: 24px 12px 20px 12px;
           gap: 10px;
           margin: 0 auto;
@@ -92,7 +94,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
         }
         .codes-name {
           font-weight: 800;
-          color: #222;
+          color: ${isDark ? '#F1F5F9' : '#222'};
           font-size: 1.18rem;
           margin-bottom: 8px;
           text-align: center;
@@ -115,7 +117,7 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
         .codes-label {
           font-size: 0.98rem;
           font-weight: 700;
-          color: #6366F1;
+          color: ${isDark ? '#818CF8' : '#6366F1'};
           margin-bottom: 2px;
           letter-spacing: 0.5px;
           text-align: center;
@@ -141,20 +143,20 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
         .codes-code {
           font-family: 'Courier New', monospace;
           font-size: 1.15rem;
-          background: linear-gradient(135deg, #F1F8E9 0%, #E8F5E9 100%);
-          color: #2E7D32;
+          background: ${isDark ? 'linear-gradient(135deg, #1e3a1e 0%, #2d4a2d 100%)' : 'linear-gradient(135deg, #F1F8E9 0%, #E8F5E9 100%)'};
+          color: ${isDark ? '#81C784' : '#2E7D32'};
           padding: 8px 18px;
           border-radius: 12px;
           font-weight: 800;
           letter-spacing: 2px;
           text-align: center;
-          border: 2px solid #C8E6C9;
+          border: 2px solid ${isDark ? '#4CAF50' : '#C8E6C9'};
           box-shadow: 0 2px 4px rgba(46, 125, 50, 0.1);
         }
         .codes-code.student {
-          background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
-          color: #1565C0;
-          border-color: #90CAF9;
+          background: ${isDark ? 'linear-gradient(135deg, #1e2a3a 0%, #2d3a4a 100%)' : 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)'};
+          color: ${isDark ? '#64B5F6' : '#1565C0'};
+          border-color: ${isDark ? '#42A5F5' : '#90CAF9'};
           box-shadow: 0 2px 4px rgba(21, 101, 192, 0.1);
         }
         .codes-copy {
@@ -241,13 +243,13 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
                   fontSize: '1rem',
                   padding: '6px 12px',
                   borderRadius: '8px',
-                  border: '1px solid #E2E8F0',
+                  border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
                   outline: 'none',
                   width: '100%',
                   maxWidth: '200px',
                   transition: 'all 0.2s',
-                  color: '#222',
-                  background: '#F8FAFC',
+                  color: isDark ? '#F1F5F9' : '#222',
+                  background: isDark ? '#1E293B' : '#F8FAFC',
                   marginLeft: 0
                 }}
               />
@@ -257,9 +259,9 @@ const AccessCodesPage = ({ activeClass, onBack }) => {
           <div className="codes-header-actions">
             <button 
               onClick={onBack} 
-              style={{ background: '#F1F5F9', color: '#64748B', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#E2E8F0'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#F1F5F9'}
+              style={{ background: isDark ? '#334155' : '#F1F5F9', color: isDark ? '#CBD5E1' : '#64748B', border: 'none', padding: '8px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = isDark ? '#475569' : '#E2E8F0'}
+              onMouseLeave={(e) => e.currentTarget.style.background = isDark ? '#334155' : '#F1F5F9'}
             >
               <X size={22} />
             </button>
