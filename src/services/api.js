@@ -1,18 +1,11 @@
 // api.js
-function normalizeApiBase(input) {
-  if (!input || typeof input !== 'string') return null;
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-  const noTrailingSlash = trimmed.replace(/\/+$/, '');
-  if (noTrailingSlash.endsWith('/api')) return noTrailingSlash;
-  return `${noTrailingSlash}/api`;
-}
-
 const base = (() => {
-  // Prefer an env override if you intentionally host the API elsewhere.
-  // Otherwise default to relative "/api" so the app works on whatever domain it’s deployed to.
-  const envBase = normalizeApiBase(import.meta.env.VITE_API_BASE_URL);
-  return envBase || '/api';
+  // In development, use /api (will be proxied by Vite)
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  // In production, use Railway domain
+  return 'https://klasiz.fun/api';
 })();
 
 
@@ -42,7 +35,7 @@ async function pbRequest(path, opts = {}) {
     if (!silent) {
       try {
         console.error('[API] Request failed:', { url, status: res.status, requestBody: requestOpts.body, responseBody: data });
-      } catch { /* ignore logging errors */ }
+      } catch (e) { /* ignore logging errors */ }
     }
     // Provide user-friendly error messages for common auth errors
     let errorMessage = data.message || `request-failed:${res.status}`;
@@ -50,6 +43,15 @@ async function pbRequest(path, opts = {}) {
       errorMessage = 'Invalid email or password. Please try again.';
     } else if (errorMessage === 'The request data is invalid.') {
       errorMessage = 'Please check your email and password and try again.';
+    } else if (data?.data?.email?.code === 'validation_email_invalid') {
+      errorMessage = 'Invalid email address. Please enter a valid email.';
+    } else if (data?.data?.email?.code === 'validation_not_unique') {
+      errorMessage = 'This email is already registered. Please log in instead.';
+    } else if (data?.data?.password?.code === 'validation_length_too_short') {
+      errorMessage = 'Password is too short. Please use at least 8 characters.';
+    } else if (errorMessage.includes('create') && res.status === 400) {
+      // Generic creation error - provide a more helpful message
+      errorMessage = 'Unable to create account. Please check your information and try again.';
     }
     const err = new Error(errorMessage);
     err.status = res.status;
@@ -97,7 +99,7 @@ async getStudentByParentCode(code) {
         }
         return null;
     } catch (e) {
-        console.error('Search error', e);
+        console.error("Search error", e);
         return null;
     }
 },
@@ -142,7 +144,7 @@ async getStudentByParentCode(code) {
       // Return null if no match found
       return null;
     } catch (err) {
-      console.error('[API] Portal login error:', err);
+      console.error("[API] Portal login error:", err);
       throw err;
     }
   },
@@ -164,7 +166,7 @@ async getStudentByParentCode(code) {
         method: 'POST',
         body: JSON.stringify({ email })
       });
-    } catch {
+    } catch (e) {
       // ...existing code...
     }
 

@@ -46,11 +46,11 @@ const ClassABCLogo = () => {
                 </g>
 
                 <text x="95" y="40" fontFamily="comic sans ms , sans-serif" fontSize="32" fontWeight="800" fill="#5e6063ff">
-                    Class
+                    Klasiz
                 </text>
 
-                <text x="120" y="75" fontFamily="Arial, sans-serif" fontSize="32" fontWeight="800" fill="#3B82F6">
-                    ABC
+                <text x="135" y="75" fontFamily="Arial, sans-serif" fontSize="32" fontWeight="800" fill="#3B82F6">
+                    .fun
                 </text>
 
                 <text x="95" y="92" fontFamily="Arial, sans-serif" fontSize="13" fontWeight="600" fill="#64748B" letterSpacing="0.5">

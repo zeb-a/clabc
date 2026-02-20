@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.classabc.app',
-  appName: 'ClassABC',
+  appId: 'com.klasiz.fun',
+  appName: 'Klasiz.fun',
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     // In production, connect to Railway deployment
     url: process.env.NODE_ENV === 'development'
       ? 'http://localhost:5173'
-      : 'https://clasz.zeabur.app',
+      : 'https://klasiz.fun',
     cleartext: true,
     androidScheme: 'https'
   },

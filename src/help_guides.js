@@ -1,7 +1,7 @@
 const HELP_GUIDES = {
   en: {
     'landing': {
-      title: 'Welcome to ClassABC',
+      title: 'Welcome to Klasiz.fun',
       body: `### Choose Your Portal
 
 **Teachers**
@@ -119,7 +119,7 @@ const HELP_GUIDES = {
 
 ### Common Questions
 
-**Is ClassABC free?**
+**Is Klasiz.fun free?**
 Yes! Teachers can create a free account and start using all core features.
 
 **How do I add students?**
@@ -128,14 +128,14 @@ In Class Dashboard, click the access codes icon to generate unique 5-digit codes
 **Can parents track progress?**
 Yes! Generate parent access codes in the Class Dashboard to give parents view-only access to their child's progress.
 
-**What devices work with ClassABC?**
-ClassABC works on any device with a web browser - computers, tablets, and smartphones.
+**What devices work with Klasiz.fun?**
+Klasiz.fun works on any device with a web browser - computers, tablets, and smartphones.
 
-**Can I use ClassABC offline?**
-You need an internet connection to use ClassABC, but most features work well with basic internet.
+**Can I use Klasiz.fun offline?**
+You need an internet connection to use Klasiz.fun, but most features work well with basic internet.
 
 **How secure is my data?**
-ClassABC uses secure encryption to protect all user data and student information.
+Klasiz.fun uses secure encryption to protect all user data and student information.
 
 **Can I export student data?**
 Yes! Teachers can export reports to PDF format from the Reports section.
@@ -998,7 +998,7 @@ Toggle between English and 中文 to change report language for bilingual famili
 
   zh: {
     'landing': {
-      title: '欢迎使用 ClassABC',
+      title: '欢迎使用 Klasiz.fun',
       body: `### 选择您的门户
 
 **教师**
@@ -1118,7 +1118,7 @@ Toggle between English and 中文 to change report language for bilingual famili
 
 ### 常见问题
 
-**ClassABC 是免费的吗？**
+**Klasiz.fun 是免费的吗？**
 是的！教师可以创建免费账户并开始使用所有核心功能。
 
 **如何添加学生？**
@@ -1127,14 +1127,14 @@ Toggle between English and 中文 to change report language for bilingual famili
 **家长可以跟踪进度吗？**
 可以！在课堂仪表盘中生成家长访问代码，让家长只能查看其孩子的进度。
 
-**哪些设备可以使用 ClassABC？**
-ClassABC 可以在任何有网络浏览器的设备上使用 - 电脑、平板电脑和智能手机。
+**哪些设备可以使用 Klasiz.fun？**
+Klasiz.fun 可以在任何有网络浏览器的设备上使用 - 电脑、平板电脑和智能手机。
 
-**我可以离线使用 ClassABC 吗？**
-您需要互联网连接才能使用 ClassABC，但大多数功能在基本互联网下也能良好运行。
+**我可以离线使用 Klasiz.fun 吗？**
+您需要互联网连接才能使用 Klasiz.fun，但大多数功能在基本互联网下也能良好运行。
 
 **我的数据有多安全？**
-ClassABC 使用安全加密来保护所有用户数据和学生信息。
+Klasiz.fun 使用安全加密来保护所有用户数据和学生信息。
 
 **我可以导出学生数据吗？**
 可以！教师可以从报告部分将报告导出为 PDF 格式。

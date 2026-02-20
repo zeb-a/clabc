@@ -381,13 +381,28 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     e.preventDefault();
     setLoading(true);
     setError('');
+    if (!email || !password) {
+      setLoading(false);
+      return setError('Please enter both email and password.');
+    }
     try {
       const resp = await api.login({ email, password });
       if (resp.token) {
         api.setToken(resp.token);
         onLoginSuccess({ ...resp.user, token: resp.token });
       }
-    } catch (err) { setError(err.message); } finally {
+    } catch (err) {
+      // Provide better error messages
+      let errorMsg = err.message || 'Login failed. Please try again.';
+      if (errorMsg.includes('verify') || errorMsg.includes('403')) {
+        errorMsg = 'Please verify your email before logging in. Check your inbox for the verification link.';
+      } else if (errorMsg.includes('authenticate') || errorMsg.includes('Invalid')) {
+        errorMsg = 'Invalid email or password. Please try again.';
+      } else if (errorMsg.includes('not found')) {
+        errorMsg = 'Account not found. Please check your email or sign up.';
+      }
+      setError(errorMsg);
+    } finally {
       setLoading(false);
     }
   };
@@ -400,10 +415,31 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
       setLoading(false);
       return setError('Passwords do not match. Please check again New Teacher.');
     }
+    if (!email || !password || !name) {
+      setLoading(false);
+      return setError('Please fill in all required fields.');
+    }
+    if (password.length < 8) {
+      setLoading(false);
+      return setError('Password must be at least 8 characters long.');
+    }
     try {
       await api.register({ email, password, name, title });
       navigateModal('verify-email-info');
-    } catch (err) { setError(err.message); } finally {
+    } catch (err) {
+      // Provide better error messages
+      let errorMsg = err.message || 'Registration failed. Please try again.';
+      if (errorMsg.includes('already registered') || errorMsg.includes('not_unique')) {
+        setError('This email is already registered. Please log in instead.');
+        // Automatically switch to login after a short delay
+        setTimeout(() => {
+          setError(null);
+          navigateModal('login');
+        }, 2000);
+      } else {
+        setError(errorMsg);
+      }
+    } finally {
       setLoading(false);
     }
   };
@@ -772,7 +808,14 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
       {/* --- PREMIUM FEATURES SHOWCASE --- */}
       <section style={{ ...modernStyles.featuresShowcase, ...(isMobile ? modernStyles.featuresShowcaseMobile : {}) }}>
-  
+        <div style={modernStyles.featuresHeader}>
+          <h2 style={{ fontSize: '38px', fontWeight: 900, marginBottom: '16px', ...(isDark ? { color: '#fff' } : {}) }}>
+            Premium Features
+          </h2>
+          <p style={{ fontSize: '18px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), maxWidth: '600px' }}>
+            Everything you need to create engaging, interactive classroom experiences
+          </p>
+        </div>
 
         <div style={{ ...modernStyles.featuresGrid, ...(isMobile ? modernStyles.featuresGridMobile : {}) }}>
           {/* Lesson Planner Feature Card */}
@@ -840,7 +883,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             Ready to transform your classroom?
           </h3>
           <p style={{ fontSize: '16px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), marginBottom: '24px' }}>
-            Join thousands of teachers who are already using ClassABC to engage their students
+            Join thousands of teachers who are already using Klasiz.fun to engage their students
           </p>
           <MotionButton
             className="lp-cta"
@@ -905,15 +948,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}
               >
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
                 <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '10px', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('student.instructions')}</p>
                 <motion.input
@@ -956,15 +999,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {(modalMode === 'signup' || modalMode === 'login') && (
               <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
                 {modalMode === 'login' && (
                   <>
@@ -1114,15 +1157,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {modalMode === 'forgot-password' && (
               <form onSubmit={handleForgotPassword} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
 
                 {resetSuccess ? (
@@ -1290,15 +1333,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}
               >
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
                 <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '10px', ...(isDark ? { color: '#a1a1aa' } : {}) }}>{t('student.instructions')}</p>
                 <motion.input
@@ -1341,15 +1384,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {(modalMode === 'signup' || modalMode === 'login') && (
               <form onSubmit={modalMode === 'signup' ? handleSignup : handleTeacherLogin} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
                 {modalMode === 'login' && (
                   <>
@@ -1499,15 +1542,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             {modalMode === 'forgot-password' && (
               <form onSubmit={handleForgotPassword} style={{ ...modernStyles.authForm, ...(isMobile ? modernStyles.authFormMobile : {}) }}>
                 {error && <motion.div
-                  key={error}
+                  key={typeof error === 'object' ? error.html : error}
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                   className="lp-error-banner"
-                  style={modernStyles.errorBanner}
+                  style={{ ...modernStyles.errorBanner, ...(isDark ? modernStyles.errorBannerDark : {}) }}
                 >
-                  {error}
+                  {typeof error === 'object' ? <span dangerouslySetInnerHTML={{ __html: error.html }} /> : error}
                 </motion.div>}
 
                 {resetSuccess ? (
@@ -1708,6 +1751,19 @@ const modernStyles = {
     textAlign: 'center',
     border: '2px solid #FCA5A5',
     boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)',
+    position: 'relative',
+    overflow: 'hidden'
+  },
+  errorBannerDark: {
+    background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%)',
+    color: '#FCA5A5',
+    padding: '14px 16px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: 600,
+    textAlign: 'center',
+    border: '2px solid rgba(252, 165, 165, 0.4)',
+    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
     position: 'relative',
     overflow: 'hidden'
   },

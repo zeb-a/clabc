@@ -33,7 +33,7 @@ const SetupWizard = ({ onComplete }) => {
               <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>Class Name</label>
               <input 
                 type="text" 
-                placeholder="e.g. NEW classABC!" 
+                placeholder="e.g. NEW Klasiz.fun!" 
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', marginBottom: '20px' }}
                 value={classInfo.name}
                 onChange={(e) => setClassInfo({...classInfo, name: e.target.value})}

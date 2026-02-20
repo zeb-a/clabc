@@ -1,15 +1,15 @@
 {
-  "name": "classABC",
+  "name": "Klasiz.fun",
   "private": true,
   "version": "0.0.0",
   "main": "electron/main.cjs",
   "type": "module",
-  "description": "ClassABC - Education management platform for teachers and students",
+  "description": "Klasiz.fun - Education management platform for teachers and students",
   "author": {
-    "name": "ClassABC Team",
-    "email": "team@classabc.app"
+    "name": "Klasiz Team",
+    "email": "support@klasiz.fun"
   },
-  "homepage": "https://classabc.app",
+  "homepage": "https://klasiz.fun",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -69,9 +69,7 @@
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.0.18",
     "react-simple-wysiwyg": "^3.4.1",
-    "remark-gfm": "^4.0.1",
-    "docx": "^8.5.0"  
-
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
@@ -98,8 +96,8 @@
     "wait-on": "^9.0.3"
   },
   "build": {
-    "appId": "com.classabc.desktop",
-    "productName": "ClassABC",
+    "appId": "com.klasiz.desktop",
+    "productName": "Klasiz.fun",
     "directories": {
       "output": "release",
       "buildResources": "icons"
