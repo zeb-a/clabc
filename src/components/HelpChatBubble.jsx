@@ -8,12 +8,13 @@ import {
   Layout, ClipboardList, MessageSquare, Settings, QrCode, Presentation,
   BarChart3, Clock, Siren, Home, BookOpen, Heart, Calendar, Gamepad2
 } from 'lucide-react';
-import HELP_GUIDES, { getHelpEntry, parseSections, getMatchingSection, normalizeHelpBody } from '../help_guides';
+import HELP_GUIDES, { parseSections, getMatchingSection, normalizeHelpBody } from '../help_guides';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../ThemeContext';
 import { usePageHelp } from '../PageHelpContext';
 
 const PAGE_ICONS = {
+  'landing': Home,
   'teacher-portal': Home,
   'class-dashboard': Layout,
   'assignments': ClipboardList,
@@ -51,11 +52,32 @@ export default function HelpChatBubble() {
   const prevPageIdRef = useRef(pageId);
 
   const entry = useMemo(() => {
-    if (!pageId || pageId === 'landing') return null;
-    return getHelpEntry(HELP_GUIDES, lang, pageId);
+    if (!pageId) return null;
+    return HELP_GUIDES[lang]?.[pageId] || null;
   }, [pageId, lang]);
 
-  const sections = useMemo(() => (entry ? parseSections(entry) : []), [entry]);
+  // Get all sections from all guides when on landing page or no pageId
+  const allSections = useMemo(() => {
+    if (!pageId || pageId === 'landing') {
+      // Get all sections from all help guides
+      const allGuides = HELP_GUIDES[lang] || {};
+      let combinedSections = [];
+      for (const guide of Object.values(allGuides)) {
+        const sections = parseSections(guide);
+        combinedSections = combinedSections.concat(sections);
+      }
+      return combinedSections;
+    }
+    return entry ? parseSections(entry) : [];
+  }, [pageId, lang, entry]);
+
+  const sections = useMemo(() => {
+    if (!pageId || pageId === 'landing') {
+      return allSections;
+    }
+    return entry ? parseSections(entry) : [];
+  }, [pageId, lang, entry, allSections]);
+
   const suggestions = useMemo(() => sections.map(s => s.title).slice(0, 12), [sections]);
 
   const filteredSuggestions = useMemo(() => {
@@ -66,7 +88,7 @@ export default function HelpChatBubble() {
 
   // Show "I can Help!" message for 2 seconds when pageId changes
   useEffect(() => {
-    if (pageId && pageId !== 'landing' && pageId !== prevPageIdRef.current) {
+    if (pageId && pageId !== prevPageIdRef.current) {
       setShowHelpMessage(true);
       const timer = setTimeout(() => {
         setShowHelpMessage(false);
@@ -87,8 +109,8 @@ export default function HelpChatBubble() {
     }
   }, [suggestionFocus, filteredSuggestions.length]);
 
-  // Don't show on landing or when no page context (after all hooks)
-  if (!pageId || pageId === 'landing') return null;
+  // Always show when on landing page or when pageId is set
+  if (!pageId && !allSections.length) return null;
 
   const showSection = (section) => {
     setAnswer(section);
@@ -106,9 +128,12 @@ export default function HelpChatBubble() {
     // Enhanced direct answer system with precise matching
     let match = null;
 
-    if (entry) {
+    // When on landing page or no pageId, search across all sections
+    const searchSections = (!pageId || pageId === 'landing') ? allSections : sections;
+
+    if (searchSections.length > 0) {
       // First try exact section title matching
-      const exactMatch = sections.find(s =>
+      const exactMatch = searchSections.find(s =>
         s.title.toLowerCase() === q ||
         q.includes(s.title.toLowerCase())
       );
@@ -117,11 +142,13 @@ export default function HelpChatBubble() {
         match = exactMatch;
       } else {
         // Try semantic matching for common button questions
-        match = findSemanticMatch(q, sections, entry);
+        match = findSemanticMatch(q, searchSections);
 
-        // Fallback to existing matching logic
+        // Fallback to matching across all sections
         if (!match) {
-          match = getMatchingSection(entry, q);
+          // Create a temporary entry with all sections for matching
+          const tempEntry = { body: searchSections.map(s => `### ${s.title}\n${s.body}`).join('\n\n---\n\n') };
+          match = getMatchingSection(tempEntry, q);
         }
       }
     }
@@ -131,7 +158,7 @@ export default function HelpChatBubble() {
   };
 
   // Semantic matching for common button/functionality questions
-  const findSemanticMatch = (query, sections, entry) => {
+  const findSemanticMatch = (query, sections) => {
     const q = query.toLowerCase();
     const keywords = q.split(/\s+/).filter(w => w.length > 2);
 

@@ -20,6 +20,137 @@ const HELP_GUIDES = {
 
 ---
 
+### How to Create a Teacher Account
+
+1. Click **Get Started Free** on the landing page
+2. Fill in your email and create a password
+3. Verify your email address
+4. Complete your profile setup
+5. Start creating your first class!
+
+---
+
+### Teacher Login
+
+1. Click **Login** button in the top right corner
+2. Enter your email and password
+3. Click **Sign In** or use **Google Sign-In** for quick access
+
+### Forgot Password
+
+1. Click **Login** then **Forgot Password?**
+2. Enter your email address
+3. Check your email for the password reset link
+4. Create a new password and log in
+
+---
+
+### Student Login
+
+**How Students Access Their Account**
+
+1. Click **Student** on the landing page
+2. Enter the 5-digit access code from your teacher
+3. No password needed - just the code!
+
+**What Students Can Do**
+- View assigned lessons and worksheets
+- Complete assignments and submit answers
+- Track their progress and points earned
+- See class announcements from teachers
+
+---
+
+### Parent Login
+
+**How Parents View Progress**
+
+1. Click **Parent** on the landing page
+2. Enter the unique 5-digit parent code
+3. View your child's academic progress
+4. See detailed reports and behavior tracking
+
+**What Parents Can See**
+- Academic performance and grades
+- Behavior reports and feedback
+- Attendance records
+- Assignments and completion status
+- Teacher comments and notes
+
+---
+
+### Features Overview
+
+**Class Management**
+- Create and manage multiple classes
+- Add students with simple 5-digit codes
+- Customize class settings and avatars
+
+**Points & Rewards**
+- Award points for good behavior
+- Gamified learning system
+- Track student achievements
+
+**Assignments**
+- Create worksheets and quizzes
+- Assign to students or entire classes
+- Review and grade submissions
+- View detailed submission analytics
+
+**Games & Activities**
+- Interactive classroom games (Tornado, Memory Match)
+- Gamified participation tools
+- Random winner selection
+- Timer and buzzer for activities
+
+**Reports & Analytics**
+- Detailed student progress reports
+- Behavior tracking and feedback
+- Attendance records
+- Export reports to PDF
+
+**Classroom Tools**
+- Digital whiteboard for teaching
+- Countdown timer for activities
+- Attention buzzer to get class focus
+- QR code sharing for easy access
+
+---
+
+### Common Questions
+
+**Is ClassABC free?**
+Yes! Teachers can create a free account and start using all core features.
+
+**How do I add students?**
+In Class Dashboard, click the access codes icon to generate unique 5-digit codes for each student. Share these codes with your students.
+
+**Can parents track progress?**
+Yes! Generate parent access codes in the Class Dashboard to give parents view-only access to their child's progress.
+
+**What devices work with ClassABC?**
+ClassABC works on any device with a web browser - computers, tablets, and smartphones.
+
+**Can I use ClassABC offline?**
+You need an internet connection to use ClassABC, but most features work well with basic internet.
+
+**How secure is my data?**
+ClassABC uses secure encryption to protect all user data and student information.
+
+**Can I export student data?**
+Yes! Teachers can export reports to PDF format from the Reports section.
+
+**Is there a limit to class size?**
+There's no strict limit - manage as many students as you need in each class.
+
+---
+
+### Getting Help
+
+Click the help bubble icon anytime to get quick answers about any feature or ask a question!
+
+---
+
 *After logging in, teachers see their classes and can click any class card to enter the Class Dashboard.*`
     },
     'teacher-portal': {
@@ -883,6 +1014,139 @@ Toggle between English and 中文 to change report language for bilingual famili
 - 点击 **家长** 角色
 - 输入 5 位家长代码
 - 查看孩子的进度报告
+
+---
+
+### 如何创建教师账户
+
+1. 在首页点击 **免费注册**
+2. 填写您的邮箱并创建密码
+3. 验证您的邮箱地址
+4. 完成个人资料设置
+5. 开始创建您的第一个班级！
+
+---
+
+### 教师登录
+
+1. 点击首页右上角的 **登录** 按钮
+2. 输入您的邮箱和密码
+3. 点击 **登录** 或使用 **Google 登录** 快速访问
+
+---
+
+### 忘记密码
+
+1. 点击 **登录** 然后点击 **忘记密码？**
+2. 输入您的邮箱地址
+3. 查看邮箱中的密码重置链接
+4. 创建新密码并登录
+
+---
+
+### 学生登录
+
+**学生如何登录账户**
+
+1. 在首页点击 **学生**
+2. 输入老师提供的 5 位访问代码
+3. 无需密码 - 只需代码！
+
+**学生可以做什么**
+- 查看分配的课程和作业
+- 完成作业并提交答案
+- 跟踪他们的进度和获得的积分
+- 查看老师发布的班级通知
+
+---
+
+### 家长登录
+
+**家长如何查看进度**
+
+1. 在首页点击 **家长**
+2. 输入唯一的 5 位家长代码
+3. 查看孩子的学术进度
+4. 查看详细报告和行为跟踪
+
+**家长可以看到什么**
+- 学业表现和成绩
+- 行为报告和反馈
+- 出勤记录
+- 作业和完成状态
+- 老师评论和备注
+
+---
+
+### 功能概览
+
+**班级管理**
+- 创建和管理多个班级
+- 使用简单的 5 位代码添加学生
+- 自定义班级设置和头像
+
+**积分与奖励**
+- 为良好行为奖励积分
+- 游戏化学习系统
+- 跟踪学生成就
+
+**作业管理**
+- 创建工作表和测验
+- 分配给学生或整个班级
+- 审查和评分提交
+- 查看详细的提交分析
+
+**游戏与活动**
+- 互动课堂游戏（龙卷风、记忆匹配）
+- 游戏化参与工具
+- 随机选择获奖者
+- 活动计时器和蜂鸣器
+
+**报告与分析**
+- 详细的学生进度报告
+- 行为跟踪和反馈
+- 出勤记录
+- 导出报告为 PDF
+
+**课堂工具**
+- 用于教学的数字白板
+- 活动倒计时器
+- 注意力蜂鸣器吸引课堂注意力
+- 二维码分享以便轻松访问
+
+---
+
+### 常见问题
+
+**ClassABC 是免费的吗？**
+是的！教师可以创建免费账户并开始使用所有核心功能。
+
+**如何添加学生？**
+在课堂仪表盘中，点击访问代码图标为每个学生生成唯一的 5 位代码。将这些代码分享给您的学生。
+
+**家长可以跟踪进度吗？**
+可以！在课堂仪表盘中生成家长访问代码，让家长只能查看其孩子的进度。
+
+**哪些设备可以使用 ClassABC？**
+ClassABC 可以在任何有网络浏览器的设备上使用 - 电脑、平板电脑和智能手机。
+
+**我可以离线使用 ClassABC 吗？**
+您需要互联网连接才能使用 ClassABC，但大多数功能在基本互联网下也能良好运行。
+
+**我的数据有多安全？**
+ClassABC 使用安全加密来保护所有用户数据和学生信息。
+
+**我可以导出学生数据吗？**
+可以！教师可以从报告部分将报告导出为 PDF 格式。
+
+**班级大小有限制吗？**
+没有严格限制 - 您可以在每个班级中管理任意数量的学生。
+
+---
+
+### 获取帮助
+
+随时点击帮助气泡图标获取有关任何功能的快速解答或提问！
 
 ---
 

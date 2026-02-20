@@ -15,6 +15,7 @@ import './LandingPage.css';
 import useWindowSize from '../hooks/useWindowSize';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
+import HelpChatBubble from './HelpChatBubble';
 
 // Small motion-enabled card wrapper. Uses motion values to create a subtle
 // tilt + scale on pointer move. Respects prefers-reduced-motion.
@@ -376,25 +377,35 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   }, []);
 
   // --- 1. TEACHER AUTH HANDLERS ---
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) return setError('Passwords do not match. Please check again New Teacher.');
-    try {
-      await api.register({ email, password, name, title });
-      navigateModal('verify-email-info');
-      setError('');
-    } catch (err) { setError(err.message); }
-  };
-
   const handleTeacherLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       const resp = await api.login({ email, password });
       if (resp.token) {
         api.setToken(resp.token);
         onLoginSuccess({ ...resp.user, token: resp.token });
       }
-    } catch (err) { setError(err.message); }
+    } catch (err) { setError(err.message); } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    if (password !== confirmPassword) {
+      setLoading(false);
+      return setError('Passwords do not match. Please check again New Teacher.');
+    }
+    try {
+      await api.register({ email, password, name, title });
+      navigateModal('verify-email-info');
+    } catch (err) { setError(err.message); } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
@@ -415,12 +426,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
       await api.forgotPassword(resetEmail);
       setResetSuccess(true);
-      setError('');
     } catch (err) {
       setError('Could not send reset email. ' + (err.message || 'Please try again.'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -514,7 +528,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
   // Only show full landing page content if not in Capacitor app
   if (!isCapacitorApp) {
     return (
-      <div style={{ ...modernStyles.container, ...(isDark ? modernStyles.containerDark : {}) }}>
+      <>
+        <div style={{ ...modernStyles.container, ...(isDark ? modernStyles.containerDark : {}) }}>
         <div style={{ ...modernStyles.meshBackground, ...(isDark ? modernStyles.meshBackgroundDark : {}) }}></div>
 
         {/* --- NAVBAR --- */}
@@ -757,14 +772,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
       {/* --- PREMIUM FEATURES SHOWCASE --- */}
       <section style={{ ...modernStyles.featuresShowcase, ...(isMobile ? modernStyles.featuresShowcaseMobile : {}) }}>
-        <div style={modernStyles.featuresHeader}>
-          <h2 style={{ fontSize: '38px', fontWeight: 900, marginBottom: '16px', ...(isDark ? { color: '#fff' } : {}) }}>
-            Premium Features
-          </h2>
-          <p style={{ fontSize: '18px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), maxWidth: '600px' }}>
-            Everything you need to create engaging, interactive classroom experiences
-          </p>
-        </div>
+  
 
         <div style={{ ...modernStyles.featuresGrid, ...(isMobile ? modernStyles.featuresGridMobile : {}) }}>
           {/* Lesson Planner Feature Card */}
@@ -1030,11 +1038,11 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{
+                  <MotionButton className="lp-cta" type="submit" disabled={loading} style={{
                     ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
-                    {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
+                    {loading ? t('student.verifying') : (modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn'))}
                   </MotionButton>
                   {modalMode === 'login' && (
                     <button
@@ -1202,11 +1210,14 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         </div>
       )}
     </div>
-    );
+    <HelpChatBubble />
+    </>
+  );
   }
 
   // For Capacitor app: show only the modal (no landing page content)
   return (
+    <>
     <div style={{ ...modernStyles.container, alignItems: 'center', justifyContent: 'center', display: 'flex', position: 'relative', overflow: 'hidden' }}>
       <div style={modernStyles.meshBackground}></div>
 
@@ -1412,11 +1423,11 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" style={{
+                  <MotionButton className="lp-cta" type="submit" disabled={loading} style={{
                     ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
-                    {modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn')}
+                    {loading ? t('student.verifying') : (modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn'))}
                   </MotionButton>
                   {modalMode === 'login' && (
                     <button
@@ -1582,6 +1593,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             )}
         </div>
     </div>
+    <HelpChatBubble />
+    </>
   );
 }
 
