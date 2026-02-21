@@ -355,64 +355,110 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 
         // Download as PDF
         const handleDownload = async () => {
-            if (!reportContentRef.current) return;
+            if (!reportContentRef.current || displayStudents.length === 0) return;
 
             try {
-                // Temporarily hide the buttons and Edit buttons during capture
-                const buttons = document.querySelector('[style*="position: absolute"]');
-                const feedbackEditButtons = reportContentRef.current.querySelectorAll('.feedback-edit-button');
-                
-                const originalButtonDisplay = buttons ? buttons.style.display : '';
-                const feedbackButtonDisplays = Array.from(feedbackEditButtons).map(btn => btn.style.display);
-                
-                // Hide elements
-                if (buttons) buttons.style.display = 'none';
-                feedbackEditButtons.forEach(btn => btn.style.display = 'none');
-
-                const canvas = await html2canvas(reportContentRef.current, {
-                    scale: 2,
-                    backgroundColor: '#ffffff',
-                    useCORS: true,
-                    allowTaint: true,
-                    width: reportContentRef.current.scrollWidth,
-                    height: reportContentRef.current.scrollHeight,
-                    windowWidth: reportContentRef.current.scrollWidth,
-                    windowHeight: reportContentRef.current.scrollHeight
-                });
-                
-                // Restore elements
-                if (buttons) buttons.style.display = originalButtonDisplay;
-                feedbackEditButtons.forEach((btn, index) => {
-                    btn.style.display = feedbackButtonDisplays[index];
-                });
-                
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Calculate PDF dimensions (A4 ratio)
-                const imgWidth = 210; // A4 width in mm
-                const pageHeight = 295; // A4 height in mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-
                 const pdf = new jsPDF('p', 'mm', 'a4');
-                
-                // Add first page
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-                
-                // Add additional pages if needed
-                while (heightLeft > 0) {
-                    position = -heightLeft;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
+                const pageWidth = 210;
+                const pageHeight = 297;
+                const margin = 15;
+                const contentWidth = pageWidth - (margin * 2);
+
+                // Add header
+                const titleText = selectedStudentId
+                    ? `${activeClass?.students?.find(s => s.id === selectedStudentId)?.name || 'Student'} - ${t.mainTitle(isParentView, activeClass?.name)}`
+                    : t.mainTitle(isParentView, activeClass?.name);
+
+                pdf.setFontSize(20);
+                pdf.setFont('helvetica', 'bold');
+                pdf.text(titleText, margin, margin);
+
+                pdf.setFontSize(10);
+                pdf.setFont('helvetica', 'normal');
+                pdf.text(`${t.week}/${t.month}/${t.year}: ${timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)}`, margin, margin + 10);
+                pdf.text(`Generated: ${new Date().toLocaleDateString()}`, margin, margin + 16);
+
+                let currentY = margin + 30;
+
+                // Process each student
+                for (let i = 0; i < displayStudents.length; i++) {
+                    const student = displayStudents[i];
+                    const stats = getStudentStats(student);
+
+                    // Check if we need a new page
+                    if (currentY > pageHeight - 120) {
+                        pdf.addPage();
+                        currentY = margin;
+                    }
+
+                    // Student header
+                    if (i > 0 && currentY > margin + 30) {
+                        pdf.setDrawColor(220, 220, 220);
+                        pdf.line(margin, currentY - 10, pageWidth - margin, currentY - 10);
+                    }
+
+                    pdf.setFontSize(14);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text(student.name, margin, currentY);
+                    pdf.setFontSize(10);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(`ID: ${student.id} | Total Points: ${student.score || 0}`, margin, currentY + 8);
+
+                    // AI Feedback
+                    const teacherNote = generateTeacherNote(student, stats, timePeriod, language);
+                    const splitNote = pdf.splitTextToSize(teacherNote, contentWidth);
+
+                    pdf.setFontSize(10);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text(`${t.aiSummary}`, margin, currentY + 20);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.text(splitNote, margin, currentY + 28);
+
+                    currentY += 28 + (splitNote.length * 5) + 10;
+
+                    // Charts - capture as images
+                    const chartElements = reportContentRef.current.querySelectorAll('canvas');
+                    if (chartElements.length > 0) {
+                        for (let j = 0; j < chartElements.length; j++) {
+                            const chart = chartElements[j];
+                            // Only process charts for current student (approximate by index)
+                            const studentIndex = Math.floor(j / 2);
+                            if (studentIndex !== i) continue;
+
+                            try {
+                                const chartCanvas = await html2canvas(chart, {
+                                    scale: 2,
+                                    backgroundColor: '#ffffff',
+                                    logging: false
+                                });
+
+                                const chartImgData = chartCanvas.toDataURL('image/png');
+                                const chartHeight = 70;
+                                const chartWidth = (chartCanvas.width / chartCanvas.height) * chartHeight;
+
+                                // Check if chart fits on current page
+                                if (currentY + chartHeight > pageHeight - margin) {
+                                    pdf.addPage();
+                                    currentY = margin;
+                                }
+
+                                pdf.addImage(chartImgData, 'PNG', margin, currentY, Math.min(chartWidth, contentWidth), chartHeight);
+                                currentY += chartHeight + 15;
+                            } catch (chartError) {
+                                console.error('Error capturing chart:', chartError);
+                            }
+                        }
+                    }
+
+                    // Add page spacing
+                    currentY += 20;
                 }
-                
-                const filename = selectedStudentId 
+
+                // Save PDF
+                const filename = selectedStudentId
                     ? `${activeClass?.students?.find(s => s.id === selectedStudentId)?.name || 'student'}_${timePeriod}_report.pdf`
                     : `${activeClass?.name || 'class'}_${timePeriod}_report.pdf`;
-                
+
                 pdf.save(filename);
             } catch (error) {
                 console.error('Failed to generate PDF:', error);

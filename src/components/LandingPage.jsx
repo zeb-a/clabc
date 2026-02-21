@@ -149,12 +149,13 @@ function MotionButton({ children, className, style, ...props }) {
 // Check if running in Capacitor (mobile app)
 const isCapacitorApp = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.();
 
-export default function LandingPage({ onLoginSuccess, classes, setClasses, refreshClasses, showSearchGuide, openModal }) {
+export default function LandingPage({ onLoginSuccess, classes, setClasses, refreshClasses, showSearchGuide, openModal, onShowPrivacy, onShowTerms }) {
 
   // For Capacitor app, default to showing role selection modal
   const [modalMode, setModalMode] = useState(isCapacitorApp ? 'role' : null); // 'role', 'login', 'signup', 'student-login'
   const [modalHistory, setModalHistory] = useState([]); // Track navigation history for swipe-back
   const [portalView, setPortalView] = useState(null); // 'parent' or 'student'
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const isMobile = useWindowSize(768);
 
   // Navigate with history tracking for swipe-back
@@ -242,6 +243,21 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     if (openModal === 'signup') navigateModal('signup');
     if (openModal === 'login') navigateModal('login');
   }, [openModal]);
+
+  // Check if user just verified email and show login modal with success message
+  React.useEffect(() => {
+    const emailVerified = localStorage.getItem('email_verified');
+    if (emailVerified === 'true') {
+      // Clear the flag
+      localStorage.removeItem('email_verified');
+      // Set success message
+      setError('Email verified successfully! Please log in to continue.');
+      // Open login modal
+      setModalMode('login');
+      // Clear error after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    }
+  }, []);
 
   // Handle QR code auto-login from URL hash
   React.useEffect(() => {
@@ -422,6 +438,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     if (password.length < 8) {
       setLoading(false);
       return setError('Password must be at least 8 characters long.');
+    }
+    if (!agreedToTerms) {
+      setLoading(false);
+      return setError(t('auth.agree_error'));
     }
     try {
       await api.register({ email, password, name, title });
@@ -808,14 +828,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
       {/* --- PREMIUM FEATURES SHOWCASE --- */}
       <section style={{ ...modernStyles.featuresShowcase, ...(isMobile ? modernStyles.featuresShowcaseMobile : {}) }}>
-        <div style={modernStyles.featuresHeader}>
-          <h2 style={{ fontSize: '38px', fontWeight: 900, marginBottom: '16px', ...(isDark ? { color: '#fff' } : {}) }}>
-            Premium Features
-          </h2>
-          <p style={{ fontSize: '18px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), maxWidth: '600px' }}>
-            Everything you need to create engaging, interactive classroom experiences
-          </p>
-        </div>
+
 
         <div style={{ ...modernStyles.featuresGrid, ...(isMobile ? modernStyles.featuresGridMobile : {}) }}>
           {/* Lesson Planner Feature Card */}
@@ -827,15 +840,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
               <BookOpen size={36} color="#fff" />
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
-              Lesson Planner
+              {t('landing.lesson_planner.title')}
             </h3>
             <p style={{ fontSize: '15px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), lineHeight: 1.6, marginBottom: '20px' }}>
-              Plan, organize, and schedule your lessons with ease. Create structured learning paths and track student progress throughout the semester.
+              {t('landing.lesson_planner.desc')}
             </p>
             <div style={{ ...modernStyles.featureScreenshot, ...(isDark ? modernStyles.featureScreenshotDark : {}) }}>
               <div style={{ textAlign: 'center', color: '#94A3B8', ...(isDark ? { color: '#a1a1aa' } : {}) }}>
                 <div style={{ fontSize: '48px', marginBottom: '8px' }}>📋</div>
-                <div style={{ fontSize: '13px', fontWeight: 600 }}>Lesson Planner Preview</div>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>{t('landing.lesson_planner.preview')}</div>
               </div>
             </div>
             <MotionButton
@@ -843,7 +856,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
               onClick={() => navigateModal('signup')}
               style={{ ...modernStyles.featureCta, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}
             >
-              Try Lesson Planner <ArrowRight size={16} />
+              {t('landing.lesson_planner.cta')} <ArrowRight size={16} />
             </MotionButton>
           </MotionCard>
 
@@ -856,15 +869,15 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
               <Dices size={36} color="#fff" />
             </div>
             <h3 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
-              Play Games
+              {t('landing.play_games.title')}
             </h3>
             <p style={{ fontSize: '15px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), lineHeight: 1.6, marginBottom: '20px' }}>
-              Make learning fun with interactive games! From Tornado to Memory Match, engage students with gamified activities that boost participation.
+              {t('landing.play_games.desc')}
             </p>
             <div style={{ ...modernStyles.featureScreenshot, ...(isDark ? modernStyles.featureScreenshotDark : {}) }}>
               <div style={{ textAlign: 'center', color: '#94A3B8', ...(isDark ? { color: '#a1a1aa' } : {}) }}>
                 <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎮</div>
-                <div style={{ fontSize: '13px', fontWeight: 600 }}>Interactive Games Preview</div>
+                <div style={{ fontSize: '13px', fontWeight: 600 }}>{t('landing.play_games.preview')}</div>
               </div>
             </div>
             <MotionButton
@@ -872,7 +885,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
               onClick={() => navigateModal('signup')}
               style={{ ...modernStyles.featureCta, background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}
             >
-              Start Playing <ArrowRight size={16} />
+              {t('landing.play_games.cta')} <ArrowRight size={16} />
             </MotionButton>
           </MotionCard>
         </div>
@@ -880,18 +893,42 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         {/* Bottom CTA for Features */}
         <div style={{ ...modernStyles.featuresBottomCta, ...(isDark ? modernStyles.featuresBottomCtaDark : {}) }}>
           <h3 style={{ fontSize: '28px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
-            Ready to transform your classroom?
+            {t('landing.ready.title')}
           </h3>
           <p style={{ fontSize: '16px', color: '#64748B', ...(isDark ? { color: '#a1a1aa' } : {}), marginBottom: '24px' }}>
-            Join thousands of teachers who are already using Klasiz.fun to engage their students
+            {t('landing.ready.desc')}
           </p>
           <MotionButton
             className="lp-cta"
             onClick={() => navigateModal('signup')}
             style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}
           >
-            Create Free Account <ArrowRight size={18} />
+            {t('landing.create_account')} <ArrowRight size={18} />
           </MotionButton>
+        </div>
+
+        {/* Footer Links */}
+        <div style={{ ...modernStyles.footer, ...(isDark ? modernStyles.footerDark : {}) }}>
+          <div style={modernStyles.footerContent}>
+            <p style={modernStyles.footerCopyright}>
+              {t('footer.copyright', { year: new Date().getFullYear() })}
+            </p>
+            <div style={modernStyles.footerLinks}>
+              <button
+                onClick={onShowPrivacy}
+                style={modernStyles.footerLink}
+              >
+                {t('footer.privacy')}
+              </button>
+              <span style={modernStyles.footerSeparator}>|</span>
+              <button
+                onClick={onShowTerms}
+                style={modernStyles.footerLink}
+              >
+                {t('footer.terms')}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1080,8 +1117,79 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 </div>
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
+                {/* Terms & Conditions Checkbox - Only for signup */}
+                {modalMode === 'signup' && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    marginTop: '12px',
+                    padding: '12px',
+                    background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                    borderRadius: '10px',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="agree-terms"
+                      checked={agreedToTerms}
+                      onChange={e => setAgreedToTerms(e.target.checked)}
+                      required
+                      style={{
+                        marginTop: '2px',
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: '#4CAF50'
+                      }}
+                    />
+                    <label htmlFor="agree-terms" style={{
+                      fontSize: '13px',
+                      color: isDark ? '#a1a1aa' : '#64748B',
+                      lineHeight: '1.5',
+                      margin: 0,
+                      cursor: 'pointer'
+                    }}>
+                      {t('auth.agree_terms')}{' '}
+                      <button
+                        type="button"
+                        onClick={onShowTerms}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#4CAF50',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textDecoration: 'underline',
+                          fontSize: '13px'
+                        }}
+                      >
+                        {t('footer.terms')}
+                      </button>
+                      {' '}{t('auth.and')}{' '}
+                      <button
+                        type="button"
+                        onClick={onShowPrivacy}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#4CAF50',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textDecoration: 'underline',
+                          fontSize: '13px'
+                        }}
+                      >
+                        {t('footer.privacy')}
+                      </button>
+                    </label>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" disabled={loading} style={{
+                  <MotionButton className="lp-cta" type="submit" disabled={loading || (modalMode === 'signup' && !agreedToTerms)} style={{
                     ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
@@ -1465,8 +1573,79 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 </div>
                 {modalMode === 'signup' && <input type="password" placeholder={t('auth.confirm')} style={{ ...modernStyles.modernInput, ...(isMobile ? modernStyles.modernInputMobile : {}), ...(isDark ? { background: '#27272a', borderColor: 'rgba(255,255,255,0.1)', color: '#f4f4f5' } : {}), width: '100%', boxSizing: 'border-box' }} onChange={e => setConfirmPassword(e.target.value)} required />}
 
+                {/* Terms & Conditions Checkbox - Only for signup */}
+                {modalMode === 'signup' && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '10px',
+                    marginTop: '12px',
+                    padding: '12px',
+                    background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                    borderRadius: '10px',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}`
+                  }}>
+                    <input
+                      type="checkbox"
+                      id="agree-terms"
+                      checked={agreedToTerms}
+                      onChange={e => setAgreedToTerms(e.target.checked)}
+                      required
+                      style={{
+                        marginTop: '2px',
+                        width: '18px',
+                        height: '18px',
+                        cursor: 'pointer',
+                        accentColor: '#4CAF50'
+                      }}
+                    />
+                    <label htmlFor="agree-terms" style={{
+                      fontSize: '13px',
+                      color: isDark ? '#a1a1aa' : '#64748B',
+                      lineHeight: '1.5',
+                      margin: 0,
+                      cursor: 'pointer'
+                    }}>
+                      {t('auth.agree_terms')}{' '}
+                      <button
+                        type="button"
+                        onClick={onShowTerms}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#4CAF50',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textDecoration: 'underline',
+                          fontSize: '13px'
+                        }}
+                      >
+                        {t('footer.terms')}
+                      </button>
+                      {' '}{t('auth.and')}{' '}
+                      <button
+                        type="button"
+                        onClick={onShowPrivacy}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#4CAF50',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                          textDecoration: 'underline',
+                          fontSize: '13px'
+                        }}
+                      >
+                        {t('footer.privacy')}
+                      </button>
+                    </label>
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-                  <MotionButton className="lp-cta" type="submit" disabled={loading} style={{
+                  <MotionButton className="lp-cta" type="submit" disabled={loading || (modalMode === 'signup' && !agreedToTerms)} style={{
                     ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
@@ -1634,6 +1813,42 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 <button onClick={() => { setError(''); navigateModal('login'); }} style={{ ...modernStyles.mainCta, marginTop: 16, ...(isDark ? modernStyles.mainCtaDark : {}) }}>{t('auth.goto_login') || 'Go to Login'}</button>
               </div>
             )}
+
+            {/* Footer Links for Capacitor App */}
+            <div style={{ marginTop: '20px', padding: '20px', borderTop: '1px solid rgba(0,0,0,0.05)', ...(isDark ? { borderTop: '1px solid rgba(255,255,255,0.1)' } : {}) }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={onShowPrivacy}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '8px 12px',
+                    ...(isDark ? { color: '#a1a1aa' } : {})
+                  }}
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  onClick={onShowTerms}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '8px 12px',
+                    ...(isDark ? { color: '#a1a1aa' } : {})
+                  }}
+                >
+                  Terms & Conditions
+                </button>
+              </div>
+            </div>
         </div>
     </div>
     <HelpChatBubble />
@@ -1808,4 +2023,14 @@ const modernStyles = {
   featureCta: { color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', marginTop: 'auto' },
   featuresBottomCta: { marginTop: '80px', textAlign: 'center', padding: '60px', background: 'linear-gradient(135deg, #F0FDF4 0%, #DBEAFE 100%)', borderRadius: '32px', border: '1px solid rgba(0,0,0,0.05)' },
   featuresBottomCtaDark: { background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)' },
+  footer: { padding: '40px 20px', marginTop: '60px', borderTop: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' },
+  footerDark: { borderTop: '1px solid rgba(255,255,255,0.1)', background: '#18181b' },
+  footerContent: { maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' },
+  footerCopyright: { fontSize: '14px', color: '#64748B', margin: 0, fontWeight: 500 },
+  footerCopyrightDark: { color: '#a1a1aa' },
+  footerLinks: { display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' },
+  footerLink: { background: 'none', border: 'none', color: '#64748B', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 12px', borderRadius: '8px', transition: 'all 0.2s' },
+  footerLinkDark: { color: '#a1a1aa' },
+  footerSeparator: { color: '#cbd5e1', fontSize: '14px', fontWeight: 400 },
+  footerSeparatorDark: { color: '#52525b' },
 };

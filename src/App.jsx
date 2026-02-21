@@ -20,6 +20,8 @@ import { PageHelpProvider, usePageHelp } from './PageHelpContext';
 import HelpChatBubble from './components/HelpChatBubble';
 import LessonPlannerPage from './components/lesson-planner/LessonPlannerPage';
 import TornadoGameWrapper from './components/TornadoGameWrapper';
+import PrivacyPolicyPage from './components/PrivacyPolicyPage';
+import TermsPage from './components/TermsPage';
 import './components/ModalAnimations.css';
 // --- INITIAL DATA ---
 
@@ -98,6 +100,8 @@ function App() {
     return null;
   });
   const [showProfile, setShowProfile] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
@@ -188,8 +192,12 @@ function App() {
   if (verificationToken) {
     return <VerifyEmailPage
       token={verificationToken}
-      onSuccess={() => {
+      onSuccess={async () => {
+        // Clear verification token from URL
         window.location.hash = '';
+        // Set flag that email was just verified
+        localStorage.setItem('email_verified', 'true');
+        // Redirect to login view - user will be auto-logged in
         window.location.reload();
       }}
       onError={() => {
@@ -199,7 +207,6 @@ function App() {
   }
 
 // Load classes and behaviors (for both logged in users and when accessed via student portal)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     // restore token into api layer if present
     const token = localStorage.getItem('classABC_pb_token') || localStorage.getItem('classABC_token');
@@ -279,7 +286,6 @@ function App() {
   }, [user]);
 
   // persist behaviors and classes per user (localStorage + backend when available)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     localStorage.setItem('classABC_behaviors', JSON.stringify(behaviors));
     const token = localStorage.getItem('classABC_pb_token') || localStorage.getItem('classABC_token');
@@ -483,16 +489,22 @@ function App() {
       // Landing page (no user logged in) — no help bubble here
   if (!user) {
     return (
-      <LandingPage
-        onLoginSuccess={onLoginSuccess}
-        classes={classes}
-        setClasses={setClasses}
-        refreshClasses={refreshClasses}
-        showSearchGuide={() => {}}
-        openModal={(action) => {
-          window.dispatchEvent(new CustomEvent('guide-action', { detail: action }));
-        }}
-      />
+      <>
+        <LandingPage
+          onLoginSuccess={onLoginSuccess}
+          classes={classes}
+          setClasses={setClasses}
+          refreshClasses={refreshClasses}
+          showSearchGuide={() => {}}
+          openModal={(action) => {
+            window.dispatchEvent(new CustomEvent('guide-action', { detail: action }));
+          }}
+          onShowPrivacy={() => setShowPrivacy(true)}
+          onShowTerms={() => setShowTerms(true)}
+        />
+        {showPrivacy && <PrivacyPolicyPage onClose={() => setShowPrivacy(false)} />}
+        {showTerms && <TermsPage onClose={() => setShowTerms(false)} />}
+      </>
     );
   }
 

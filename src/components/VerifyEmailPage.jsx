@@ -35,7 +35,7 @@ export default function VerifyEmailPage({ token, onSuccess, onError }) {
             <CheckCircle size={48} color="#4CAF50" style={{ margin: '0 auto 20px' }} />
             <h2 style={{ color: '#4CAF50' }}>Email verified!</h2>
             <p>Your account is now active. You can log in with your email and password.</p>
-            <p style={{ fontSize: '13px', color: '#999', marginTop: '20px' }}>Redirecting to login...</p>
+            <p style={{ fontSize: '13px', color: '#999', marginTop: '20px' }}>Redirecting to login page...</p>
           </>
         )}
         
