@@ -90,7 +90,31 @@ function LoggedInLayout({ view, children }) {
 // ==========================================
 // 3. MAIN APP (THE TRAFFIC CONTROLLER)
 // ==========================================
+// Check for password reset token BEFORE any hash manipulation
+function getHashRoute() {
+  const hash = window.location.hash;
+  // PocketBase uses /_/#/auth/reset-password/{TOKEN} format for password reset
+  if (hash.startsWith('#/auth/reset-password/')) {
+    const token = hash.replace('#/auth/reset-password/', '').split('/')[0];
+    return { page: 'reset', token };
+  }
+  // Also handle confirm-password-reset variant (for backwards compatibility)
+  if (hash.startsWith('#/auth/confirm-password-reset/')) {
+    const token = hash.replace('#/auth/confirm-password-reset/', '').split('/')[0];
+    return { page: 'reset', token };
+  }
+  // PocketBase uses /_/#/auth/confirm-verification/{TOKEN} format
+  if (hash.startsWith('#/auth/confirm-verification/')) {
+    const token = hash.replace('#/auth/confirm-verification/', '').split('/')[0];
+    return { page: 'confirm', token };
+  }
+  return { page: null };
+}
+
 function App() {
+  // Check for special hash routes FIRST (before any hash manipulation)
+  const hashRoute = getHashRoute();
+
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('classABC_logged_in');
     const token = localStorage.getItem('classABC_pb_token') || localStorage.getItem('classABC_token');
@@ -115,8 +139,12 @@ function App() {
   // Track the current index in history to prevent conflicts
   const historyRef = useRef(0);
 
-  // Initialize browser history on mount - sync with hash
+  // Initialize browser history on mount - sync with hash (but NOT for password reset/confirm routes)
   useEffect(() => {
+    // Don't replace hash if we're on a special auth route (password reset or email verification)
+    if (hashRoute.page) {
+      return;
+    }
     window.history.replaceState({ view: initialView, appHistoryIndex: 0 }, '', `#${initialView}`);
   }, []);
 
@@ -185,7 +213,8 @@ function App() {
   // Check for email verification token in URL
   const verificationToken = useMemo(() => {
     const hash = window.location.hash;
-    const match = hash.match(/confirm-verification\/([^/]+)/);
+    // PocketBase uses /_/#/auth/confirm-verification/{TOKEN} format
+    const match = hash.match(/auth\/confirm-verification\/([^/]+)/);
     return match ? match[1] : null;
   }, []);
 
@@ -252,6 +281,8 @@ function App() {
         if (mounted && Array.isArray(remote)) {
           if (remote.length > 0) {
             setClasses(remote);
+            // Clear demo class and flag when user has real classes
+            localStorage.removeItem('classABC_demo_shown');
           } else if (user && !localStorage.getItem('classABC_demo_shown')) {
             // New user with no classes - show demo class
             setClasses([MOCK_CLASS]);
@@ -338,7 +369,13 @@ function App() {
 
   const onAddClass = (newClass) => {
     setClasses(prev => {
-      const next = [...prev, newClass];
+      // Remove demo class if it exists when adding first real class
+      const filtered = prev.filter(c => c.id !== 'demo-class');
+      const next = [...filtered, newClass];
+
+      // Clear the demo_shown flag since user now has real classes
+      localStorage.removeItem('classABC_demo_shown');
+
       // persist to localStorage only, backend save via effect
       try {
         if (user && user.email) {
@@ -477,10 +514,14 @@ function App() {
     );
   }
 
-  // Handle /reset/:token and /confirm/:token
-  const hashRoute = getHashRoute();
+  // Handle /reset/:token and /confirm/:token (using hashRoute computed at component start)
   if (hashRoute.page === 'reset') {
-    return <PasswordResetPage token={hashRoute.token} onSuccess={() => { window.location.hash = ''; }} />;
+    return <PasswordResetPage token={hashRoute.token} onSuccess={() => {
+      // Clear the reset hash and set a flag to open login modal
+      window.location.hash = '';
+      localStorage.setItem('show_login_modal', 'true');
+      window.location.reload();
+    }} />;
   }
   if (hashRoute.page === 'confirm') {
     return <ConfirmAccountPage token={hashRoute.token} onSuccess={() => { window.location.hash = ''; }} />;
@@ -726,16 +767,6 @@ const _styles = {
   bigCardContent: { textAlign: 'center' },
   bigCardAvatar: { width: '250px', borderRadius: '50%' }
 };
-
-function getHashRoute() {
-  if (window.location.hash.startsWith('#/reset/')) {
-    return { page: 'reset', token: window.location.hash.replace('#/reset/', '') };
-  }
-  if (window.location.hash.startsWith('#/confirm/')) {
-    return { page: 'confirm', token: window.location.hash.replace('#/confirm/', '') };
-  }
-  return { page: null };
-}
 
 export default function WrappedApp() {
   return (

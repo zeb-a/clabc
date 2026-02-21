@@ -259,6 +259,21 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     }
   }, []);
 
+  // Check if user just reset password and show login modal with success message
+  React.useEffect(() => {
+    const showLoginModal = localStorage.getItem('show_login_modal');
+    if (showLoginModal === 'true') {
+      // Clear the flag
+      localStorage.removeItem('show_login_modal');
+      // Set success message
+      setError('Password reset successful! Please log in with your new password.');
+      // Open login modal directly (skip role selection)
+      setModalMode('login');
+      // Clear error after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    }
+  }, []);
+
   // Handle QR code auto-login from URL hash
   React.useEffect(() => {
     const hash = window.location.hash;
@@ -1190,7 +1205,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                   <MotionButton className="lp-cta" type="submit" disabled={loading || (modalMode === 'signup' && !agreedToTerms)} style={{
-                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
+                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: '100%' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
                     {loading ? t('student.verifying') : (modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn'))}
@@ -1297,7 +1312,22 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <MotionButton
                       type="button"
                       onClick={() => { setResetSuccess(false); setResetEmail(''); navigateModal('login'); }}
-                      style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
+                      style={{
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '14px',
+                        fontSize: '18px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                        width: '100%'
+                      }}
                     >
                       Login
                     </MotionButton>
@@ -1646,7 +1676,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'space-between', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                   <MotionButton className="lp-cta" type="submit" disabled={loading || (modalMode === 'signup' && !agreedToTerms)} style={{
-                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: 'auto' }),
+                    ...(modalMode === 'signup' ? { ...modernStyles.mainCtaPrimary, ...(isDark ? modernStyles.mainCtaPrimaryDark : {}), width: '100%' } : { ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}), width: '100%' }),
                     ...(isMobile ? { ...modernStyles.mainCtaMobile, flex: '1' } : {})
                   }}>
                     {loading ? t('student.verifying') : (modalMode === 'signup' ? t('auth.create_btn') : t('auth.login_btn'))}
@@ -1753,7 +1783,22 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                     <MotionButton
                       type="button"
                       onClick={() => { setResetSuccess(false); setResetEmail(''); navigateModal('login'); }}
-                      style={{ ...modernStyles.mainCtaSecondary, ...(isDark ? modernStyles.mainCtaSecondaryDark : {}) }}
+                      style={{
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '12px 24px',
+                        borderRadius: '14px',
+                        fontSize: '18px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                        width: '100%'
+                      }}
                     >
                       Login
                     </MotionButton>
@@ -1868,7 +1913,7 @@ const modernStyles = {
   navActions: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' },
   themeToggle: { background: 'none', border: 'none', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', color: '#64748B', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   themeToggleDark: { background: 'rgba(255,255,255,0.1)', color: '#f4f4f5' },
-  loginLink: { background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '14px', padding: '8px 12px', borderRadius: '8px' },
+  loginLink: { background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '16px', padding: '14px 26px', borderRadius: '10px' },
   loginLinkDark: { color: '#f4f4f5' },
   signupBtn: { background: '#2D2D30', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' },
   signupBtnDark: { background: '#fafafa', color: '#09090b' },
@@ -1934,10 +1979,10 @@ const modernStyles = {
   mainCta: { width: '100%', background: '#2D2D30', color: '#fff', border: 'none', padding: '18px 36px', borderRadius: '16px', fontSize: '20px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center',justifyContent: 'center', gap: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' },
   mainCtaDark: { background: '#fafafa', color: '#09090b' },
   // Different button styles for 2026 design
-  mainCtaPrimary: { width: '100%', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' },
+  mainCtaPrimary: { width: '100%', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '18px 32px', borderRadius: '12px', fontSize: '18px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' },
   mainCtaPrimaryDark: { background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)' },
-  mainCtaSecondary: { background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '16px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)' },
-  mainCtaSecondaryDark: { background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)' },
+  mainCtaSecondary: { background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '18px 32px', borderRadius: '12px', fontSize: '18px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)' },
+  mainCtaSecondaryDark: { background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)', boxShadow: '0 4px 20px rgba(52, 211, 153, 0.5)' },
   mainCtaAccent: { background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)' },
   mainCtaAccentDark: { background: 'linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)' },
   mainCtaGhost: { background: 'transparent', border: '2px solid #2D2D30', color: '#2D2D30', padding: '12px 20px', borderRadius: '10px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.2s' },
