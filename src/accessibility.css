@@ -1,0 +1,192 @@
+/* Global Accessibility Styles */
+/* Focus management for keyboard navigation */
+
+/* Remove outline for mouse users, keep it for keyboard users */
+*:focus:not(:focus-visible) {
+    outline: none !important;
+  }
+  
+  /* Focus visible indicator - WCAG 2.1 AA compliant */
+  *:focus-visible {
+    outline: 3px solid #6366f1 !important;
+    outline-offset: 3px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Enhanced focus for interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 3px solid #6366f1 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3) !important;
+  }
+  
+  /* Modal/dialog focus styles */
+  [role="dialog"]:focus-within {
+    outline: 4px solid #6366f1 !important;
+    outline-offset: -4px !important;
+  }
+  
+  /* Skip to content link */
+  .skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #6366f1;
+    color: white;
+    padding: 12px 20px;
+    z-index: 99999;
+    transition: top 0.2s ease;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 0 0 8px 0;
+  }
+  
+  .skip-to-content:hover,
+  .skip-to-content:focus {
+    top: 0;
+    background: #4f46e5;
+    color: white;
+    text-decoration: underline;
+  }
+  
+  /* Screen reader only content */
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
+  /* Ensure disabled elements are properly styled */
+  button[disabled],
+  input[disabled],
+  select[disabled],
+  textarea[disabled],
+  [aria-disabled="true"] {
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+  }
+  
+  button[disabled]:focus-visible,
+  input[disabled]:focus-visible,
+  select[disabled]:focus-visible,
+  textarea[disabled]:focus-visible {
+    outline: 3px solid #9ca3af !important;
+    box-shadow: 0 0 0 4px rgba(156, 163, 175, 0.3) !important;
+  }
+  
+  /* ARIA live regions for screen reader announcements */
+  [aria-live="polite"],
+  [aria-live="assertive"] {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    *:focus-visible {
+      outline-width: 4px !important;
+      outline-color: #000 !important;
+      background-color: #ffff00 !important;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Dark mode focus adjustments */
+  [data-theme="dark"] *:focus-visible {
+    outline-color: #a5b4fc !important;
+    box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.3) !important;
+  }
+  
+  [data-theme="dark"] button:focus-visible,
+  [data-theme="dark"] a:focus-visible,
+  [data-theme="dark"] input:focus-visible,
+  [data-theme="dark"] textarea:focus-visible,
+  [data-theme="dark"] select:focus-visible {
+    outline-color: #a5b4fc !important;
+    box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.3) !important;
+  }
+  
+  /* Card focus styles */
+  .card:focus-within,
+  .student-card:focus-within {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+  
+  [data-theme="dark"] .card:focus-within,
+  [data-theme="dark"] .student-card:focus-within {
+    outline-color: #a5b4fc;
+  }
+  
+  /* Modal overlay accessibility */
+  .modal-overlay-in {
+    background: rgba(0, 0, 0, 0.75) !important;
+  }
+  
+  .animated-modal-content {
+    outline: none !important;
+  }
+  
+  .animated-modal-content:focus-visible {
+    outline: 4px solid #6366f1 !important;
+    outline-offset: 4px !important;
+  }
+  
+  /* List and grid navigation styles */
+  [role="listbox"] [role="option"]:focus,
+  [role="grid"] [role="gridcell"]:focus,
+  [role="menu"] [role="menuitem"]:focus {
+    background-color: rgba(99, 102, 241, 0.1) !important;
+    outline: 2px solid #6366f1 !important;
+    outline-offset: -2px !important;
+  }
+  
+  [data-theme="dark"] [role="listbox"] [role="option"]:focus,
+  [data-theme="dark"] [role="grid"] [role="gridcell"]:focus,
+  [data-theme="dark"] [role="menu"] [role="menuitem"]:focus {
+    background-color: rgba(165, 180, 252, 0.1) !important;
+    outline-color: #a5b4fc !important;
+  }
+  
+  /* Touch device optimization - reduce focus ring on touch */
+  @media (pointer: coarse) {
+    *:focus-visible {
+      outline-width: 2px !important;
+    }
+  }
+  
+  /* Print styles */
+  @media print {
+    .skip-to-content,
+    [aria-live] {
+      display: none !important;
+    }
+  }
+  

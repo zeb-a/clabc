@@ -18,9 +18,15 @@ const inputStyle = {
   }
 };
 
+const highlightedInputStyle = {
+  border: '3px solid #DC2626',
+  background: '#FFEBEE',
+  boxShadow: '0 0 0 4px rgba(220, 38, 38, 0.3)'
+};
+
 const labelStyle = { fontWeight: 600, fontSize: 13, color: '#374151', marginBottom: 6 };
 
-export default function MonthlyTemplate({ data = {}, onChange }) {
+export default function MonthlyTemplate({ data = {}, onChange, highlightedCells = [], clearHighlight }) {
   const { t } = useTranslation();
   const d = data || {};
   const rows = d.rows || MONTHLY_PHASE_LABELS.map((phase) => ({
@@ -36,6 +42,12 @@ export default function MonthlyTemplate({ data = {}, onChange }) {
     if (!next[index]) next[index] = { phase: MONTHLY_PHASE_LABELS[index], focus: '', languageTarget: '', assessment: '' };
     next[index] = { ...next[index], [field]: value };
     onChange({ ...d, rows: next });
+    clearHighlight?.();
+  };
+
+  const isHighlighted = (index, field) => {
+    if (!highlightedCells || highlightedCells.length === 0) return false;
+    return highlightedCells.some(c => c.type === 'row' && c.index === index && c.field === field);
   };
 
   return (
@@ -57,7 +69,13 @@ export default function MonthlyTemplate({ data = {}, onChange }) {
                 <td style={{ padding: '8px 12px' }}>
                   <textarea
                     rows={2}
-                    style={{ ...inputStyle, minHeight: 60, padding: '10px 12px', resize: 'vertical' }}
+                    style={{
+                      ...inputStyle,
+                      minHeight: 60,
+                      padding: '10px 12px',
+                      resize: 'vertical',
+                      ...(isHighlighted(i, 'focus') ? highlightedInputStyle : {})
+                    }}
                     placeholder={ph.focus}
                     value={(rows[i] && rows[i].focus) ?? ''}
                     onChange={(e) => updateRow(i, 'focus', e.target.value)}
@@ -66,7 +84,13 @@ export default function MonthlyTemplate({ data = {}, onChange }) {
                 <td style={{ padding: '8px 12px' }}>
                   <textarea
                     rows={2}
-                    style={{ ...inputStyle, minHeight: 60, padding: '10px 12px', resize: 'vertical' }}
+                    style={{
+                      ...inputStyle,
+                      minHeight: 60,
+                      padding: '10px 12px',
+                      resize: 'vertical',
+                      ...(isHighlighted(i, 'languageTarget') ? highlightedInputStyle : {})
+                    }}
                     placeholder={ph.languageTarget}
                     value={(rows[i] && rows[i].languageTarget) ?? ''}
                     onChange={(e) => updateRow(i, 'languageTarget', e.target.value)}
@@ -75,7 +99,13 @@ export default function MonthlyTemplate({ data = {}, onChange }) {
                 <td style={{ padding: '8px 12px' }}>
                   <textarea
                     rows={2}
-                    style={{ ...inputStyle, minHeight: 60, padding: '10px 12px', resize: 'vertical' }}
+                    style={{
+                      ...inputStyle,
+                      minHeight: 60,
+                      padding: '10px 12px',
+                      resize: 'vertical',
+                      ...(isHighlighted(i, 'assessment') ? highlightedInputStyle : {})
+                    }}
                     placeholder={ph.assessment}
                     value={(rows[i] && rows[i].assessment) ?? ''}
                     onChange={(e) => updateRow(i, 'assessment', e.target.value)}

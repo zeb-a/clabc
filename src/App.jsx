@@ -126,6 +126,7 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [openGamesModal, setOpenGamesModal] = useState(false);
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
   const [activeClassId, setActiveClassId] = useState(null);
@@ -156,6 +157,10 @@ function App() {
       setViewHistory(prev => [...prev, newView]);
       setView(newView);
       window.history.pushState({ view: newView, appHistoryIndex: ++historyRef.current }, '', `#${newView}`);
+    }
+    // Reset games modal flag when navigating
+    if (openGamesModal) {
+      setOpenGamesModal(false);
     }
   };
 
@@ -430,6 +435,27 @@ function App() {
             console.warn('Could not parse stored user for refresh');
             return;
           }
+        } else {
+          // For student portal (no teacher user), load all classes from PocketBase
+          try {
+            const res = await api.pbRequest('/collections/classes/records?perPage=500');
+            const classes = (res.items || []).map(c => ({
+              ...c,
+              students: typeof c.students === 'string' ? JSON.parse(c.students || '[]') : (c.students || []),
+              tasks: typeof c.tasks === 'string' ? JSON.parse(c.tasks || '[]') : (c.tasks || []),
+              assignments: typeof c.assignments === 'string' ? JSON.parse(c.assignments || '[]') : (c.assignments || []),
+              submissions: typeof c.submissions === 'string' ? JSON.parse(c.submissions || '[]') : (c.submissions || []),
+              studentAssignments: typeof c.studentAssignments === 'string' ? JSON.parse(c.studentAssignments || '[]') : (c.studentAssignments || []),
+              student_submissions: typeof c.student_submissions === 'string' ? JSON.parse(c.student_submissions || '[]') : (c.student_submissions || []),
+              Access_Codes: typeof c.Access_Codes === 'string' ? JSON.parse(c.Access_Codes || '{}') : (c.Access_Codes || {})
+            }));
+            if (classes && Array.isArray(classes)) {
+              setClasses(classes);
+            }
+          } catch (e) {
+            console.warn('Could not load classes for student portal:', e);
+          }
+          return;
         }
       }
 
@@ -598,6 +624,7 @@ function App() {
         updateClasses={setClasses}
         onOpenTorenado={() => navigate('torenado')}
         onOpenLessonPlanner={() => navigate('lesson-planner')}
+        openGamesModal={openGamesModal}
       />
     </LoggedInLayout>
     );
@@ -618,6 +645,10 @@ function App() {
           refreshClasses={refreshClasses}
           onUpdateBehaviors={(next) => setBehaviors(next)}
           onOpenAssignments={() => setIsAssignmentStudioOpen(true)}
+          onOpenGames={() => {
+            navigate('portal');
+            setOpenGamesModal(true);
+          }}
         />
       </LoggedInLayout>
     );

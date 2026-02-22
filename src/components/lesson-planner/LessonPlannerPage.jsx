@@ -11,7 +11,12 @@ import {
   Download,
   Upload,
   Calendar,
-  BookOpen
+  BookOpen,
+  PanelLeftOpen,
+  PanelLeftClose,
+  AlertTriangle,
+  X,
+  Trash2
 } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 import DailyTemplate from './DailyTemplate';
@@ -96,6 +101,13 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
   const [monthYear, setMonthYear] = useState(() => new Date().toISOString().slice(0, 7));
   const [year, setYear] = useState(() => new Date().getFullYear().toString());
   const [expandedInputs, setExpandedInputs] = useState({});
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [saveWarning, setSaveWarning] = useState(null);
+  const [highlightedCells, setHighlightedCells] = useState([]);
+  const   [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState(null);
   const autoSaveRef = useRef(null);
 
   const selectedClass = classes?.find((c) => c.id === classId);
@@ -190,9 +202,28 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
 
   const handleSave = async () => {
     if (!user?.email || !period || !classId) return;
+
+    // Check for empty cells based on period
+    const emptyCells = validateData(period, data);
+
+    if (emptyCells.length > 0) {
+      // Show confirmation dialog instead of blocking
+      setHighlightedCells(emptyCells);
+      setPendingSaveData({ emptyCells: emptyCells.length });
+      setShowSaveConfirm(true);
+      return;
+    }
+
+    proceedWithSave();
+  };
+
+  const proceedWithSave = async () => {
     setSaving(true);
+    setSaveWarning(null);
+    setHighlightedCells([]);
+    setShowSaveConfirm(false);
     try {
-      const dateValue = 
+      const dateValue =
         period === 'daily' ? date :
         period === 'weekly' ? `${dateFrom},${dateTo}` :
         period === 'monthly' ? monthYear :
@@ -225,37 +256,84 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
     }
   };
 
-  useEffect(() => {
-    if (!period || !classId || !user?.email) return;
-    const id = setInterval(async () => {
-      try {
-        const dateValue = 
-          period === 'daily' ? date :
-          period === 'weekly' ? `${dateFrom},${dateTo}` :
-          period === 'monthly' ? monthYear :
-          period === 'yearly' ? year : null;
-        const payload = {
-          teacher: user.email,
-          class_id: classId,
-          period,
-          title: title || `${period} plan`,
-          date: dateValue,
-          data
-        };
-        if (planId) {
-          await api.updateLessonPlan(planId, { title: payload.title, date: payload.date, data: payload.data });
-        } else {
-          const created = await api.createLessonPlan(payload);
-          setPlanId(created.id);
-        }
-        setSavedAt(Date.now());
-        loadAllPlans();
-      } catch (e) {
-        console.warn('Auto-save failed:', e);
+  const handleDeletePlan = async (plan) => {
+    setPlanToDelete(plan);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!planToDelete) return;
+    try {
+      await api.deleteLessonPlan(planToDelete.id);
+      if (planId === planToDelete.id) {
+        setPlanId(null);
+        setPeriod('');
+        setTitle('');
+        setData({});
       }
-    }, 30000);
-    return () => clearInterval(id);
-  }, [period, classId, user?.email, data, title, date, dateFrom, dateTo, monthYear, year, planId, loadAllPlans]);
+      loadAllPlans();
+      setShowDeleteConfirm(false);
+      setPlanToDelete(null);
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert(err?.message || 'Failed to delete lesson plan.');
+    }
+  };
+
+  const validateData = (period, data) => {
+    const emptyCells = [];
+    
+    if (!data) return emptyCells;
+
+    switch (period) {
+      case 'daily':
+        // Check objective, materials, and notes
+        if (!data.objective || data.objective.trim() === '') {
+          emptyCells.push({ type: 'objective' });
+        }
+        if (!data.materials || data.materials.trim() === '') {
+          emptyCells.push({ type: 'materials' });
+        }
+        // Check stages
+        if (data.stages && Array.isArray(data.stages)) {
+          data.stages.forEach((stage, index) => {
+            if (!stage.teacherActions || stage.teacherActions.trim() === '') {
+              emptyCells.push({ type: 'stage', index, field: 'teacherActions' });
+            }
+            if (!stage.studentActions || stage.studentActions.trim() === '') {
+              emptyCells.push({ type: 'stage', index, field: 'studentActions' });
+            }
+            if (!stage.assessment || stage.assessment.trim() === '') {
+              emptyCells.push({ type: 'stage', index, field: 'assessment' });
+            }
+          });
+        }
+        break;
+      
+      case 'weekly':
+      case 'monthly':
+      case 'yearly':
+        // Check table rows
+        if (data.rows && Array.isArray(data.rows)) {
+          data.rows.forEach((row, index) => {
+            if (!row.focus || row.focus.trim() === '') {
+              emptyCells.push({ type: 'row', index, field: 'focus' });
+            }
+            if (!row.languageTarget || row.languageTarget.trim() === '') {
+              emptyCells.push({ type: 'row', index, field: 'languageTarget' });
+            }
+            if (!row.assessment || row.assessment.trim() === '') {
+              emptyCells.push({ type: 'row', index, field: 'assessment' });
+            }
+          });
+        }
+        break;
+    }
+    
+    return emptyCells;
+  };
+
+  // Removed auto-save - user must click save button manually
 
   const handleExportPDF = async () => {
     const dateInfo = 
@@ -373,7 +451,7 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
 
   const renderTemplate = () => {
     if (!period) return null;
-    const common = { data, onChange: setData };
+    const common = { data, onChange: setData, highlightedCells, clearHighlight: () => setHighlightedCells([]) };
     switch (period) {
       case 'daily':
         return <DailyTemplate {...common} />;
@@ -433,17 +511,43 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
           <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>{t('lesson_planner.title')}</h1>
         </nav>
 
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+        {/* Sidebar toggle button */}
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          style={{
+            position: 'absolute',
+            left: showSidebar ? '283px' : '3px',
+            top: '0px',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2px',
+            borderRadius: showSidebar ? '0 8px 8px 0' : '8px 0 0 8px',
+            border: 'none',
+            background: '#fff',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            cursor: 'pointer',
+            transition: 'left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+          title={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
+        >
+          {showSidebar ? <PanelLeftClose size={27} /> : <PanelLeftOpen size={27} />}
+        </button>
+
         {/* LEFT SIDEBAR - Plan storage */}
         <aside
           style={{
-            width: 300,
-            minWidth: 280,
+            width: showSidebar ? 300 : 0,
+            minWidth: 0,
             background: '#fff',
             borderRight: '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            opacity: showSidebar ? 1 : 0,
+            transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-in-out',
           }}
         >
           <div style={{ padding: 16, borderBottom: '1px solid #e2e8f0' }}>
@@ -538,28 +642,58 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                             {plans.map((p) => (
-                              <button
+                              <div
                                 key={p.id}
-                                onClick={() => loadPlan(p)}
                                 style={{
-                                  padding: '10px 12px',
-                                  borderRadius: 8,
-                                  border: 'none',
-                                  background: planId === p.id ? '#e0f2fe' : '#f8fafc',
-                                  textAlign: 'left',
-                                  cursor: 'pointer',
-                                  fontSize: 13,
-                                  color: planId === p.id ? '#0369a1' : '#334155',
-                                  borderLeft: planId === p.id ? '3px solid #0ea5e9' : '3px solid transparent'
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4
                                 }}
                               >
-                                <div style={{ fontWeight: 600, marginBottom: 2 }}>
-                                  {p.title || `${p.period} plan`}
-                                </div>
-                                <div style={{ fontSize: 11, color: '#94a3b8' }}>
-                                  {formatPlanDate(p.date)}
-                                </div>
-                              </button>
+                                <button
+                                  onClick={() => loadPlan(p)}
+                                  style={{
+                                    flex: 1,
+                                    padding: '10px 12px',
+                                    borderRadius: 8,
+                                    border: 'none',
+                                    background: planId === p.id ? '#e0f2fe' : '#f8fafc',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    fontSize: 13,
+                                    color: planId === p.id ? '#0369a1' : '#334155',
+                                    borderLeft: planId === p.id ? '3px solid #0ea5e9' : '3px solid transparent'
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 600, marginBottom: 2 }}>
+                                    {p.title || `${p.period} plan`}
+                                  </div>
+                                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                                    {formatPlanDate(p.date)}
+                                  </div>
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeletePlan(p);
+                                  }}
+                                  style={{
+                                    padding: '6px',
+                                    borderRadius: 6,
+                                    border: 'none',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}
+                                  title="Delete plan"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -743,6 +877,42 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
 
               {period && (
                 <>
+                  {saveWarning && (
+                    <div
+                      style={{
+                        background: '#FEF2F2',
+                        border: '1px solid #FECACA',
+                        color: '#DC2626',
+                        padding: '14px 18px',
+                        borderRadius: 10,
+                        marginBottom: 20,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        fontSize: 14,
+                        fontWeight: 500
+                      }}
+                    >
+                      <AlertTriangle size={20} style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1 }}>{saveWarning}</span>
+                      <button
+                        onClick={() => { setSaveWarning(null); setHighlightedCells([]); }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 4
+                        }}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  )}
+
                   <div
                     style={{
                       background: 'white',
@@ -1119,6 +1289,137 @@ export default function LessonPlannerPage({ user, classes, onBack }) {
                 }}
               >
                 {t('lesson_planner.paste_import')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save confirmation modal */}
+      {showSaveConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1001,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 12,
+              padding: 24,
+              minWidth: 320,
+              border: '2px solid #000'
+            }}
+          >
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: '#000' }}>
+              Empty cells found
+            </h2>
+            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#000' }}>
+              Found {pendingSaveData?.emptyCells || 0} empty cell(s). Save anyway?
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowSaveConfirm(false);
+                  setHighlightedCells([]);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 6,
+                  border: '1px solid #000',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: '#000'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={proceedWithSave}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#2563EB',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Save Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1001,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: 12,
+              padding: 24,
+              minWidth: 320,
+              border: '2px solid #000'
+            }}
+          >
+            <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: '#000' }}>
+              Delete lesson plan?
+            </h2>
+            <p style={{ margin: '0 0 12px', fontSize: 14, color: '#000' }}>
+              Are you sure you want to delete "{planToDelete?.title || `${planToDelete?.period} plan`}"?
+            </p>
+            <p style={{ margin: '0 0 24px', fontSize: 13, color: '#6B7280' }}>
+              This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setPlanToDelete(null);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 6,
+                  border: '1px solid #000',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  color: '#000'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: '#DC2626',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                Delete
               </button>
             </div>
           </div>

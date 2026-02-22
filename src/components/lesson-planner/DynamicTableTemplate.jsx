@@ -8,7 +8,14 @@ const inputStyle = {
   border: '1px solid #E5E7EB',
   fontSize: 14,
   fontFamily: 'inherit',
-  boxSizing: 'border-box'
+  boxSizing: 'border-box',
+  backgroundColor: '#ffffff'
+};
+
+const highlightedInputStyle = {
+  border: '3px solid #DC2626',
+  backgroundColor: '#FFEBEE',
+  boxShadow: '0 0 0 4px rgba(220, 38, 38, 0.2)'
 };
 
 const headerInputStyle = {
@@ -27,7 +34,7 @@ const defaultColumnLabels = { focus: 'Focus', languageTarget: 'Language Target',
  * Dynamic Table Template Component
  * Supports editable headers, add/delete rows & columns for Weekly, Monthly, Yearly periods
  */
-export default function DynamicTableTemplate({ data = {}, onChange, labelKey = 'phase', defaultLabels = [], highlightEmpty = {} }) {
+export default function DynamicTableTemplate({ data = {}, onChange, labelKey = 'phase', defaultLabels = [], highlightedCells = [], clearHighlight }) {
   const d = data || {};
   const customColumns = d.customColumns || [];
   const rows = (d.rows && d.rows.length > 0)
@@ -61,6 +68,7 @@ export default function DynamicTableTemplate({ data = {}, onChange, labelKey = '
     }
     next[index] = { ...next[index], [field]: value };
     onChange({ ...d, rows: next });
+    clearHighlight?.();
   };
 
   const updateColumnLabel = (colKey, label) => {
@@ -115,6 +123,11 @@ export default function DynamicTableTemplate({ data = {}, onChange, labelKey = '
   };
 
   const displayRows = rows;
+
+  const isHighlighted = (index, field) => {
+    if (!highlightedCells || highlightedCells.length === 0) return false;
+    return highlightedCells.some(c => c.type === 'row' && c.index === index && c.field === field);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -190,8 +203,7 @@ export default function DynamicTableTemplate({ data = {}, onChange, labelKey = '
                           minWidth: 0,
                           fontWeight: 600,
                           margin: 0,
-                          borderColor: highlightEmpty[`${i}-${labelKey}`] ? '#ef4444' : undefined,
-                          boxShadow: highlightEmpty[`${i}-${labelKey}`] ? '0 0 0 2px rgba(239,68,68,0.3)' : undefined
+                          ...(isHighlighted(i, labelKey) ? highlightedInputStyle : {})
                         }}
                         placeholder={`${labelKey} label`}
                       />
@@ -219,8 +231,6 @@ export default function DynamicTableTemplate({ data = {}, onChange, labelKey = '
                     </div>
                   </td>
                   {allColumns.map((col) => {
-                    const cellKey = `${i}-${col}`;
-                    const isEmpty = highlightEmpty[cellKey];
                     return (
                       <td key={col} style={{ padding: 10, verticalAlign: 'top' }}>
                     <textarea
@@ -232,12 +242,11 @@ export default function DynamicTableTemplate({ data = {}, onChange, labelKey = '
                           margin: 0,
                           padding: '10px 14px',
                           resize: 'both',
-                          borderColor: isEmpty ? '#ef4444' : undefined,
-                          boxShadow: isEmpty ? '0 0 0 2px rgba(239,68,68,0.3)' : undefined
+                          ...(isHighlighted(i, col) ? highlightedInputStyle : {})
                         }}
-                          placeholder={getLabelForColumn(col)}
-                          value={(row[col] ?? '').toString()}
-                          onChange={(e) => updateRow(i, col, e.target.value)}
+                        placeholder={getLabelForColumn(col)}
+                        value={(row[col] ?? '').toString()}
+                        onChange={(e) => updateRow(i, col, e.target.value)}
                         />
                       </td>
                     );
