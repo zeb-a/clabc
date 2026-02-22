@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText, BookOpen, MoreVertical } from 'lucide-react';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
+import { useTheme } from '../ThemeContext';
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -84,6 +85,28 @@ const internalCSS = `
     transform: translateY(-2px);
   }
 
+  /* Fix dark mode borders for modal */
+  @media (prefers-color-scheme: dark) {
+    .game-modal-container {
+      border: none !important;
+      background-image: none !important;
+    }
+    button[data-hamburger-btn="true"] {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+    }
+  }
+
+  /* Nav avatar button border in dark mode */
+  @media (prefers-color-scheme: dark) {
+    button[style*="background: transparent"],
+    button[style*="background: transparent"] * {
+      border-color: #4a4a4a !important;
+    }
+  }
+
   /* Game card hover effect */
   .game-card:hover {
     transform: translateY(-3px) scale(1.02);
@@ -143,20 +166,34 @@ const internalCSS = `
   }
 `;
 
-export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado, onOpenLessonPlanner }) {
+export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado, onOpenLessonPlanner, openGamesModal }) {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTorenadoModal, setShowTorenadoModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  console.log('TeacherPortal onOpenLessonPlanner:', onOpenLessonPlanner);
   const [torenadoSelectedClass, setTorenadoSelectedClass] = useState(null);
   const [torenadoPlayers, setTorenadoPlayers] = useState([]);
   const [playerCount, setPlayerCount] = useState(2);
   const [isTeamMode, setIsTeamMode] = useState(false);
   const [activeTab, setActiveTab] = useState('game');
+
+  // Open games modal when requested
+  useEffect(() => {
+    if (openGamesModal) {
+      const existingGame = localStorage.getItem('selected_game_type');
+      if (!existingGame) {
+        localStorage.setItem('selected_game_type', 'tornado');
+      }
+      setTorenadoSelectedClass(null);
+      setTorenadoPlayers([]);
+      setActiveTab('game');
+      setShowTorenadoModal(true);
+    }
+  }, [openGamesModal]);
 
   // --- Add Class State ---
   const [newClassName, setNewClassName] = useState('');
@@ -350,10 +387,11 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                   className="theme-item"
                   style={{
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '8px', borderRadius: '16px', transition: 'all 0.2s'
+                    padding: '8px', borderRadius: '16px', transition: 'all 0.2s',
+                    border: '2px solid #E5E7EB', backgroundColor: '#FFFFFF'
                   }}
                 >
-                  <SafeAvatar src={boringAvatar(seed)} name={seed} style={{ width: 64, height: 64, borderRadius: '16px' }} />
+                  <SafeAvatar src={boringAvatar(seed)} name={seed} style={{ width: 64, height: 64, borderRadius: '16px', border: '2px solid #E5E7EB' }} />
                 </div>
               ))}
             </div>
@@ -380,13 +418,13 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                     width: 90, height: 90, borderRadius: 20, overflow: 'hidden',
                     background: '#F3F4F6', cursor: 'pointer',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    border: '3px solid white',
+                    border: '3px solid #E5E7EB',
                     transition: 'all 0.2s'
                   }}>
                   <SafeAvatar
                     src={activeAvatar}
                     name={nameValue}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', border: '2px solid #E5E7EB' }}
                   />
                 </div>
                 <button onClick={() => setShowSelector(true)} style={styles.textBtn}>{t('teacher_portal.change')}</button>
@@ -435,18 +473,25 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
 
             {/* Bottom Section: Action Button */}
             <div>
-            <button
-              onClick={onSave}
-              className="btn-primary"
-              style={{
-                ...styles.saveBtn,
-                opacity: nameValue.trim() ? 1 : 0.6,
-                cursor: nameValue.trim() ? 'pointer' : 'not-allowed'
-              }}
-              disabled={!nameValue.trim()}
-            >
-              {mode === 'add' ? t('teacher_portal.create') : t('teacher_portal.save')}
-            </button>
+              <button
+                onClick={onSave}
+                className="btn-primary"
+                style={{
+                  ...styles.saveBtn,
+                  ...(isDark
+                    ? {
+                        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 45%, #065f46 100%)',
+                        borderColor: '#16a34a',
+                        boxShadow: '0 8px 22px rgba(22,163,74,0.55)',
+                      }
+                    : {}),
+                  opacity: nameValue.trim() ? 1 : 0.6,
+                  cursor: nameValue.trim() ? 'pointer' : 'not-allowed',
+                }}
+                disabled={!nameValue.trim()}
+              >
+                {mode === 'add' ? t('teacher_portal.create') : t('teacher_portal.save')}
+              </button>
             </div>
           </div>
         )}
@@ -526,18 +571,20 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               style={{
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
+                background: 'transparent',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+                border: 'none',
                 padding: '12px',
                 borderRadius: '14px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                boxShadow: 'none',
+                outline: 'none'
               }}
+              data-hamburger-btn="true"
             >
               <MoreVertical size={24} color="#374151" />
             </button>
@@ -801,7 +848,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         <div style={styles.overlay} className="modal-overlay-in">
           <div style={styles.standardModal} className="animated-modal-content modal-animate-center">
             <div style={styles.modalTitleAbs}>{t('teacher_portal.create_new_class')}</div>
-            <button onClick={resetAddModal} style={styles.modalCloseAbs}>
+            <button onClick={resetAddModal} style={styles.modalCloseAbs} data-close-btn="true">
               <X size={20} />
             </button>
             {renderModalContent(
@@ -821,7 +868,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         <div style={styles.editOverlay} onClick={() => setEditingClassId(null)} className="modal-overlay-in">
           <div style={styles.standardModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
             <div style={styles.modalTitleAbs}>{t('teacher_portal.edit_class')}</div>
-            <button onClick={() => setEditingClassId(null)} style={styles.modalCloseAbs}>
+            <button onClick={() => setEditingClassId(null)} style={styles.modalCloseAbs} data-close-btn="true">
               <X size={20} />
             </button>
             {renderModalContent(
@@ -841,20 +888,55 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         <div style={styles.editOverlay} onClick={() => setDeleteConfirmId(null)} className="modal-overlay-in">
           <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()} className="animated-modal-content modal-animate-center">
             <div style={styles.deleteModalTitle}>{t('teacher_portal.delete_class')}</div>
-            <button onClick={() => setDeleteConfirmId(null)} style={styles.modalCloseAbs}>
+            <button onClick={() => setDeleteConfirmId(null)} style={styles.modalCloseAbs} data-close-btn="true">
               <X size={20} />
             </button>
             <div style={{ marginTop: 40, textAlign: 'center' }}>
               <div style={{ width: 64, height: 64, margin: '0 auto 16px', borderRadius: 16, overflow: 'hidden' }}>
                 <SafeAvatar src={classToDelete.avatar || boringAvatar(classToDelete.name || 'class')} name={classToDelete.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <p style={{ marginBottom: 20, color: '#4B5563', fontSize: '1rem', lineHeight: 1.5 }}>
+              <p style={{ marginBottom: 20, color: isDark ? '#E5E7EB' : '#4B5563', fontSize: '1rem', lineHeight: 1.5 }}>
                 {t('teacher_portal.delete_confirm').replace('{name}', classToDelete.name)}<br />
-                <span style={{ fontSize: '0.85rem', color: '#EF4444' }}>{t('teacher_portal.cannot_undo')}</span>
+                <span style={{ fontSize: '0.85rem', color: '#FCA5A5' }}>{t('teacher_portal.cannot_undo')}</span>
               </p>
               <div style={{ display: 'flex', gap: 10 }}>
-                <button onClick={() => handleDeleteClass(deleteConfirmId)} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '12px 16px' }}>{t('teacher_portal.delete')}</button>
-                <button onClick={() => setDeleteConfirmId(null)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '12px 16px' }}>{t('general.cancel')}</button>
+                <button
+                  onClick={() => handleDeleteClass(deleteConfirmId)}
+                  className="btn-danger"
+                  style={{
+                    ...styles.deleteConfirmBtn,
+                    flex: 1,
+                    padding: '12px 16px',
+                    border: '2px solid #EF4444',
+                    ...(isDark
+                      ? {
+                          background: 'linear-gradient(135deg, #f97373 0%, #ef4444 40%, #991b1b 100%)',
+                          boxShadow: '0 8px 22px rgba(239,68,68,0.6)',
+                        }
+                      : {}),
+                  }}
+                >
+                  {t('teacher_portal.delete')}
+                </button>
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="btn-secondary"
+                  style={{
+                    ...styles.cancelBtn,
+                    flex: 1,
+                    padding: '12px 16px',
+                    border: '2px solid #D1D5DB',
+                    ...(isDark
+                      ? {
+                          background: '#020617',
+                          borderColor: '#4b5563',
+                          color: '#E5E7EB',
+                        }
+                      : {}),
+                  }}
+                >
+                  {t('general.cancel')}
+                </button>
               </div>
             </div>
           </div>
@@ -866,7 +948,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         <div style={styles.editOverlay} onClick={() => setLogoutConfirm(false)}>
           <div style={styles.deleteModal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.deleteModalTitle}>{t('teacher_portal.sure_logout')}</div>
-            <button onClick={() => setLogoutConfirm(false)} style={styles.modalCloseAbs}>
+            <button onClick={() => setLogoutConfirm(false)} style={styles.modalCloseAbs} data-close-btn="true">
               <X size={20} />
             </button>
             <div style={{ marginTop: 50, textAlign: 'center' }}>
@@ -877,8 +959,8 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
                 {t('teacher_portal.sure_logout')}
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626' }}>{t('teacher_portal.yes')}</button>
-                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px' }}>{t('teacher_portal.no')}</button>
+                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626', border: '2px solid #DC2626' }}>{t('teacher_portal.yes')}</button>
+                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px', border: '2px solid #D1D5DB' }}>{t('teacher_portal.no')}</button>
               </div>
             </div>
           </div>
@@ -1006,8 +1088,20 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
       {/* --- TORENADO GAME MODAL --- */}
       {showTorenadoModal && (
         <div style={styles.editOverlay} onClick={() => setShowTorenadoModal(false)} className="modal-overlay-in">
-          <div style={styles.gameModalContainer} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs}>
+          <div
+            style={{
+              ...styles.gameModalContainer,
+              ...(isDark
+                ? {
+                    background: 'linear-gradient(145deg, #020617 0%, #111827 60%, #1e293b 100%)',
+                    borderColor: 'rgba(148,163,184,0.8)',
+                    boxShadow: '0 25px 60px -12px rgba(15,23,42,0.9)',
+                  }
+                : {}),
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button onClick={() => setShowTorenadoModal(false)} style={styles.torenadoModalCloseAbs} data-close-btn="true">
               <X size={20} />
             </button>
 
@@ -1040,7 +1134,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
             </div>
 
             {/* Tab Content */}
-            <div style={styles.tabContent}>
+            <div style={{ ...styles.tabContent, overflowY: 'auto', overflowX: 'hidden' }}>
               {activeTab === 'game' ? (
                 /* --- GAME SELECTION TAB --- */
                 <div style={{ ...styles.gameGrid, paddingTop: '5px' }}>
@@ -1362,7 +1456,7 @@ const styles = {
   container: { minHeight: '100vh', background: '#F4F1EA', overflowX: 'hidden', boxSizing: 'border-box' },
   nav: { display: 'flex', justifyContent: 'space-between', background: 'white', borderBottom: '1px solid #ddd', boxSizing: 'border-box', minHeight: '50px', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 },
   logoutBtn: { background: '#FEF2F2', border: '1px solid #FECACA', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: 8, color: '#DC2626', fontWeight: 600, transition: 'all 0.2s', fontSize: '12px' },
-  navAvatarBtn: { background: 'transparent', border: 'none', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  navAvatarBtn: { background: 'transparent', border: '2px solid #E5E7EB', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: '10px' },
   avatarHint: { display: 'none' },
   header: { display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center', marginTop: 0 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(184px, 1fr))', gap: '14px', maxWidth: '100%', padding: '8px 16px 16px' }, 
@@ -1413,9 +1507,9 @@ const styles = {
   },
 
   // Buttons
-  saveBtn: { width: '100%', padding: '16px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 6px rgba(76, 175, 80, 0.2)' },
-  cancelBtn: { width: '100%', padding: '14px', background: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer' },
-  deleteConfirmBtn: { padding: '14px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer' },
+  saveBtn: { width: '100%', padding: '16px', background: '#4CAF50', color: 'white', border: '2px solid #4CAF50', borderRadius: '16px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 6px rgba(76, 175, 80, 0.2)' },
+  cancelBtn: { width: '100%', padding: '14px', background: '#F3F4F6', color: '#374151', border: '2px solid #D1D5DB', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer' },
+  deleteConfirmBtn: { padding: '14px', background: '#EF4444', color: 'white', border: '2px solid #EF4444', borderRadius: '16px', fontWeight: 'bold', cursor: 'pointer' },
 
   // Delete Modal (Compact - no minHeight constraint)
   deleteModal: {
@@ -1443,15 +1537,13 @@ const styles = {
     borderRadius: '24px',
     width: '550px',
     maxWidth: '95vw',
-    maxHeight: '85vh',
+    maxHeight: '90vh',
     position: 'relative',
     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
     display: 'flex',
     flexDirection: 'column',
-    border: '3px solid transparent',
-    backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    backgroundOrigin: 'border-box',
-    backgroundClip: 'padding-box, border-box'
+    border: 'none',
+    overflow: 'hidden'
   },
 
   // Tab Container
@@ -1486,7 +1578,8 @@ const styles = {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    overflowY: 'auto'
   },
 
   // Game Grid

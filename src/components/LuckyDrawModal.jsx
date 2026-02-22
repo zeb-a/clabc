@@ -1,11 +1,10 @@
-/* eslint-disable react-hooks/refs */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Users, Star, Check } from 'lucide-react';
 import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
 import SafeAvatar from './SafeAvatar';
 import { boringAvatar } from '../utils/avatar';
 
-export default function LuckyDrawModal({ students, onClose, onWinner, onRequestAddStudents }) {
+export default function LuckyDrawModal({ students, onClose, onWinner, onRequestAddStudents, onOpenGames }) {
   const safeStudents = useMemo(() => Array.isArray(students) ? students : [], [students]);
   const [step, setStep] = useState('count_selection');
   const [studentCount, setStudentCount] = useState(1);
@@ -159,13 +158,76 @@ export default function LuckyDrawModal({ students, onClose, onWinner, onRequestA
                 ))}
               </div>
 
-              <button
-                data-enter-submit
-                onClick={() => onWinner(studentCount === 1 ? targetWinners[0] : targetWinners, pointsToGive)}
-                style={modalStyles.saveBtn}
-              >
-                Award {pointsToGive * targetWinners.length} Points Total
-              </button>
+              <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
+                <button
+                  data-enter-submit
+                  onClick={() => onWinner(studentCount === 1 ? targetWinners[0] : targetWinners, pointsToGive)}
+                  style={{ ...modalStyles.saveBtn, flex: 1, maxWidth: '280px' }}
+                >
+                  Award {pointsToGive * targetWinners.length} Points Total
+                </button>
+
+                <button
+                  onClick={() => {
+                    // Reshuffle and pick new winners
+                    const shuffled = [...safeStudents].sort(() => Math.random() - 0.5);
+                    const newWinners = shuffled.slice(0, Math.min(studentCount, safeStudents.length));
+                    setTargetWinners(newWinners);
+                    setRolling(true);
+                    audioRef.current.play().catch(() => { });
+                    setTimeout(() => {
+                      setRolling(false);
+                      audioRef.current.pause();
+                      audioRef.current.currentTime = 0;
+                    }, 3000);
+                  }}
+                  style={{
+                    padding: '18px 20px',
+                    borderRadius: '16px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    color: '#fff',
+                    fontSize: '15px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 6px 20px rgba(245, 158, 11, 0.25)'
+                  }}
+                >
+                  Redraw
+                </button>
+
+                <button
+                  onClick={() => {
+                    const existingGame = localStorage.getItem('selected_game_type');
+                    if (!existingGame) {
+                      localStorage.setItem('selected_game_type', 'tornado');
+                    }
+                    onClose();
+                    if (onOpenGames) {
+                      onOpenGames();
+                    }
+                  }}
+                  style={{
+                    padding: '18px 20px',
+                    borderRadius: '16px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: '#fff',
+                    fontSize: '15px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 6px 20px rgba(102, 126, 234, 0.25)'
+                  }}
+                >
+                  Play Games
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -251,8 +313,8 @@ const modalStyles = {
   cardsWrapper: { display: 'flex', gap: '10px', justifyContent: 'center', width: '100%', marginBottom: '30px', padding: '10px' },
   luckyCard: { background: 'rgba(255, 255, 255, 0.05)', padding: '20px 10px', borderRadius: '30px', border: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   avatarContainer: { width: '75%', aspectRatio: '1/1', borderRadius: '20px', overflow: 'hidden' },
-  nameLabel: { margin: '15px 0 5px 0', fontWeight: 800, color: '#fff', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '90%' },
-  pointBadge: { background: '#4CAF50', color: '#fff', padding: '2px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 },
+  nameLabel: { margin: '15px 0 0 0', fontWeight: 800, color: '#fff', fontSize: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '90%', paddingBottom: '20px' },
+  pointBadge: { background: '#4CAF50', color: '#fff', padding: '2px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, marginTop: '-1px', zIndex: 5 },
   footer: { width: '100%', maxWidth: '350px', marginTop: 'auto' },
   saveBtn: { width: '100%', padding: '18px', background: '#fff', color: '#000', border: 'none', borderRadius: '18px', fontSize: '16px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }
 };

@@ -50,6 +50,7 @@ export default function HelpChatBubble() {
   const inputRef = useRef(null);
   const listRef = useRef(null);
   const prevPageIdRef = useRef(pageId);
+  const panelRef = useRef(null);
 
   const entry = useMemo(() => {
     if (!pageId) return null;
@@ -109,6 +110,20 @@ export default function HelpChatBubble() {
     }
   }, [suggestionFocus, filteredSuggestions.length]);
 
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return;
+
+    const handleClickOutside = (event) => {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
   // Always show when on landing page or when pageId is set
   if (!pageId && !allSections.length) return null;
 
@@ -164,6 +179,26 @@ export default function HelpChatBubble() {
 
     // Keywords to section mapping
     const keywordMap = {
+      // Landing page related
+      'login': ['How to Create a Teacher Account', 'Teacher Login', 'Forgot Password', 'Student Login', 'Parent Login'],
+      'sign': ['How to Create a Teacher Account', 'Teacher Login'],
+      'create': ['How to Create a Teacher Account'],
+      'account': ['How to Create a Teacher Account'],
+      'register': ['How to Create a Teacher Account'],
+      'forgot': ['Forgot Password'],
+      'password': ['Forgot Password'],
+      'reset': ['Forgot Password'],
+      'parent': ['Parent Login', 'What Parents Can See'],
+      'features': ['Features Overview'],
+      'help': ['Getting Help', 'Common Questions'],
+      'common_questions': ['Getting Help', 'Common Questions'],
+      'free': ['Common Questions', 'Features Overview'],
+      'secure': ['Common Questions'],
+      'data': ['Common Questions', 'What Parents Can See'],
+      'offline': ['Common Questions'],
+      'device': ['Common Questions', 'Classroom Tools'],
+      'download': ['Common Questions', 'Classroom Tools'],
+      // Class dashboard
       'sort': ['Sort Students'],
       'student': ['Sort Students', 'Add a Student', 'Edit a Student'],
       'name': ['Sort Students'],
@@ -194,20 +229,20 @@ export default function HelpChatBubble() {
       'emoji': ['Point Cards', 'Add a Card', 'Edit a Card'],
       'assign': ['Assignments', 'Assign & Publish'],
       'worksheet': ['Assignments'],
-      'question': ['Question Types', 'Add Questions'],
+      'questions': ['Question Types', 'Add Questions'],
       'grade': ['Grade a Submission'],
       'inbox': ['Inbox — Review Submissions', 'View Submissions'],
       'message': ['Inbox — Review Submissions', 'Messages & Grading'],
       'submission': ['Inbox — Review Submissions', 'View Submissions'],
-      'code': ['Access Codes', 'Generated Codes'],
-      'report': ['Reports', 'Time Periods', 'Report Card Contents', 'Edit Feedback', 'Export Options'],
+      'code': ['Access Codes', 'Generated Codes', 'Student Login', 'Parent Login'],
+      'report': ['Reports', 'Time Periods', 'Report Card Contents', 'Edit Feedback', 'Export Options', 'What Parents Can See'],
       'analytics': ['Reports', 'Report Card Contents', 'Behavior Distribution Chart'],
-      'progress': ['Reports', 'Report Card Contents', 'Student Info'],
+      'progress': ['Reports', 'Report Card Contents', 'Student Info', 'Parent Login'],
       'chart': ['Reports', 'Report Card Contents', 'Behavior Distribution Chart', 'Behavior Ratio'],
       'feedback': ['Reports', 'AI Teacher Feedback', 'Edit Feedback'],
       'pdf': ['Reports', 'Export Options', 'Download PDF'],
       'print': ['Reports', 'Export Options', 'Print'],
-      'export': ['Reports', 'Export Options'],
+      'report_export': ['Reports', 'Export Options'],
       'time': ['Reports', 'Time Periods'],
       'period': ['Reports', 'Time Periods'],
       'week': ['Reports', 'Time Periods'],
@@ -350,6 +385,7 @@ export default function HelpChatBubble() {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, y: 24, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.92 }}

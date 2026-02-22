@@ -26,6 +26,7 @@ import AssignmentsPage from './AssignmentsPage'; // Add this line at the top
 import AccessCodesPage from './AccessCodesPage'; // Add this line
 import SettingsPage from './SettingsPage';
 import PointsHistoryView from './PointsHistoryView';
+import EggRoad from './EggRoad';
 import { useTranslation } from '../i18n';
 import { usePageHelp } from '../PageHelpContext';
 import { useTheme } from '../ThemeContext';
@@ -39,6 +40,8 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
   const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     onClick(e);
   };
 
@@ -66,12 +69,18 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
             boxShadow: hovered ? '0 8px 20px rgba(2,6,23,0.08)' : 'none',
             transform: hovered ? 'translateY(-3px) scale(1.03)' : 'translateY(0) scale(1)',
             transition: 'all 180ms ease',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            position: 'relative',
+            zIndex: 1
           }}
         >
           <Icon style={{ ...style, color: isActive ? '#4CAF50' : style?.color || '#636E72' }} />
         </div>
-        {badge}
+        {badge && (
+          <div style={{ position: 'absolute', top: '0', right: '8px', pointerEvents: 'none', zIndex: 2 }}>
+            {badge}
+          </div>
+        )}
         {hovered && (
           <div style={{
             position: 'absolute',
@@ -86,14 +95,14 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
             whiteSpace: 'nowrap',
             fontSize: '14px',
             pointerEvents: 'none',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-        }}>
-          {label}
-        </div>
-      )}
-    </div>
-  );
-} else {
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            {label}
+          </div>
+        )}
+      </div>
+    );
+  } else {
   // Desktop: icon + text inline
   return (
     <div
@@ -116,7 +125,9 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
           boxShadow: hovered ? '0 4px 12px rgba(2,6,23,0.06)' : 'none',
           transition: 'all 180ms ease',
           cursor: 'pointer',
-          border: isActive ? '1px solid #4CAF50' : 'none'
+          border: isActive ? '1px solid #4CAF50' : 'none',
+          position: 'relative',
+          zIndex: 1
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -136,9 +147,11 @@ const SidebarIcon = ({ icon: Icon, label, onClick, isActive, badge, style, dataN
       {badge && (
         <div style={{
           position: 'absolute',
-          right: '8px',
+          right: '12px',
           top: '50%',
-          transform: 'translateY(-50%)'
+          transform: 'translateY(-50%)',
+          pointerEvents: 'none',
+          zIndex: 2
         }}>
           {badge}
         </div>
@@ -302,7 +315,8 @@ export default function ClassDashboard({
   onOpenSettings,
   updateClasses,
   refreshClasses,
-  onOpenAssignments
+  onOpenAssignments,
+  onOpenGames
 }) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
@@ -407,7 +421,18 @@ export default function ClassDashboard({
   const [showGridMenu, setShowGridMenu] = useState(false);
   const [showPoint, setShowPoint] = useState({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' });
   const [isAttendanceMode, setIsAttendanceMode] = useState(false);
+  const today = new Date().toISOString().split('T')[0];
   const [absentStudents, setAbsentStudents] = useState(new Set());
+
+  useEffect(() => {
+    const newAbsent = new Set();
+    activeClass.students?.forEach(s => {
+      if (s.attendance === 'absent' && s.attendanceDate === today) {
+        newAbsent.add(s.id);
+      }
+    });
+    setAbsentStudents(newAbsent);
+  }, [activeClass.students, today]);
 
   const [showCodesPage, setShowCodesPage] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -847,6 +872,10 @@ export default function ClassDashboard({
     setDeleteConfirmStudentId(null);
   }, [activeClass?.id, updateClasses]);
 
+  const getMarkedAbsentStudents = () => {
+    return sortedStudents.filter(s => absentStudents.has(s.id));
+  };
+
   const handleGivePoint = (behavior) => {
     if (!selectedStudent) return;
     const today = new Date().toISOString().split('T')[0];
@@ -1042,7 +1071,7 @@ export default function ClassDashboard({
                 top: 0,
                 height: '100vh',
                 width: '72px',
-                zIndex: 1000,
+                zIndex: 99999,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
@@ -1072,7 +1101,7 @@ export default function ClassDashboard({
                 left: 0,
                 top: 0,
                 height: '100vh',
-                zIndex: 1000,
+                zIndex: 99999,
                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(-100%)',
                 transition: 'transform 0.3s ease',
                 boxShadow: sidebarVisible ? '0 0 20px rgba(0,0,0,0.1)' : 'none',
@@ -1098,7 +1127,11 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={ClipboardList}
             label={t('dashboard.assignments')}
-            onClick={() => { setViewModeWithHistory('assignments'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              setViewModeWithHistory('assignments');
+              if (isMobile) setSidebarVisible(false);
+            }}
             isActive={viewMode === 'assignments'}
           />
 
@@ -1106,6 +1139,7 @@ export default function ClassDashboard({
             icon={MessageSquare}
             label={t('dashboard.inbox_grading')}
             onClick={() => {
+              closeModal();
               setViewModeWithHistory('messages');
               fetchFreshSubmissions();
               if (isMobile) setSidebarVisible(false);
@@ -1126,7 +1160,12 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Dices}
             label={t('dashboard.lucky_draw')}
-            onClick={() => { openModalWithHistory('luckyDraw', setIsLuckyDrawOpen); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              openModalWithHistory('luckyDraw', setIsLuckyDrawOpen);
+              if (isMobile) setSidebarVisible(false);
+            }}
+            isActive={isLuckyDrawOpen}
             style={styles.icon}
             dataNavbarIcon="lucky-draw"
           />
@@ -1134,7 +1173,12 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Trophy}
             label={t('dashboard.road')}
-            onClick={() => { onOpenEggRoad(); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              setViewModeWithHistory('eggroad');
+              if (isMobile) setSidebarVisible(false);
+            }}
+            isActive={viewMode === 'eggroad'}
             style={styles.icon}
             dataNavbarIcon="egg-road"
           />
@@ -1143,6 +1187,7 @@ export default function ClassDashboard({
             icon={CheckSquare}
             label={t('dashboard.attendance_mode')}
             onClick={() => {
+              closeModal();
               if (!isAttendanceMode) {
                 setViewMode('students');
                 setIsAttendanceMode(true);
@@ -1162,6 +1207,7 @@ export default function ClassDashboard({
             icon={QrCode}
             label={t('dashboard.access_codes')}
             onClick={() => {
+              closeModal();
               ensureCodesAndOpen();
               setViewModeWithHistory('codes');
               if (isMobile) setSidebarVisible(false);
@@ -1174,6 +1220,7 @@ export default function ClassDashboard({
             icon={BarChart2}
             label={t('dashboard.reports')}
             onClick={() => {
+              closeModal();
               setViewModeWithHistory('reports');
               updateClasses(prev => prev.map(c => c.id === activeClass.id ? { ...c, isViewingReports: true } : c));
               if (isMobile) setSidebarVisible(false);
@@ -1184,7 +1231,11 @@ export default function ClassDashboard({
           <SidebarIcon
             icon={Clock}
             label={t('dashboard.class_timer')}
-            onClick={() => { setViewModeWithHistory('timer'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              setViewModeWithHistory('timer');
+              if (isMobile) setSidebarVisible(false);
+            }}
             isActive={viewMode === 'timer'}
             style={styles.icon}
           />
@@ -1192,21 +1243,32 @@ export default function ClassDashboard({
             icon={Siren}
             label={t('dashboard.attention_buzzer')}
             onClick={() => {
+              closeModal();
               startBuzzerWithHistory();
               if (isMobile) setSidebarVisible(false);
             }}
+            isActive={buzzerState !== 'idle'}
             style={{ ...styles.icon, color: buzzerState !== 'idle' ? '#FF5252' : '#636E72' }}
           />
           <SidebarIcon
             icon={Presentation}
             label={t('dashboard.whiteboard')}
-            onClick={() => { openModalWithHistory('whiteboard', setShowWhiteboard); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              openModalWithHistory('whiteboard', setShowWhiteboard);
+              if (isMobile) setSidebarVisible(false);
+            }}
+            isActive={showWhiteboard}
             style={styles.icon}
           />
           <SidebarIcon
             icon={Settings}
             label={t('dashboard.settings')}
-            onClick={() => { setViewModeWithHistory('settings'); if (isMobile) setSidebarVisible(false); }}
+            onClick={() => {
+              closeModal();
+              setViewModeWithHistory('settings');
+              if (isMobile) setSidebarVisible(false);
+            }}
             isActive={viewMode === 'settings'}
             style={styles.icon}
             dataNavbarIcon="settings"
@@ -1251,66 +1313,45 @@ export default function ClassDashboard({
             style={(() => {
               const baseStyles = {
                 position: 'fixed',
-                zIndex: 11010,
+                zIndex: 9999999,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: isDark ? '#E2E8F0' : '#636E72',
                 willChange: 'transform, left',
-                boxSizing: 'border-box',
+                color: isDark ? '#E5E7EB' : '#1F2933',
+                background: isDark ? 'rgba(15,23,42,0.95)' : 'rgba(255,255,255,0.96)',
+                border: isDark
+                  ? '1px solid rgba(148,163,184,0.85)'
+                  : '1px solid rgba(148,163,184,0.8)',
+                boxShadow: isDark
+                  ? '0 8px 24px rgba(15,23,42,0.85)'
+                  : '0 6px 18px rgba(15,23,42,0.25)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
               };
 
               if (isMobile) {
-                // Mobile: when sidebar closed, hamburger at far top left; when open, to the right of sidebar
                 return {
                   ...baseStyles,
-                  left: sidebarVisible ? '80px' : '8px', // 72px sidebar width + 8px gap
-                  top: '8px',
-                  background: isDark ? '#1E293B' : '#ffffff',
-                  border: sidebarVisible
-                    ? (isDark ? '2px solid #475569' : '2px solid rgba(99,102,241,0.3)')
-                    : (isDark ? '2px solid #334155' : '2px solid rgba(99,102,241,0.12)'),
+                  left: sidebarVisible ? '84px' : '6px',
+                  top: '5px',
                   borderRadius: '12px',
                   width: '48px',
                   height: '48px',
-                  boxShadow: sidebarVisible
-                    ? (isDark ? '0 8px 24px rgba(0,0,0,0.3)' : '0 8px 24px rgba(99,102,241,0.2)')
-                    : (isDark ? '0 6px 20px rgba(0,0,0,0.2)' : '0 6px 20px rgba(0,0,0,0.1)'),
                   transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                  animation: !sidebarVisible ? 'hamburgerGlow 2.5s ease-in-out infinite' : 'none',
-                  overflow: 'hidden',
                 };
               }
-              // Desktop: when sidebar closed, hamburger at far top left; when open, to the right of sidebar
               return {
                 ...baseStyles,
-                left: sidebarVisible ? '218px' : '8px', // 210px sidebar width + 8px gap
-                top: '8px',
-                background: isDark ? '#1E293B' : (sidebarVisible ? '#ffffff' : '#EEF2FF'),
-                border: sidebarVisible
-                  ? (isDark ? '2px solid #475569' : '2px solid rgba(99,102,241,0.3)')
-                  : (isDark ? '2px solid #334155' : '2px solid rgba(99,102,241,0.15)'),
+                left: sidebarVisible ? '220px' : '6px',
+                top: 6,
                 borderRadius: '12px',
                 width: '44px',
                 height: '48px',
-                boxShadow: sidebarVisible
-                  ? (isDark ? '0 8px 24px rgba(0,0,0,0.3)' : '0 8px 24px rgba(99,102,241,0.15)')
-                  : (isDark ? '0 4px 16px rgba(0,0,0,0.2)' : '0 4px 16px rgba(99,102,241,0.12)'),
                 transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-                overflow: 'hidden',
               };
             })()}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.08)';
-              e.currentTarget.style.borderColor = isDark ? '#64748B' : 'rgba(99,102,241,0.5)';
-              e.currentTarget.style.color = isDark ? '#F1F5F9' : '#4F46E5';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = isDark ? (sidebarVisible ? '#475569' : '#334155') : (sidebarVisible ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.12)');
-              e.currentTarget.style.color = isDark ? '#E2E8F0' : '#636E72';
-            }}
           >
             <AnimatedHamburger isOpen={sidebarVisible} />
           </button>
@@ -1419,20 +1460,6 @@ export default function ClassDashboard({
                   flexDirection: 'column',
                   alignItems: 'center'
                 }}>
-                  <div style={{
-                    background: '#EEF2FF',
-                    padding: '12px 24px',
-                    borderRadius: '20px',
-                    color: '#4F46E5',
-                    fontWeight: '800',
-                    marginBottom: '40px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <Clock size={20} /> CLASS TIMER
-                  </div>
-
                   {/* The Updated KidTimer handles the width internally now */}
                   <KidTimer onClose={() => setViewMode('students')} // Now the 'X' will work
                     onComplete={() => ("Time is up! 🎉")} />
@@ -1486,7 +1513,15 @@ export default function ClassDashboard({
                     ));
                   }}
                 />
-                </div>) : (
+                </div>
+              ) : viewMode === 'eggroad' ? (
+                <div key="eggroad" className="page-animate-in" style={{ height: '100%' }}>
+                  <EggRoad
+                    classData={activeClass}
+                    onBack={() => setViewMode('students')}
+                  />
+                </div>
+              ) : (
                 /* 3. STANDARD DASHBOARD VIEW (Default) */
 
                 <>
@@ -1716,25 +1751,6 @@ export default function ClassDashboard({
                                 <span style={{ flex: 1, textAlign: 'left' }}>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
                               </button>
 
-                              {/* Points History */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowHistory(true);
-                                  setShowHeaderMenu(false);
-                                }}
-                                style={{
-                                  ...styles.gridOption,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 10,
-                                  padding: '10px 12px'
-                                }}
-                              >
-                                <Clock size={18} />
-                                <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.points_history')}</span>
-                              </button>
-
                               {/* Select Multiple */}
                               <button
                                 onClick={(e) => {
@@ -1755,6 +1771,25 @@ export default function ClassDashboard({
                               >
                                 <CheckSquare size={18} />
                                 <span style={{ flex: 1, textAlign: 'left' }}>Select Multiple</span>
+                              </button>
+
+                              {/* Points History */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowHistory(true);
+                                  setShowHeaderMenu(false);
+                                }}
+                                style={{
+                                  ...styles.gridOption,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 10,
+                                  padding: '10px 12px'
+                                }}
+                              >
+                                <Clock size={18} />
+                                <span style={{ flex: 1, textAlign: 'left' }}>{t('dashboard.points_history')}</span>
                               </button>
                           </div>
                         )}
@@ -1932,68 +1967,7 @@ export default function ClassDashboard({
                           width: 'auto'
                         }}
                       >
-                        {/* Mark as Absent/Present Button - Toggles based on selected students' status */}
-                        {(() => {
-                          const selectedIds = Array.from(multiSelectedStudents);
-                          const selectedStudentsList = selectedIds.map(id => sortedStudents.find(s => s.id === id)).filter(Boolean);
-                          const allAreAbsent = selectedStudentsList.length > 0 && selectedStudentsList.every(s => absentStudents.has(s.id));
-                          const allArePresent = selectedStudentsList.length > 0 && selectedStudentsList.every(s => !absentStudents.has(s.id));
-                          const isMixed = selectedStudentsList.length > 0 && !allAreAbsent && !allArePresent;
-                          
-                          // Determine button text and action
-                          const buttonText = allAreAbsent ? 'Mark as Present' : 'Mark as Absent';
-                          const buttonBg = allAreAbsent ? '#D1FAE5' : '#FEF3C7';
-                          const buttonColor = allAreAbsent ? '#065F46' : '#92400E';
-                          
-                          return (
-                            <button
-                              onClick={() => {
-                                const selectedIds = Array.from(multiSelectedStudents);
-                                const markedStudents = selectedIds.map(id => {
-                                  const student = sortedStudents.find(s => s.id === id);
-                                  return student;
-                                }).filter(Boolean);
-                                
-                                // Toggle absent/present status for selected students
-                                setAbsentStudents(prev => {
-                                  const next = new Set(prev);
-                                  markedStudents.forEach(s => {
-                                    if (next.has(s.id)) {
-                                      next.delete(s.id); // Mark as present
-                                    } else {
-                                      next.add(s.id); // Mark as absent
-                                    }
-                                  });
-                                  return next;
-                                });
-                                
-                                // Clear selections
-                                setMultiSelectedStudents(new Set());
-                                setIsMultiSelectMode(false);
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: isMobile ? '6px' : '8px',
-                                padding: isMobile ? '10px' : '10px 16px',
-                                borderRadius: '12px',
-                                background: buttonBg,
-                                color: buttonColor,
-                                border: 'none',
-                                fontWeight: 700,
-                                fontSize: isMobile ? '11px' : '14px',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                flexShrink: 0
-                              }}
-                            >
-                              <Users size={isMobile ? 18 : 18} />
-                              <span>{buttonText}</span>
-                            </button>
-                          );
-                        })()}
-
-                        {/* Cancel Button */}
+                        {/* Close Button */}
                         <button
                           onClick={() => {
                             setIsMultiSelectMode(false);
@@ -2016,7 +1990,63 @@ export default function ClassDashboard({
                           }}
                         >
                           <X size={isMobile ? 18 : 18} />
-                          <span>Cancel</span>
+                          <span>Close</span>
+                        </button>
+
+                        {/* Mark as Absent Button */}
+                        <button
+                          onClick={() => {
+                            const selectedStudentIds = Array.from(multiSelectedStudents);
+                            if (selectedStudentIds.length === 0) return;
+                            
+                            const today = new Date().toISOString().split('T')[0];
+                            const allSelectedAbsent = selectedStudentIds.every(id => absentStudents.has(id));
+                            const newAbsent = new Set(absentStudents);
+                            
+                            updateClasses(prev => prev.map(c => {
+                              if (c.id !== activeClass.id) return c;
+                              return {
+                                ...c,
+                                students: c.students.map(s => {
+                                  if (!multiSelectedStudents.has(s.id)) return s;
+                                  if (allSelectedAbsent) {
+                                    // Mark as present
+                                    newAbsent.delete(s.id);
+                                    return { ...s, attendance: 'present', attendanceDate: today };
+                                  } else {
+                                    // Mark as absent
+                                    newAbsent.add(s.id);
+                                    return { ...s, attendance: 'absent', attendanceDate: today };
+                                  }
+                                })
+                              };
+                            }));
+                            setAbsentStudents(newAbsent);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: isMobile ? '6px' : '8px',
+                            padding: isMobile ? '10px' : '10px 16px',
+                            borderRadius: '12px',
+                            background: '#EEF2FF',
+                            color: '#4F46E5',
+                            border: 'none',
+                            fontWeight: 700,
+                            fontSize: isMobile ? '11px' : '14px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                          }}
+                        >
+                          <Users size={isMobile ? 18 : 18} />
+                          <span>
+                            {multiSelectedStudents.size > 0
+                              ? (Array.from(multiSelectedStudents).every(id => absentStudents.has(id))
+                                  ? 'Mark as Present'
+                                  : 'Mark as Absent')
+                              : 'Mark as Absent'}
+                          </span>
                         </button>
 
                         {/* Give Points Button */}
@@ -2243,11 +2273,30 @@ export default function ClassDashboard({
                             isCompact={displaySize === 'compact'}
                             onClick={() => {
                               if (isAttendanceMode) {
+                                const today = new Date().toISOString().split('T')[0];
+                                const isAbsent = absentStudents.has(s.id);
                                 const next = new Set(absentStudents);
-                                if (next.has(s.id)) next.delete(s.id);
-                                else next.add(s.id);
+                                if (isAbsent) {
+                                  next.delete(s.id);
+                                  updateClasses(prev => prev.map(c => 
+                                    c.id === activeClass.id 
+                                      ? { ...c, students: c.students.map(st => 
+                                          st.id === s.id ? { ...st, attendance: 'present', attendanceDate: today } : st
+                                        ) }
+                                      : c
+                                  ));
+                                } else {
+                                  next.add(s.id);
+                                  updateClasses(prev => prev.map(c => 
+                                    c.id === activeClass.id 
+                                      ? { ...c, students: c.students.map(st => 
+                                          st.id === s.id ? { ...st, attendance: 'absent', attendanceDate: today } : st
+                                        ) }
+                                      : c
+                                  ));
+                                }
                                 setAbsentStudents(next);
-                              } else if (!isAbsentToday) {
+                              } else if (!isAbsentToday && !isMultiSelectMode) {
                                 setSelectedStudent(s);
                               }
                             }}
@@ -2256,28 +2305,9 @@ export default function ClassDashboard({
                             animating={Boolean(animatingStudents && animatingStudents[s.id])}
                             animationType={animatingStudents && animatingStudents[s.id] ? animatingStudents[s.id].type : undefined}
                             disableActions={isMultiSelectMode}
-                            isMultiSelectMode={isMultiSelectMode}
+                            disableClick={isMultiSelectMode}
                           />
                           {selectedStudents.has(s.id) && <div style={{ position: 'absolute', inset: 0, borderRadius: displaySize === 'compact' ? '50%' : '24px', border: '3px solid #4CAF50', pointerEvents: 'none', zIndex: 5 }} />}
-                          {isAbsentToday && !isAttendanceMode && (
-                            <div style={{
-                              position: 'absolute',
-                              inset: 0,
-                              borderRadius: displaySize === 'compact' ? '50%' : '24px',
-                              border: '3px solid #FF9800',
-                              background: displaySize === 'compact' ? 'rgba(255, 152, 0, 0.25)' : 'rgba(255, 152, 0, 0.1)',
-                              pointerEvents: 'none',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '24px',
-                              fontWeight: 'bold',
-                              color: '#FF9800',
-                              zIndex: 4
-                            }}>
-                              {displaySize !== 'compact' && 'ABSENT TODAY'}
-                            </div>
-                          )}
                         </div>
                       );
                     })}
@@ -2358,6 +2388,7 @@ export default function ClassDashboard({
               closeModal();
             }}
             onRequestAddStudents={() => setIsAddStudentOpen(true)}
+            onOpenGames={onOpenGames}
           />
         )}
 
@@ -2548,7 +2579,7 @@ const styles = {
   // REPLACE THESE KEYS IN YOUR styles OBJECT:
   // SURGICAL STYLE UPDATES
   header: {
-    background: 'rgba(255, 255, 255, 0.98)',
+    background: 'rgba(255, 255, 255, 0.8)',
     backdropFilter: 'blur(20px)',
     display: 'flex',
     justifyContent: 'space-between',
@@ -2559,9 +2590,7 @@ const styles = {
     borderRadius: '24px',
     border: '1px solid rgba(226, 232, 240, 0.8)',
     boxSizing: 'border-box',
-    zIndex: 10, // Ensure header stays below dropdowns if needed, but above content
-    position: 'sticky',
-    top: 0
+    zIndex: 10 // Ensure header stays below dropdowns if needed, but above content
   },
 
   actionBtn: {

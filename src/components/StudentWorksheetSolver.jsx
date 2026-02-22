@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, CheckCircle2, ArrowRight } from 'lucide-react';
 import api from '../services/api';
+import { useTheme } from '../ThemeContext';
 
 const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, classId, onCompletion, lang }) => {
   const [answers, setAnswers] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-// 2. Add isMobile detection logic
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const { isDark } = useTheme();
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
@@ -167,9 +169,9 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 key={oIdx}
                 onClick={() => handleAnswerChange(question.id, opt, question.type)}
                 style={{
-                  padding: '15px', borderRadius: '12px', textAlign: 'left', border: '2px solid',
-                  borderColor: answers[question.id] === opt ? '#6366F1' : '#E2E8F0',
-                  background: answers[question.id] === opt ? '#EEF2FF' : '#fff',
+                  padding: '15px', borderRadius: '12px', textAlign: 'left', border: '2px solid ' + (answers[question.id] === opt ? (isDark ? '#4a4a4a' : '#6366F1') : (isDark ? '#4a4a4a' : '#E2E8F0')),
+                  background: answers[question.id] === opt ? (isDark ? '#1e3d20' : '#EEF2FF') : (isDark ? '#252525' : '#fff'),
+                  color: answers[question.id] === opt ? (isDark ? '#ffffff' : '#6366F1') : (isDark ? '#9ca3af' : '#64748B'),
                   fontWeight: 600, cursor: 'pointer'
                 }}
               >
@@ -186,10 +188,10 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
               {parts.map((part, index) => (
                 <React.Fragment key={index}>
-                  <span style={{ marginRight: '5px' }}>{part}</span>
+                  <span style={{ marginRight: '5px', color: isDark ? '#f0f0f0' : 'inherit' }}>{part}</span>
                   {index < parts.length - 1 && (
                     <input
-                      style={{ width: '80px', padding: '8px', margin: '0 5px', borderRadius: '8px', border: '2px solid #E2E8F0', fontSize: '16px' }}
+                      style={{ width: '80px', padding: '8px', margin: '0 5px', borderRadius: '8px', border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), background: isDark ? '#252525' : '#fff', color: isDark ? '#f0f0f0' : 'inherit', fontSize: '16px' }}
                       placeholder="Answer"
                       onChange={(e) => handleAnswerChange(question.id, { index, answer: e.target.value }, question.type)}
                     />
@@ -222,7 +224,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
       case 'comprehension':
         return (
           <textarea
-            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #E2E8F0', fontSize: '16px', minHeight: '120px', resize: 'vertical' }}
+            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), background: isDark ? '#252525' : '#fff', color: isDark ? '#f0f0f0' : 'inherit', fontSize: '16px', minHeight: '120px', resize: 'vertical' }}
             placeholder="Type your answer here..."
             onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
           />
@@ -237,10 +239,9 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 flex: 1,
                 padding: '16px',
                 borderRadius: '12px',
-                border: '2px solid',
-                borderColor: answers[question.id] === 'true' ? '#4CAF50' : '#E2E8F0',
-                background: answers[question.id] === 'true' ? '#E8F5E9' : '#fff',
-                color: answers[question.id] === 'true' ? '#4CAF50' : '#64748B',
+                border: '2px solid ' + (answers[question.id] === 'true' ? (isDark ? '#4a4a4a' : '#4CAF50') : (isDark ? '#4a4a4a' : '#E2E8F0')),
+                background: answers[question.id] === 'true' ? (isDark ? '#1e3d20' : '#E8F5E9') : (isDark ? '#252525' : '#fff'),
+                color: answers[question.id] === 'true' ? (isDark ? '#ffffff' : '#4CAF50') : (isDark ? '#9ca3af' : '#64748B'),
                 fontWeight: 700,
                 fontSize: '16px',
                 cursor: 'pointer',
@@ -255,10 +256,9 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 flex: 1,
                 padding: '16px',
                 borderRadius: '12px',
-                border: '2px solid',
-                borderColor: answers[question.id] === 'false' ? '#EF4444' : '#E2E8F0',
-                background: answers[question.id] === 'false' ? '#FEF2F2' : '#fff',
-                color: answers[question.id] === 'false' ? '#EF4444' : '#64748B',
+                border: '2px solid ' + (answers[question.id] === 'false' ? (isDark ? '#4a4a4a' : '#EF4444') : (isDark ? '#4a4a4a' : '#E2E8F0')),
+                background: answers[question.id] === 'false' ? (isDark ? '#1e3d20' : '#FEF2F2') : (isDark ? '#252525' : '#fff'),
+                color: answers[question.id] === 'false' ? (isDark ? '#ffffff' : '#EF4444') : (isDark ? '#9ca3af' : '#64748B'),
                 fontWeight: 700,
                 fontSize: '16px',
                 cursor: 'pointer',
@@ -274,7 +274,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
         return (
           <input
             type="number"
-            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #E2E8F0', fontSize: '16px' }}
+            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), background: isDark ? '#252525' : '#fff', color: isDark ? '#f0f0f0' : 'inherit', fontSize: '16px' }}
             placeholder="Enter a number..."
             value={answers[question.id] || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
@@ -290,8 +290,8 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 style={{
                   padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '2px solid #E2E8F0',
-                  background: '#F8FAFC',
+                  border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'),
+                  background: isDark ? '#252525' : '#F8FAFC',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px'
@@ -301,7 +301,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                   width: '28px',
                   height: '28px',
                   borderRadius: '50%',
-                  background: '#4F46E5',
+                  background: isDark ? '#4a4a4a' : '#4F46E5',
                   color: '#fff',
                   display: 'flex',
                   alignItems: 'center',
@@ -312,7 +312,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 }}>
                   {answers[question.id]?.indexOf(part) + 1 || index + 1}
                 </span>
-                <span style={{ fontSize: '16px', fontWeight: 500 }}>{part}</span>
+                <span style={{ fontSize: '16px', fontWeight: 500, color: isDark ? '#f0f0f0' : 'inherit' }}>{part}</span>
               </div>
             ))}
           </div>
@@ -327,20 +327,21 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
                 style={{
                   padding: '14px 18px',
                   borderRadius: '12px',
-                  border: '2px solid #E2E8F0',
-                  background: '#F8FAFC',
+                  border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'),
+                  background: isDark ? '#252525' : '#F8FAFC',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                   fontSize: '16px',
-                  fontWeight: 500
+                  fontWeight: 500,
+                  color: isDark ? '#f0f0f0' : '#64748B'
                 }}
               >
-                <span style={{ color: '#64748B', fontSize: '14px' }}>{item}</span>
+                <span style={{ color: isDark ? '#9ca3af' : '#64748B', fontSize: '14px' }}>{item}</span>
               </div>
             ))}
             <textarea
-              style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #E2E8F0', fontSize: '16px', minHeight: '100px', resize: 'vertical', marginTop: '10px' }}
+              style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), background: isDark ? '#252525' : '#fff', color: isDark ? '#f0f0f0' : 'inherit', fontSize: '16px', minHeight: '100px', resize: 'vertical', marginTop: '10px' }}
               placeholder="Type how you sorted these items..."
               value={answers[question.id] || ''}
               onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
@@ -351,7 +352,7 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
       default:
         return (
           <input
-            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #E2E8F0', fontSize: '16px' }}
+            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), background: isDark ? '#252525' : '#fff', color: isDark ? '#f0f0f0' : 'inherit', fontSize: '16px' }}
             placeholder="Type your answer here..."
             value={answers[question.id] || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value, question.type)}
@@ -363,74 +364,75 @@ const StudentWorksheetSolver = ({ worksheet, onClose, studentName, studentId, cl
   // --- 2. THE MAIN WORKSHEET VIEW ---
   return (
     <div style={{ background: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ 
-  // Reduced padding for mobile to push buttons to the edges
-  padding: isMobile ? '12px 16px' : '20px 40px', 
-  borderBottom: '1px solid #E2E8F0', 
-  display: 'flex', 
-  justifyContent: 'space-between', 
-  alignItems: 'center',
-  background: '#fff',
-  position: 'sticky',
-  top: 0,
-  zIndex: 10
-}}>
+      <header style={{
+    // Reduced padding for mobile to push buttons to the edges
+    padding: isMobile ? '12px 16px' : '20px 40px',
+    borderBottom: '1px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'),
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    background: isDark ? '#252525' : '#fff',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
+  }}>
   {/* QUIT BUTTON: Icon only on mobile */}
-  <button 
-    onClick={onClose} 
-    style={{ 
-      border: 'none', 
-      background: isMobile ? '#F1F5F9' : 'none', // Added light background on mobile for "clarity"
+  <button
+    onClick={onClose}
+    style={{
+      border: isMobile ? '2px solid ' + (isDark ? '#6a6a6a' : '#E2E8F0') : 'none',
+      background: isMobile ? (isDark ? '#3d3d3d' : 'rgba(255,255,255,0.1)') : 'none',
       borderRadius: isMobile ? '12px' : '0',
       padding: isMobile ? '8px' : '0',
-      cursor: 'pointer', 
-      display: 'flex', 
-      alignItems: 'center', 
-      gap: '8px', 
-      fontWeight: 700 
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      fontWeight: 700
     }}
   >
-    <ChevronLeft size={isMobile ? 24 : 20} /> 
+    <ChevronLeft size={isMobile ? 24 : 20} />
     {!isMobile && 'Quit'}
   </button>
 
   {/* TITLE: Centered and truncated if too long */}
-  <h2 style={{ 
-    margin: 0, 
-    fontSize: isMobile ? '16px' : '18px', 
+  <h2 style={{
+    margin: 0,
+    fontSize: isMobile ? '16px' : '18px',
     fontWeight: 900,
     flex: 1,
     textAlign: 'center',
     padding: '0 10px',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    textOverflow: 'ellipsis',
+    color: isDark ? '#f0f0f0' : 'inherit'
   }}>
     {worksheet.title}
   </h2>
 
   {/* SUBMIT BUTTON: Simplified text on mobile */}
-  <button 
-    onClick={handleSubmit} 
+  <button
+    onClick={handleSubmit}
     disabled={isSubmitting}
-    style={{ 
-      background: isSubmitting ? '#94A3B8' : '#4F46E5', 
-      color: '#fff', 
-      border: 'none', 
-      padding: isMobile ? '10px 18px' : '10px 25px', 
-      borderRadius: '12px', 
-      fontWeight: 700, 
+    style={{
+      background: isSubmitting ? '#94A3B8' : '#4F46E5',
+      color: '#fff',
+      border: isMobile ? '2px solid ' + (isDark ? '#6a6a6a' : '#E2E8F0') : 'none',
+      padding: isMobile ? '10px 18px' : '10px 25px',
+      borderRadius: '12px',
+      fontWeight: 700,
       cursor: isSubmitting ? 'wait' : 'pointer',
       whiteSpace: 'nowrap'
     }}
   >
-    {isSubmitting 
-      ? (isMobile ? '...' : 'Submitting...') 
+    {isSubmitting
+      ? (isMobile ? '...' : 'Submitting...')
       : (isMobile ? 'Submit' : 'Finish & Submit')
     }
   </button>
-</header>
-      <main style={{ flex: 1, overflowY: 'auto', padding: '40px 20px', background: '#F8FAFC' }}>
+      </header>
+      <main style={{ flex: 1, overflowY: 'auto', padding: '40px 20px', background: isDark ? '#252525' : '#F8FAFC' }}>
         <div style={{ maxWidth: '700px', margin: '0 auto' }}>
           {worksheet.questions.map((q, idx) => (
             <div key={q.id} style={{ background: '#fff', borderRadius: '24px', padding: '30px', marginBottom: '25px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Clock , X} from 'lucide-react';
+import useWindowSize from '../hooks/useWindowSize';
 
 const KidTimer = ({ onComplete, onClose }) => {
+  const isMobile = useWindowSize(768);
   const [selectedMinutes, setSelectedMinutes] = useState(5); // Default 5
   const [timeLeft, setTimeLeft] = useState(5 * 60);
   const [isRunning, setIsRunning] = useState(false);
@@ -67,7 +69,7 @@ const KidTimer = ({ onComplete, onClose }) => {
       playSound(400, 2000, 'sine'); // Done sound
       if (onComplete) onComplete();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [timeLeft, isRunning]);
 
   // Handle Minute Selection
@@ -107,35 +109,59 @@ const KidTimer = ({ onComplete, onClose }) => {
     </button>
       {/* MODE 1: SETUP (Choose Minutes) */}
       {mode === 'setup' && (
-        <div style={{ animation: 'fadeIn 0.5s', width: '100%', maxWidth: '600px', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h3 style={{ fontSize: 'clamp(18px, 4vw, 24px)', color: '#64748B', marginBottom: 'clamp(20px, 4vw, 30px)', fontWeight: 600, textAlign: 'center' }}>
+        <div style={{ animation: 'fadeIn 0.5s', width: '100%', padding: '0 1px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '52px' }}>
+          <div style={{
+            background: '#EEF2FF',
+            padding: '21px 28px',
+            borderRadius: '20px',
+            color: '#4F46E5',
+            fontWeight: '800',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            whiteSpace: 'nowrap'
+          }}>
+            <Clock size={32} color="#4F46E5" /> CLASS TIMER
+          </div>
+          <h3 style={{ fontSize: 'clamp(17px, 3.5vw, 20px)', color: '#475569', margin: 0,marginBottom:'10px', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
             How long do we focus?
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 'clamp(8px, 2vw, 12px)', width: '100%', maxWidth: '500px' }}>
+          <div style={{
+            display: 'flex',
+            gap: 'clamp(16px, 2.5vw, 24px)',
+            width: '100%',
+            maxWidth: '560px',
+            justifyContent: 'center',
+            flexWrap: 'nowrap',
+            paddingTop: '0px'
+          }}>
             {[1, 2, 3, 4, 5].map((num) => (
               <button
                 key={num}
                 onClick={() => selectTime(num)}
                 className="timer-select-btn"
                 style={{
-                  aspectRatio: '1',
-                  borderRadius: 'clamp(16px, 3vw, 20px)',
+                  width: 'clamp(65px, 13vw, 80px)',
+                  height: 'clamp(52px, 11vw, 68px)',
+                  borderRadius: 'clamp(12px, 2.5vw, 16px)',
                   border: 'none',
                   background: '#EEF2FF',
                   color: '#4F46E5',
-                  fontSize: 'clamp(20px, 5vw, 32px)',
-                  fontWeight: '900',
+                  fontSize: 'clamp(20px, 4.5vw, 28px)',
+                  fontWeight: 900,
                   cursor: 'pointer',
                   boxShadow: '0 4px 0 #C7D2FE',
                   transition: 'transform 0.1s, background 0.2s',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 1,
+                  paddingTop: '8px'
                 }}
               >
-                {num}
-                <span style={{ fontSize: 'clamp(9px, 2vw, 14px)', fontWeight: 600, opacity: 0.7 }}>MIN</span>
+                <span style={{ fontSize: 'clamp(20px, 4.5vw, 28px)', fontWeight: 900, lineHeight: 1 }}>{num}</span>
+                <span style={{ fontSize: 'clamp(10px, 2.2vw, 12px)', fontWeight: 600, opacity: 0.7, lineHeight: 1, marginTop: '4px' }}>MIN</span>
               </button>
             ))}
           </div>

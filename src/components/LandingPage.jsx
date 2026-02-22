@@ -244,6 +244,30 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
     if (openModal === 'login') navigateModal('login');
   }, [openModal]);
 
+  // Load saved access code from localStorage on mount
+  React.useEffect(() => {
+    const savedCode = localStorage.getItem('classABC_access_code');
+    if (savedCode) {
+      setAccessCode(savedCode);
+    }
+  }, []);
+
+  // Restore student portal session on mount
+  React.useEffect(() => {
+    const savedSession = localStorage.getItem('classABC_student_portal');
+    if (savedSession) {
+      try {
+        const sessionData = JSON.parse(savedSession);
+        // Restore session and switch to student portal view
+        setPortalView('student');
+        setStudentData(sessionData);
+      } catch (e) {
+        console.warn('Failed to parse saved session, clearing it');
+        localStorage.removeItem('classABC_student_portal');
+      }
+    }
+  }, []);
+
   // Check if user just verified email and show login modal with success message
   React.useEffect(() => {
     const emailVerified = localStorage.getItem('email_verified');
@@ -566,6 +590,7 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
         };
 
         localStorage.setItem('classABC_student_portal', JSON.stringify(sessionData));
+        localStorage.setItem('classABC_access_code', cleanCode);
         setLoading(false);
         setModalMode(null); // Close modal
         setPortalView('student'); // Switch to Portal Component

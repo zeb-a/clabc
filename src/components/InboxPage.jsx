@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { CheckCircle, X, MessageSquare, Check, Users } from 'lucide-react';
+import { CheckCircle, X, MessageSquare, Check, Users, AlertCircle } from 'lucide-react';
 import AssignmentGradingModal from './AssignmentGradingModal';
 
 const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
   const [selectedSub, setSelectedSub] = useState(null);
   const [grade, setGrade] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
+  const [alert, setAlert] = useState(null);
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   const pending = submissions.filter(s => s.status === 'submitted');
@@ -21,20 +22,39 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
     setSelectedSub(null);
   };
 
-  // Handle detailed grading from modal
+  const showAlert = (message, type = 'success') => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
   const handleDetailedGrade = async (gradedData) => {
-    await onGradeSubmit(selectedSub.id, gradedData.finalScore, gradedData);
-    // Trigger point update for student card in class dashboard
-    if (selectedSub?.student_id && typeof window !== 'undefined' && window.dispatchEvent) {
-      window.dispatchEvent(new CustomEvent('studentPointsUpdated', { 
-        detail: { studentId: selectedSub.student_id, points: Number(gradedData.finalScore) } 
-      }));
+    try {
+      await onGradeSubmit(selectedSub.id, gradedData.finalScore, gradedData);
+      if (selectedSub?.student_id && typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('studentPointsUpdated', {
+          detail: { studentId: selectedSub.student_id, points: Number(gradedData.finalScore) }
+        }));
+      }
+      showAlert(`Grade saved! ${selectedSub.student_name} received ${gradedData.finalScore} point${gradedData.finalScore !== 1 ? 's' : ''}.`, 'success');
+      setTimeout(() => setSelectedSub(null), 500);
+    } catch (error) {
+      showAlert('Failed to save grade. Please try again.', 'error');
     }
-    setSelectedSub(null);
   };
 
   return (
     <div className="inbox-page safe-area-top" style={{ ...pageStyles.container, paddingTop: 'calc(12px + var(--safe-top, 0px))' }}>
+      {alert && (
+        <div style={{
+          ...pageStyles.alert,
+          background: alert.type === 'success' ? '#10B981' : '#EF4444',
+          position: 'fixed',
+          zIndex: 100001
+        }}>
+          {alert.type === 'success' ? <Check size={20} color="white" /> : <AlertCircle size={20} color="white" />}
+          <span>{alert.message}</span>
+        </div>
+      )}
       <style>{`
         .inbox-page { 
           display: flex;
@@ -138,7 +158,7 @@ const InboxPage = ({ submissions, onGradeSubmit, onBack }) => {
                   <SubmissionCard
                     key={sub.id}
                     sub={sub}
-                    onClick={() => handleSelect(sub)}
+                    onClick={() => {}}
                     isGraded
                   />
                 ))}
@@ -177,7 +197,8 @@ const SubmissionCard = ({ sub, active, onClick, isGraded, isPending }) => (
       ...pageStyles.card,
       borderLeft: active ? '4px solidrgb(191, 189, 233)' : '4px solid transparent',
       background: active ? '#F8F9FF' : 'white',
-      opacity: isGraded ? 0.7 : 1
+      opacity: isGraded ? 0.7 : 1,
+      cursor: isGraded ? 'not-allowed' : 'pointer'
     }}
   >
     <div style={pageStyles.cardHeader}>
@@ -340,6 +361,24 @@ const pageStyles = {
     color: 'rgba(255, 255, 255, 0.8)',
     padding: '60px 20px',
     textAlign: 'center'
+  },
+  
+  alert: {
+    position: 'fixed',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 100000,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '14px 20px',
+    borderRadius: '12px',
+    color: 'white',
+    fontSize: '14px',
+    fontWeight: '600',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    animation: 'slideIn 0.3s ease'
   }
 };
 

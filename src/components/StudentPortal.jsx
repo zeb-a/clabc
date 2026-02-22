@@ -7,6 +7,7 @@ import {
 import StudentWorksheetSolver from './StudentWorksheetSolver';
 import api from '../services/api';
 import useWindowSize from '../hooks/useWindowSize';
+import { useTheme } from '../ThemeContext';
 
 const translations = {
   en: {
@@ -52,6 +53,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
   const [lang, setLang] = useState('en');
   const [activeTab, setActiveTab] = useState('todo');
   const t = translations[lang];
+  const { isDark } = useTheme();
 
   // 1. SESSION & STORAGE
   const session = useMemo(() => {
@@ -152,7 +154,6 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
       setCompletedAssignments(validCompletedIds);
       localStorage.setItem('classABC_completed_assignments', JSON.stringify(validCompletedIds));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classes, session]);
 
   const [hiddenAssignments, setHiddenAssignments] = useState(() => {
@@ -247,6 +248,11 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
         studentId={currentStudent?.id || session.studentId}
         classId={liveClass?.id}
         onCompletion={async () => {
+          // Reload classes from backend to get new assignments
+          if (refreshClasses) {
+            await refreshClasses();
+          }
+
           // Reload completed assignments from backend to ensure consistency
           if (!session || !classes.length) return;
 
@@ -343,10 +349,10 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} style={{ background: '#F1F5F9', border: 'none', padding: '12px 20px', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} style={{ background: isDark ? '#3d3d3d' : '#F1F5F9', border: '2px solid ' + (isDark ? '#6a6a6a' : '#E2E8F0'), padding: '12px 20px', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: isDark ? '#f0f0f0' : '#64748B' }}>
             <Globe size={18} /> {t.langToggle}
           </button>
-          <button onClick={handleLogout} style={{minWidth: isMobile ? '48px' : 'auto', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', color: '#fff', border: 'none', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: isMobile ? '0' : '8px', padding: isMobile ? '12px' : '12px 24px', }}>
+          <button onClick={handleLogout} style={{minWidth: isMobile ? '48px' : 'auto', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', color: '#fff', border: '2px solid #8B5CF6', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: isMobile ? '0' : '8px', padding: isMobile ? '12px' : '12px 24px', }}>
             <LogOut size={isMobile ? 22 : 18} /> {!isMobile && t.logout}
           </button>
         </div>
@@ -365,13 +371,13 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
           </div>
 
           {/* TABS */}
-          <div style={{ display: 'flex', gap: '12px', flex: 1, borderBottom: '2px solid #E2E8F0', paddingBottom: '0' }}>
+          <div style={{ display: 'flex', gap: '12px', flex: 1, borderBottom: '2px solid ' + (isDark ? '#4a4a4a' : '#E2E8F0'), paddingBottom: '0' }}>
             <button
               onClick={() => setActiveTab('todo')}
               style={{
                 padding: '12px 24px',
                 background: activeTab === 'todo' ? '#6366F1' : 'transparent',
-                color: activeTab === 'todo' ? '#fff' : '#64748B',
+                color: activeTab === 'todo' ? '#fff' : (isDark ? '#f0f0f0' : '#64748B'),
                 border: 'none',
                 borderRadius: activeTab === 'todo' ? '12px 12px 0 0' : '0',
                 fontWeight: 800,
@@ -385,14 +391,14 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
                 borderBottom: activeTab === 'todo' ? '2px solid #6366F1' : '2px solid transparent'
               }}
             >
-              <BookOpen size={16} /> {t.todo} <span style={{ background: activeTab === 'todo' ? 'rgba(255,255,255,0.3)' : '#E2E8F0', padding: '3px 8px', borderRadius: '8px', fontSize: '11px' }}>{todoCount}</span>
+              <BookOpen size={16} /> {t.todo} <span style={{ background: activeTab === 'todo' ? 'rgba(255,255,255,0.3)' : (isDark ? '#4a4a4a' : '#E2E8F0'), color: activeTab === 'todo' ? '#fff' : (isDark ? '#f0f0f0' : '#64748B'), padding: '3px 8px', borderRadius: '8px', fontSize: '11px' }}>{todoCount}</span>
             </button>
             <button
               onClick={() => setActiveTab('completed')}
               style={{
                 padding: '12px 24px',
                 background: activeTab === 'completed' ? '#10B981' : 'transparent',
-                color: activeTab === 'completed' ? '#fff' : '#64748B',
+                color: activeTab === 'completed' ? '#fff' : (isDark ? '#f0f0f0' : '#64748B'),
                 border: 'none',
                 borderRadius: activeTab === 'completed' ? '12px 12px 0 0' : '0',
                 fontWeight: 800,
@@ -406,7 +412,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
                 borderBottom: activeTab === 'completed' ? '2px solid #10B981' : '2px solid transparent'
               }}
             >
-              <CheckCircle size={16} /> {t.completed} <span style={{ background: activeTab === 'completed' ? 'rgba(255,255,255,0.3)' : '#E2E8F0', padding: '3px 8px', borderRadius: '8px', fontSize: '11px' }}>{completedCount}</span>
+              <CheckCircle size={16} /> {t.completed} <span style={{ background: activeTab === 'completed' ? 'rgba(255,255,255,0.3)' : (isDark ? '#4a4a4a' : '#E2E8F0'), color: activeTab === 'completed' ? '#fff' : (isDark ? '#f0f0f0' : '#64748B'), padding: '3px 8px', borderRadius: '8px', fontSize: '11px' }}>{completedCount}</span>
             </button>
           </div>
         </div>
@@ -436,7 +442,7 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
                         <h4 style={{ margin: '0 0 5px 0', fontSize: '18px', fontWeight: 900 }}>{asm.title}</h4>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                           <span style={{ fontSize: '13px', color: '#64748B' }}>{asm.questions?.length || 0} {t.questions}</span>
-                          <span style={{ fontSize: '12px', fontWeight: 800, padding: '4px 10px', borderRadius: '10px', background: '#EEF2FF', color: '#4F46E5' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 800, padding: '4px 10px', borderRadius: '10px', background: isDark ? '#3d3d3d' : '#EEF2FF', color: isDark ? '#a5b4fc' : '#4F46E5', border: isDark ? '2px solid #4F46E5' : 'none' }}>
                             {t.open}
                           </span>
                         </div>
@@ -478,8 +484,8 @@ const StudentPortal = ({ onBack, classes = [], refreshClasses }) => {
                         <CheckCircle size={28} color="#10B981" />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 900, color: '#1E293B' }}>{asm.title}</h4>
-                        <span style={{ fontSize: '12px', fontWeight: 700, padding: '3px 8px', borderRadius: '8px', background: '#DCFCE7', color: '#16A34A' }}>
+                        <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 900, color: isDark ? '#f0f0f0' : '#1E293B' }}>{asm.title}</h4>
+                        <span style={{ fontSize: '12px', fontWeight: 700, padding: '3px 8px', borderRadius: '8px', background: isDark ? '#3d3d3d' : '#DCFCE7', color: isDark ? '#86efac' : '#16A34A', border: isDark ? '2px solid #10B981' : 'none' }}>
                           {t.done}
                         </span>
                       </div>

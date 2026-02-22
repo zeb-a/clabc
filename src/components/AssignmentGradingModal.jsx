@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { X, Check, XCircle, Download, Printer, Award, Save } from 'lucide-react';
 import api from '../services/api';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 /**
  * AssignmentGradingModal - Comprehensive question-by-question grading system
@@ -26,6 +28,8 @@ const AssignmentGradingModal = ({
   const [isSaving, setIsSaving] = useState(false);
   const [worksheet, setWorksheet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [validationError, setValidationError] = useState(null);
   const reportRef = useRef(null);
 
   // Fetch worksheet data
@@ -35,19 +39,14 @@ const AssignmentGradingModal = ({
         setLoading(true);
         const assignmentId = submission.assignment_id;
         
-        console.log('Debug: submission object:', submission);
-        console.log('Debug: assignmentId:', assignmentId);
         
         if (!assignmentId) {
-          console.error('No assignment_id found in submission');
-          alert('Debug: No assignment_id found in submission');
           setLoading(false);
           return;
         }
 
         // Fetch the class data to get assignments
         const classesData = await api.pbRequest('/collections/classes/records?perPage=500');
-        console.log('Debug: classesData:', classesData);
         
         // Find the assignment in all classes
         let foundAssignment = null;
@@ -60,21 +59,16 @@ const AssignmentGradingModal = ({
         // Replace underscores with spaces to match actual assignment titles
         assignmentTitle = assignmentTitle.replace(/_/g, ' ');
         
-        console.log('Debug: Original assignment_id:', assignmentId);
-        console.log('Debug: Extracted title before space replacement:', timestampIndex !== -1 ? assignmentId.substring(0, timestampIndex) : assignmentId);
-        console.log('Debug: Looking for assignment with title:', assignmentTitle);
         
         for (const cls of classesData.items || []) {
           const assignments = typeof cls.assignments === 'string' 
             ? JSON.parse(cls.assignments || '[]') 
             : (cls.assignments || []);
           
-          console.log(`Debug: Class ${cls.name} has ${assignments.length} assignments:`, assignments);
           totalAssignments += assignments.length;
           
           // Show all assignment titles for comparison
           if (assignments.length > 0) {
-            console.log(`Debug: Available titles in ${cls.name}:`, assignments.map(a => a.title));
           }
           
           // Try both exact match and case-insensitive match
@@ -84,13 +78,11 @@ const AssignmentGradingModal = ({
           );
           
           if (assignment) {
-            console.log('Debug: Found assignment in class:', cls.name, assignment);
             foundAssignment = assignment;
             break;
           }
         }
 
-        console.log(`Debug: Searched ${classesData.items?.length || 0} classes, ${totalAssignments} total assignments`);
 
         if (!foundAssignment) {
           throw new Error(`Assignment not found. Searched for ID: ${assignmentId}`);
@@ -98,8 +90,6 @@ const AssignmentGradingModal = ({
 
         setWorksheet(foundAssignment);
       } catch (error) {
-        console.error('Error fetching worksheet:', error);
-        alert(`Failed to load assignment questions. Debug info: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -122,6 +112,7 @@ const AssignmentGradingModal = ({
 
   // Toggle question grade
   const toggleQuestionGrade = (questionId, grade) => {
+    clearValidationError();
     setQuestionGrades(prev => ({
       ...prev,
       [questionId]: prev[questionId] === grade ? null : grade
@@ -149,14 +140,30 @@ const AssignmentGradingModal = ({
     return questionGrades[questionId] || null;
   };
 
-  // Handle save and submit
+  // Check if all questions are graded
+  const allQuestionsGraded = () => {
+    return questions.every(q => questionGrades[q.id]);
+  };
+
+  const clearValidationError = () => {
+    setValidationError(null);
+  };
+
   const handleSaveGrade = async () => {
+    if (!allQuestionsGraded()) {
+      setValidationError('Please grade all questions before saving.');
+      return;
+    }
+    setShowConfirm(true);
+  };
+
+  const confirmSave = async () => {
     setIsSaving(true);
+    setShowConfirm(false);
     try {
       const finalScore = calculateScore();
       const totalQuestions = questions.length;
-      
-      // Prepare graded data
+
       const gradedData = {
         submissionId: submission.id,
         studentId: submission.student_id,
@@ -169,14 +176,9 @@ const AssignmentGradingModal = ({
         timestamp: new Date().toISOString()
       };
 
-      // Call parent handler to save
       await onSaveGrade(gradedData);
-      
-      alert(`Grade saved! ${studentName} received ${finalScore} point${finalScore !== 1 ? 's' : ''}.`);
       onClose();
     } catch (error) {
-      console.error('Failed to save grade:', error);
-      alert('Failed to save grade. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -202,14 +204,32 @@ const AssignmentGradingModal = ({
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`${studentName}_${assignmentTitle}_graded.pdf`);
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
     }
   };
 
   // Print
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    const printWindow = window.open('', '', 'height=600,width=800');
+    if (!printWindow) return;
+    
+    const reportContent = reportRef.current ? reportRef.current.innerHTML : '';
+    
+    printWindow.document.write('<html><head><title>Graded Assignment</title>');
+    printWindow.document.write('<style>body{font-family:Arial,sans-serif;padding:20px;} .print-header{border-bottom:2px solid #000;padding-bottom:16px;margin-bottom:20px;} .print-header h1{margin:0 0 8px 0;color:#000;} .print-header p{margin:4px 0;color:#666;} .question-card{margin-bottom:20px;padding:16px;background:#f8f9fa;border-radius:8px;border-left:4px solid #E0E0E0;} .question-number{font-weight:700;color:#1976D2;margin-bottom:8px;} .question-text{margin-bottom:12px;line-height:1.5;} .answer-section{background:#fff;padding:12px;border-radius:6px;border:1px solid #E0E0E0;} .grade-indicator{margin-top:12px;font-weight:700;} .grade-correct{color:#4CAF50;} .grade-incorrect{color:#F44336;} .signature{margin-top:20px;padding:16px;background:#f8f9fa;border-radius:12px;} .signature-info{font-size:13px;line-height:1.6;}</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<div class="print-header">');
+    printWindow.document.write(`<h1>${assignmentTitle}</h1>`);
+    printWindow.document.write(`<p><strong>Student:</strong> ${studentName}</p>`);
+    printWindow.document.write(`<p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>`);
+    printWindow.document.write(`<p><strong>Score:</strong> ${finalScore}/${totalQuestions}</p>`);
+    printWindow.document.write('</div>');
+    printWindow.document.write(reportContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+      printWindow.close();
+    };
   };
 
   const finalScore = calculateScore();
@@ -260,6 +280,25 @@ const AssignmentGradingModal = ({
 
   return (
     <div style={styles.overlay}>
+      {showConfirm && (
+        <div style={styles.confirmOverlay}>
+          <div style={styles.confirmBox}>
+            <h3 style={styles.confirmTitle}>Are you sure?</h3>
+            <p style={styles.confirmText}>You cannot grade this assignment again after saving.</p>
+            <div style={styles.confirmActions}>
+              <button onClick={() => setShowConfirm(false)} style={styles.confirmCancel}>Cancel</button>
+              <button onClick={confirmSave} disabled={isSaving} style={styles.confirmSave}>
+                {isSaving ? 'Saving...' : 'Yes, Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {validationError && (
+        <div style={styles.errorAlert}>
+          {validationError}
+        </div>
+      )}
       <div style={styles.modal}>
         {/* Header */}
         <div style={styles.header}>
@@ -306,6 +345,7 @@ const AssignmentGradingModal = ({
             {questions.map((q, index) => {
               const grade = getQuestionGrade(q.id);
               const answer = studentAnswers[q.id];
+              const isUngraded = !grade && validationError;
 
               return (
                 <div 
@@ -314,7 +354,8 @@ const AssignmentGradingModal = ({
                     ...styles.questionCard,
                     borderLeft: grade === 'correct' ? '4px solid #4CAF50' : 
                                grade === 'incorrect' ? '4px solid #F44336' : 
-                               '4px solid #E0E0E0'
+                               '4px solid #E0E0E0',
+                    ...(isUngraded && styles.ungradedQuestion)
                   }}
                 >
                   <div style={styles.questionHeader}>
@@ -349,7 +390,10 @@ const AssignmentGradingModal = ({
                   
                   <div style={styles.answerSection}>
                     <strong style={styles.answerLabel}>Student Answer:</strong>
-                    <div style={styles.answerText}>
+                    <div style={{
+                      ...styles.answerText,
+                      ...(isUngraded && styles.ungradedAnswer)
+                    }}>
                       {typeof answer === 'object' ? JSON.stringify(answer, null, 2) : answer || 'No answer provided'}
                     </div>
                   </div>
@@ -457,6 +501,18 @@ const AssignmentGradingModal = ({
             transform: scale(1.05);
           }
         }
+
+        @keyframes shake {
+          0%, 100% {
+            transform: translateX(0);
+          }
+          25% {
+            transform: translateX(-5px);
+          }
+          75% {
+            transform: translateX(5px);
+          }
+        }
         
         button:hover {
           filter: brightness(1.1);
@@ -503,38 +559,44 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10000,
-    padding: '20px'
+    padding: '10px'
   },
   modal: {
     background: '#fff',
     borderRadius: '16px',
     width: '100%',
     maxWidth: '900px',
-    maxHeight: '90vh',
+    maxHeight: '95vh',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
   },
   header: {
-    padding: '16px 24px',
+    padding: '12px 16px',
     borderBottom: '1px solid #E0E0E0',
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '8px'
   },
   headerLeft: {
-    flex: 1
+    flex: 1,
+    minWidth: 0
   },
   headerInfo: {
-    marginTop: '8px',
+    marginTop: '6px',
     display: 'flex',
-    gap: '16px',
-    alignItems: 'center'
+    gap: '8px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    fontSize: '12px'
   },
   headerRight: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px'
+    gap: '10px',
+    flexShrink: 0
   },
   compactScore: {
     display: 'flex',
@@ -573,7 +635,7 @@ const styles = {
   },
   title: {
     margin: 0,
-    fontSize: '24px',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#1a1a1a'
   },
@@ -586,18 +648,18 @@ const styles = {
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
-    padding: '8px',
+    padding: '6px',
     borderRadius: '8px',
     transition: 'background 0.2s'
   },
   content: {
     flex: 1,
     overflowY: 'auto',
-    padding: '24px'
+    padding: '16px'
   },
   report: {
     background: '#fff',
-    padding: '32px',
+    padding: '16px',
     borderRadius: '8px'
   },
   reportHeader: {
@@ -619,26 +681,28 @@ const styles = {
   },
   questionCard: {
     background: '#f8f9fa',
-    padding: '20px',
+    padding: '16px',
     borderRadius: '12px',
-    marginBottom: '16px',
+    marginBottom: '12px',
     transition: 'all 0.2s'
   },
   questionHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '12px'
+    marginBottom: '10px',
+    flexWrap: 'wrap',
+    gap: '8px'
   },
   questionNumber: {
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '700',
     color: '#1976D2',
     textTransform: 'uppercase'
   },
   gradeButtons: {
     display: 'flex',
-    gap: '12px'
+    gap: '8px'
   },
   gradeBtn: {
     border: '2px solid transparent',
@@ -680,13 +744,13 @@ const styles = {
     borderColor: '#E0E0E0'
   },
   questionText: {
-    fontSize: '16px',
-    lineHeight: '1.6',
+    fontSize: '14px',
+    lineHeight: '1.5',
     color: '#1a1a1a',
-    marginBottom: '12px'
+    marginBottom: '10px'
   },
   answerSection: {
-    marginTop: '12px'
+    marginTop: '10px'
   },
   answerLabel: {
     fontSize: '13px',
@@ -751,17 +815,18 @@ const styles = {
     color: '#495057'
   },
   signature: {
-    marginTop: '32px',
-    padding: '24px',
+    marginTop: '20px',
+    padding: '16px',
     background: '#f8f9fa',
     borderRadius: '12px',
     display: 'flex',
-    gap: '24px',
-    alignItems: 'center'
+    gap: '16px',
+    alignItems: 'center',
+    flexWrap: 'wrap'
   },
   signatureCircle: {
-    width: '100px',
-    height: '100px',
+    width: '70px',
+    height: '70px',
     borderRadius: '50%',
     border: '4px solid #F44336',
     display: 'flex',
@@ -770,52 +835,134 @@ const styles = {
     flexShrink: 0
   },
   signatureScore: {
-    fontSize: '28px',
+    fontSize: '20px',
     fontWeight: '700',
     color: '#F44336'
   },
   signatureInfo: {
-    fontSize: '14px',
-    lineHeight: '1.8'
+    fontSize: '13px',
+    lineHeight: '1.6'
   },
   footer: {
-    padding: '24px',
+    padding: '16px',
     borderTop: '1px solid #E0E0E0',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: '16px'
+    gap: '12px',
+    flexWrap: 'wrap'
   },
   scoreDisplay: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px'
+    gap: '8px'
   },
   scoreText: {
-    fontSize: '18px',
+    fontSize: '14px',
     color: '#1a1a1a'
   },
   actions: {
     display: 'flex',
-    gap: '12px'
+    gap: '8px',
+    flexWrap: 'wrap'
   },
   actionBtn: {
-    padding: '10px 20px',
-    borderRadius: '10px',
+    padding: '8px 12px',
+    borderRadius: '8px',
     border: '1px solid #E0E0E0',
     background: '#fff',
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '12px',
     fontWeight: '600',
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '6px',
     transition: 'all 0.2s'
   },
   saveBtn: {
     background: '#1976D2',
     color: '#fff',
     border: 'none'
+  },
+  confirmOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.7)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+    borderRadius: '16px'
+  },
+  confirmBox: {
+    background: '#fff',
+    padding: '24px',
+    borderRadius: '12px',
+    maxWidth: '320px',
+    textAlign: 'center',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+    border: '3px solid #DC2626'
+  },
+  confirmTitle: {
+    margin: '0 0 12px 0',
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#DC2626'
+  },
+  confirmText: {
+    margin: '0 0 20px 0',
+    fontSize: '14px',
+    color: '#666',
+    lineHeight: '1.5'
+  },
+  confirmActions: {
+    display: 'flex',
+    gap: '10px',
+    justifyContent: 'center'
+  },
+  confirmCancel: {
+    padding: '10px 20px',
+    borderRadius: '8px',
+    border: '2px solid #E0E0E0',
+    background: '#fff',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#666'
+  },
+  confirmSave: {
+    padding: '10px 20px',
+    borderRadius: '8px',
+    border: '2px solid #1976D2',
+    background: '#1976D2',
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600'
+  },
+  errorAlert: {
+    position: 'absolute',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: '#DC2626',
+    color: 'white',
+    padding: '12px 20px',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    zIndex: 100001,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
+  },
+  ungradedQuestion: {
+    border: '3px solid #DC2626 !important',
+    animation: 'shake 0.3s ease-in-out',
+    boxShadow: '0 0 0 4px rgba(220, 38, 38, 0.3)'
+  },
+  ungradedAnswer: {
+    border: '2px solid #DC2626',
+    boxShadow: 'inset 0 0 0 1px rgba(220, 38, 38, 0.5)'
   }
 };
 
