@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText, BookOpen, MoreVertical } from 'lucide-react';
+import { Plus, LogOut, X, Edit2, Trash2, Upload, Edit3, Zap, FileText, BookOpen, MoreVertical, Heart } from 'lucide-react';
 import { boringAvatar } from '../utils/avatar';
 import SafeAvatar from './SafeAvatar';
 import useIsTouchDevice from '../hooks/useIsTouchDevice';
 import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../ThemeContext';
+import DonateOverlay from './DonateOverlay';
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -174,6 +175,23 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
   const [showAddModal, setShowAddModal] = useState(false);
   const [showTorenadoModal, setShowTorenadoModal] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showDonateOverlay, setShowDonateOverlay] = useState(false);
+
+  // Show donate popup when user visits TeacherPortal (once per day)
+  useEffect(() => {
+    const lastShown = localStorage.getItem('donate_popup_last_shown');
+    const today = new Date().toDateString();
+    
+    // Check if popup was already shown today
+    if (lastShown !== today) {
+      // Show popup after 1 second
+      const timer = setTimeout(() => {
+        setShowDonateOverlay(true);
+        localStorage.setItem('donate_popup_last_shown', today);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const [torenadoSelectedClass, setTorenadoSelectedClass] = useState(null);
   const [torenadoPlayers, setTorenadoPlayers] = useState([]);
@@ -952,15 +970,65 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
               <X size={20} />
             </button>
             <div style={{ marginTop: 50, textAlign: 'center' }}>
-              <div style={{ width: 80, height: 80, margin: '0 auto 20px', borderRadius: 20, background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LogOut size={40} color="#DC2626" />
+              <div
+                style={{
+                  width: 80,
+                  height: 80,
+                  margin: '0 auto 20px',
+                  borderRadius: 20,
+                  background: isDark ? '#111827' : '#FEF2F2',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: isDark ? '0 12px 30px rgba(15,23,42,0.9)' : '0 8px 20px rgba(248,113,113,0.35)',
+                }}
+              >
+                <LogOut size={40} color={isDark ? '#FCA5A5' : '#DC2626'} />
               </div>
-              <p style={{ marginBottom: 30, color: '#4B5563', fontSize: '1.1rem', lineHeight: 1.5 }}>
+              <p style={{ marginBottom: 30, color: isDark ? '#E5E7EB' : '#4B5563', fontSize: '1.1rem', lineHeight: 1.5 }}>
                 {t('teacher_portal.sure_logout')}
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => { setLogoutConfirm(false); onLogout(); }} className="btn-danger" style={{ ...styles.deleteConfirmBtn, flex: 1, padding: '14px 16px', background: '#DC2626', border: '2px solid #DC2626' }}>{t('teacher_portal.yes')}</button>
-                <button onClick={() => setLogoutConfirm(false)} className="btn-secondary" style={{ ...styles.cancelBtn, flex: 1, padding: '14px 16px', border: '2px solid #D1D5DB' }}>{t('teacher_portal.no')}</button>
+                <button
+                  onClick={() => {
+                    setLogoutConfirm(false);
+                    onLogout();
+                  }}
+                  className="btn-danger"
+                  style={{
+                    ...styles.deleteConfirmBtn,
+                    flex: 1,
+                    padding: '14px 16px',
+                    background: isDark ? '#DC2626' : '#DC2626',
+                    border: '2px solid #DC2626',
+                    ...(isDark
+                      ? {
+                          boxShadow: '0 10px 26px rgba(248,113,113,0.7)',
+                        }
+                      : {}),
+                  }}
+                >
+                  {t('teacher_portal.yes')}
+                </button>
+                <button
+                  onClick={() => setLogoutConfirm(false)}
+                  className="btn-secondary"
+                  style={{
+                    ...styles.cancelBtn,
+                    flex: 1,
+                    padding: '14px 16px',
+                    border: '2px solid #D1D5DB',
+                    ...(isDark
+                      ? {
+                          background: '#020617',
+                          borderColor: '#4b5563',
+                          color: '#E5E7EB',
+                        }
+                      : {}),
+                  }}
+                >
+                  {t('teacher_portal.no')}
+                </button>
               </div>
             </div>
           </div>
@@ -1448,6 +1516,14 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
           </div>
         </div>
       )}
+
+      {/* --- DONATE OVERLAY MODAL --- */}
+      <DonateOverlay
+        showDonateOverlay={showDonateOverlay}
+        setShowDonateOverlay={setShowDonateOverlay}
+        isDark={isDark}
+        isMobile={isMobile}
+      />
     </div>
   );
 }
