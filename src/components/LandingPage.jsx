@@ -19,6 +19,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import HelpChatBubble from './HelpChatBubble';
 import DonateOverlay from './DonateOverlay';
+import TestimonialsSection from './TestimonialsSection';
 
 // Small motion-enabled card wrapper. Uses motion values to create a subtle
 // tilt + scale on pointer move. Respects prefers-reduced-motion.
@@ -1069,6 +1070,8 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             </MotionButton>
           </MotionCard>
         </div>
+
+        <TestimonialsSection isMobile={isMobile} />
 
         {/* Bottom CTA for Features */}
         <div style={{ ...modernStyles.featuresBottomCta, ...(isDark ? modernStyles.featuresBottomCtaDark : {}) }}>
