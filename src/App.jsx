@@ -22,7 +22,10 @@ import LessonPlannerPage from './components/lesson-planner/LessonPlannerPage';
 import TornadoGameWrapper from './components/TornadoGameWrapper';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsPage from './components/TermsPage';
+import { ToastProvider } from './components/Toast';
 import './components/ModalAnimations.css';
+import AboutPage from './components/AboutPage';
+import { useTheme } from './ThemeContext';
 // --- INITIAL DATA ---
 
 import { fallbackInitialsDataUrl } from './utils/avatar';
@@ -80,9 +83,11 @@ function PageHelpViewSyncer({ view }) {
 function LoggedInLayout({ view, children }) {
   return (
     <PageHelpProvider>
-      <PageHelpViewSyncer view={view} />
-      {children}
-      <HelpChatBubble />
+      <ToastProvider>
+        <PageHelpViewSyncer view={view} />
+        {children}
+        <HelpChatBubble />
+      </ToastProvider>
     </PageHelpProvider>
   );
 }
@@ -111,9 +116,22 @@ function getHashRoute() {
   return { page: null };
 }
 
+function getPublicRoute() {
+  if (typeof window === 'undefined') return 'home';
+  const path = window.location.pathname || '/';
+  if (path === '/about') return 'about';
+  if (path === '/privacy') return 'privacy';
+  if (path === '/terms') return 'terms';
+  return 'home';
+}
+
 function App() {
   // Check for special hash routes FIRST (before any hash manipulation)
   const hashRoute = getHashRoute();
+
+  const { isDark } = useTheme();
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+  const [publicRoute, setPublicRoute] = useState(getPublicRoute);
 
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('classABC_logged_in');
@@ -124,8 +142,6 @@ function App() {
     return null;
   });
   const [showProfile, setShowProfile] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
   const [openGamesModal, setOpenGamesModal] = useState(false);
   const [classes, setClasses] = useState([]);
   const [behaviors, setBehaviors] = useState(() => JSON.parse(localStorage.getItem('classABC_behaviors')) || INITIAL_BEHAVIORS);
@@ -140,13 +156,24 @@ function App() {
   // Track the current index in history to prevent conflicts
   const historyRef = useRef(0);
 
-  // Initialize browser history on mount - sync with hash (but NOT for password reset/confirm routes)
+  // Initialize browser history on mount - sync with hash (only when logged in and not on auth routes)
   useEffect(() => {
     // Don't replace hash if we're on a special auth route (password reset or email verification)
-    if (hashRoute.page) {
+    // or when no user is logged in (public landing pages should stay at clean '/' URLs for SEO/SSO)
+    if (hashRoute.page || !user) {
       return;
     }
     window.history.replaceState({ view: initialView, appHistoryIndex: 0 }, '', `#${initialView}`);
+  }, [hashRoute.page, initialView, user]);
+
+  // Track public SPA route based on pathname for logged-out pages
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopState = () => {
+      setPublicRoute(getPublicRoute());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Navigate with history tracking for swipe-back
@@ -168,6 +195,7 @@ function App() {
 
   // Listen for browser back events (popstate) - This handles swipe-back
   useEffect(() => {
+    if (!user) return;
     const handlePopState = (event) => {
       const state = event.state;
 
@@ -555,8 +583,43 @@ function App() {
 
       // Landing page (no user logged in) — no help bubble here
   if (!user) {
+    const navigatePublic = (path) => {
+      if (typeof window === 'undefined') return;
+      if (window.location.pathname === path) return;
+      window.history.pushState({}, '', path);
+      setPublicRoute(getPublicRoute());
+    };
+
+    if (publicRoute === 'about') {
+      return (
+        <ToastProvider>
+          <AboutPage
+            isDark={isDark}
+            isMobile={isMobile}
+            onBack={() => navigatePublic('/')}
+          />
+        </ToastProvider>
+      );
+    }
+
+    if (publicRoute === 'privacy') {
+      return (
+        <ToastProvider>
+          <PrivacyPolicyPage onClose={() => navigatePublic('/')} />
+        </ToastProvider>
+      );
+    }
+
+    if (publicRoute === 'terms') {
+      return (
+        <ToastProvider>
+          <TermsPage onClose={() => navigatePublic('/')} />
+        </ToastProvider>
+      );
+    }
+
     return (
-      <>
+      <ToastProvider>
         <LandingPage
           onLoginSuccess={onLoginSuccess}
           classes={classes}
@@ -566,12 +629,11 @@ function App() {
           openModal={(action) => {
             window.dispatchEvent(new CustomEvent('guide-action', { detail: action }));
           }}
-          onShowPrivacy={() => setShowPrivacy(true)}
-          onShowTerms={() => setShowTerms(true)}
+          onShowPrivacy={() => navigatePublic('/privacy')}
+          onShowTerms={() => navigatePublic('/terms')}
+          onShowAbout={() => navigatePublic('/about')}
         />
-        {showPrivacy && <PrivacyPolicyPage onClose={() => setShowPrivacy(false)} />}
-        {showTerms && <TermsPage onClose={() => setShowTerms(false)} />}
-      </>
+      </ToastProvider>
     );
   }
 

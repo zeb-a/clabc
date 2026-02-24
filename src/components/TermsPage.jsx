@@ -57,6 +57,35 @@ export default function TermsPage({ onClose }) {
                     {t('terms.last_updated')} {new Date().toLocaleDateString()}
                 </p>
 
+                {/* Human-readable summary for SEO / quick scan */}
+                <section style={{ marginBottom: '30px' }}>
+                    <h2 style={{
+                        fontSize: '20px',
+                        fontWeight: '700',
+                        marginBottom: '12px',
+                        color: '#1a1a1a'
+                    }}>
+                        What you agree to when you use Klasiz.fun
+                    </h2>
+                    <p style={{
+                        lineHeight: '1.7',
+                        color: '#555',
+                        marginBottom: '12px'
+                    }}>
+                        Klasiz.fun is a classroom management tool for teachers, schools, students, and families. By creating an account or joining a class, you agree to use the service for educational purposes, to keep your login details safe, and to follow school and local privacy rules when you add student information.
+                    </p>
+                    <ul style={{
+                        paddingLeft: '20px',
+                        lineHeight: '1.7',
+                        color: '#555'
+                    }}>
+                        <li>Klasiz.fun provides software only; teachers and schools remain responsible for how they use it with their students.</li>
+                        <li>You must have permission to upload any student names, photos, or class data that you add to the platform.</li>
+                        <li>You agree not to misuse the service (for example, by trying to break security, spam other users, or share offensive content).</li>
+                        <li>We may update these terms as we add features or respond to new regulations, and we will note the last updated date at the top of this page.</li>
+                    </ul>
+                </section>
+
                 <section style={{ marginBottom: '30px' }}>
                     <h2 style={{
                         fontSize: '20px',

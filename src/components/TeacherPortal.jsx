@@ -7,6 +7,7 @@ import useWindowSize from '../hooks/useWindowSize';
 import { useTranslation } from '../i18n';
 import { useTheme } from '../ThemeContext';
 import DonateOverlay from './DonateOverlay';
+import { useToast } from './Toast';
 
 // Internal CSS for animations and layout stability
 const internalCSS = `
@@ -170,6 +171,7 @@ const internalCSS = `
 export default function TeacherPortal({ user, classes, onSelectClass, onAddClass, onLogout, onEditProfile, updateClasses, onOpenTorenado, onOpenLessonPlanner, openGamesModal }) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const { addToast } = useToast();
   const isMobile = useWindowSize(768);
   const isTouchDevice = useIsTouchDevice();
   const [showAddModal, setShowAddModal] = useState(false);
@@ -247,6 +249,7 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
     };
 
     onAddClass(newClass);
+    addToast('Class created successfully!', 'success');
     resetAddModal();
   };
 
@@ -271,12 +274,14 @@ export default function TeacherPortal({ user, classes, onSelectClass, onAddClass
         : c
     );
     updateClasses(updated);
+    addToast('Class saved successfully!', 'success');
     setEditingClassId(null);
   };
 
   const handleDeleteClass = (classId) => {
     const updated = (classes || []).filter(c => c.id !== classId);
     updateClasses(updated);
+    addToast('Class deleted successfully!', 'success');
     setDeleteConfirmId(null);
   };
 

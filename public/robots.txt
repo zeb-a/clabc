@@ -1,0 +1,12 @@
+# robots.txt for Klasiz.fun
+# Allow all search engine crawlers
+
+User-agent: *
+Allow: /
+
+# Disallow admin/management areas
+Disallow: /admin/
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://klasiz.fun/sitemap.xml

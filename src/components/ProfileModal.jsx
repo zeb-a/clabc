@@ -5,9 +5,11 @@ import SafeAvatar from './SafeAvatar';
 import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
 import { Camera, X } from 'lucide-react';
 import { useTranslation } from '../i18n';
+import { useToast } from './Toast';
 
 export default function ProfileModal({ user, onSave, onClose }) {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const [title, setTitle] = useState(user.title || '');
   const [name, setName] = useState(user.name || '');
   const [avatar, setAvatar] = useState(user.avatar || boringAvatar(user.name || user.email));
@@ -76,9 +78,18 @@ export default function ProfileModal({ user, onSave, onClose }) {
       }
       // Pass user id explicitly so API knows who to update
       await onSave({ id: user.id, title, name, avatar: avatarToSave, password, oldPassword });
+      
+      // Show toast based on what was changed
+      if (password) {
+        addToast('Password changed successfully!', 'success');
+      }
+      if (title !== user.title || name !== user.name || avatarToSave !== user.avatar) {
+        addToast('Profile updated successfully!', 'success');
+      }
       onClose();
     } catch (err) {
       setError(err.message || t('profile.failed_update'));
+      addToast(err.message || 'Failed to update profile', 'error');
     } finally {
       setSaving(false);
     }

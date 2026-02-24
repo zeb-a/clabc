@@ -1,0 +1,15 @@
+/* OAuth Button Animations */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Apply to OAuth button spinners */
+.oauth-button-spinner {
+  animation: spin 1s linear infinite;
+}

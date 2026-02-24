@@ -57,6 +57,35 @@ export default function PrivacyPolicyPage({ onClose }) {
                     {t('privacy.last_updated')} {new Date().toLocaleDateString()}
                 </p>
 
+                {/* Human-readable summary for SEO / quick scan */}
+                <section style={{ marginBottom: '30px' }}>
+                    <h2 style={{
+                        fontSize: '20px',
+                        fontWeight: '700',
+                        marginBottom: '12px',
+                        color: '#1a1a1a'
+                    }}>
+                        How Klasiz.fun handles your classroom data
+                    </h2>
+                    <p style={{
+                        lineHeight: '1.7',
+                        color: '#555',
+                        marginBottom: '12px'
+                    }}>
+                        Klasiz.fun is a classroom management platform used by teachers, schools, and families. We store class lists, behavior points, assignments, and limited contact information so that teachers can run their classes and keep families informed, but we do not sell this data or use it to build advertising profiles.
+                    </p>
+                    <ul style={{
+                        paddingLeft: '20px',
+                        lineHeight: '1.7',
+                        color: '#555'
+                    }}>
+                        <li>We collect only the information needed to provide classroom features like rosters, behavior tracking, parent access, and analytics.</li>
+                        <li>Student data is owned and controlled by the teacher or school account that created the class.</li>
+                        <li>Teachers can export or delete their classes on request, and families can contact us to ask about access or deletion.</li>
+                        <li>All traffic between your browser and our servers is encrypted using HTTPS.</li>
+                    </ul>
+                </section>
+
                 <section style={{ marginBottom: '30px' }}>
                     <h2 style={{
                         fontSize: '20px',
