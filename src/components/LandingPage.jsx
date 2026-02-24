@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import {
-  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus, Languages, Globe, Zap, Sparkles
+  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus, Languages, Globe, Zap, Sparkles, HelpCircle, CheckCircle2, Quote, TrendingUp
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useTranslation } from '../i18n';
@@ -19,7 +19,6 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import HelpChatBubble from './HelpChatBubble';
 import DonateOverlay from './DonateOverlay';
-import TestimonialsSection from './TestimonialsSection';
 
 // Small motion-enabled card wrapper. Uses motion values to create a subtle
 // tilt + scale on pointer move. Respects prefers-reduced-motion.
@@ -151,20 +150,10 @@ function MotionButton({ children, className, style, ...props }) {
 }
 
 // Check if running in Capacitor (mobile app)
-const isCapacitorApp = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform;
+const isCapacitorApp = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.();
 
-export default function LandingPage({
-  onLoginSuccess,
-  classes,
-  setClasses,
-  refreshClasses,
-  showSearchGuide,
-  openModal,
-  onShowPrivacy,
-  onShowTerms,
-  onShowAbout,
-  onShowFAQ
-}) {
+export default function LandingPage({ onLoginSuccess, classes, setClasses, refreshClasses, showSearchGuide, openModal, onShowPrivacy, onShowTerms, onShowAbout, onShowFAQ }) {
+
   // For Capacitor app, default to showing role selection modal
   const [modalMode, setModalMode] = useState(isCapacitorApp ? 'role' : null); // 'role', 'login', 'signup', 'student-login'
   const [modalHistory, setModalHistory] = useState([]); // Track navigation history for swipe-back
@@ -655,7 +644,7 @@ export default function LandingPage({
               <button
                 onClick={switchTheme}
                 style={{ padding: '8px', borderRadius: '8px', background: isDark ? 'rgba(255,255,255,0.15)' : '#F1F5F9', color: isDark ? '#e5e5e5' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}
-                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={isDark ? t('ui.switch_light') : t('ui.switch_dark')}
               >
                 {isDark ? <Moon size={16} /> : <Sun size={16} />}
               </button>
@@ -667,7 +656,7 @@ export default function LandingPage({
                 <button
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
                   style={{ padding: '8px', borderRadius: '8px', cursor: 'pointer', border: 'none', background: isDark ? 'rgba(255,255,255,0.15)' : '#F1F5F9', color: isDark ? '#e5e5e5' : '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Menu"
+                  title={t('ui.menu')}
                 >
                   <MoreVertical size={20} />
                 </button>
@@ -707,7 +696,7 @@ export default function LandingPage({
                         onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                       >
                         <Heart size={18} />
-                        <span>Donate</span>
+                        <span>{t('nav.donate')}</span>
                       </button>
                       <button
                         onClick={() => { document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); setShowMobileMenu(false); }}
@@ -731,7 +720,7 @@ export default function LandingPage({
                         onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                       >
                         <GaugeCircle size={18} />
-                        <span>Features</span>
+                        <span>{t('nav.features')}</span>
                       </button>
                       <button
                         onClick={() => { navigateModal('role'); setShowMobileMenu(false); }}
@@ -796,14 +785,11 @@ export default function LandingPage({
                 <button
                   onClick={switchTheme}
                   style={{ ...modernStyles.themeToggle, ...(isDark ? modernStyles.themeToggleDark : {}) }}
-                  title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                  title={isDark ? t('ui.switch_light') : t('ui.switch_dark')}
                 >
                   {isDark ? <Moon size={16} /> : <Sun size={16} />}
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Globe size={14} style={{ color: isDark ? '#a1a1aa' : '#64748B' }} />
-                  <LanguageSelector />
-                </div>
+                <LanguageSelector />
                 <button
                   onClick={() => setShowDonateOverlay(true)}
                   style={{
@@ -820,12 +806,12 @@ export default function LandingPage({
                     gap: '6px',
                     transition: 'all 0.2s ease',
                   }}
-                  title="Donate"
+                  title={t('nav.donate')}
                 >
                   <Heart size={14} />
-                  <span>Donate</span>
+                  <span>{t('nav.donate')}</span>
                 </button>
-                <button className="lp-nav-link" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>Features</button>
+                <button className="lp-nav-link" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.features')}</button>
                 <button className="lp-nav-link" onClick={() => navigateModal('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>
                 <button className="lp-signup-btn lp-signup-enhanced" onClick={() => navigateModal('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>
                   <Sparkles size={14} style={{ marginRight: '4px' }} />
@@ -863,9 +849,8 @@ export default function LandingPage({
               maxWidth: 640,
               color: isDark ? '#d4d4d8' : '#4b5563'
             }}
+            dangerouslySetInnerHTML={{ __html: t('landing.hero_desc') }}
           >
-            Klasiz.fun is an all‑in‑one classroom management platform for K–12 teachers. Create digital seating charts, award behavior points,
-            run quick games, track attendance and assignments, and share progress with families &mdash; without complicated school software.
           </p>
           <div style={modernStyles.heroBtnGroup}>
             <MotionButton className="lp-cta lp-hero-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
@@ -925,7 +910,7 @@ export default function LandingPage({
               color: isDark ? '#f9fafb' : '#0f172a'
             }}
           >
-            Tools designed for real classrooms
+            {t('landing.tools_title')}
           </h2>
           <p
             style={{
@@ -937,8 +922,7 @@ export default function LandingPage({
               color: isDark ? '#a1a1aa' : '#64748b'
             }}
           >
-            From live behavior points and visual rewards to assignment workflows, QR access codes, timers, games and whiteboards, Klasiz.fun gives you
-            everything you need to manage a class of real students in a single simple interface.
+            {t('landing.tools_subtitle')}
           </p>
         </header>
       <div style={{ ...modernStyles.bentoGrid, ...(isMobile ? modernStyles.bentoGridMobile : {}) }}>
@@ -1081,8 +1065,6 @@ export default function LandingPage({
           </MotionCard>
         </div>
 
-        <TestimonialsSection isMobile={isMobile} />
-
         {/* Bottom CTA for Features */}
         <div style={{ ...modernStyles.featuresBottomCta, ...(isDark ? modernStyles.featuresBottomCtaDark : {}) }}>
           <h3 style={{ fontSize: '28px', fontWeight: 900, marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
@@ -1099,6 +1081,92 @@ export default function LandingPage({
             {t('landing.create_account')} <ArrowRight size={18} />
           </MotionButton>
         </div>
+      </section>
+
+      {/* --- SOCIAL PROOF SECTION --- */}
+      <section style={{ ...modernStyles.socialProofSection, ...(isDark ? modernStyles.socialProofSectionDark : {}) }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '40px 20px' : '80px 20px' }}>
+          <h2 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, textAlign: 'center', marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
+            {t('social_proof.title')}
+          </h2>
+          <p style={{ fontSize: isMobile ? '16px' : '18px', color: isDark ? '#a1a1aa' : '#64748B', textAlign: 'center', marginBottom: '60px', maxWidth: '600px', marginInline: 'auto' }}>
+            {t('social_proof.subtitle')}
+          </p>
+          <div style={modernStyles.statsGrid}>
+            <div style={{ ...modernStyles.statCard, ...(isDark ? modernStyles.statCardDark : {}) }}>
+              <Users size={32} color="#10B981" style={{ marginBottom: '16px' }} />
+              <div style={{ fontSize: '48px', fontWeight: 900, color: '#10B981', marginBottom: '8px' }}>50K+</div>
+              <div style={{ fontSize: '16px', color: isDark ? '#a1a1aa' : '#64748B', fontWeight: 600 }}>{t('social_proof.students')}</div>
+            </div>
+            <div style={{ ...modernStyles.statCard, ...(isDark ? modernStyles.statCardDark : {}) }}>
+              <Layout size={32} color="#8B5CF6" style={{ marginBottom: '16px' }} />
+              <div style={{ fontSize: '48px', fontWeight: 900, color: '#8B5CF6', marginBottom: '8px' }}>500+</div>
+              <div style={{ fontSize: '16px', color: isDark ? '#a1a1aa' : '#64748B', fontWeight: 600 }}>{t('social_proof.classrooms')}</div>
+            </div>
+            <div style={{ ...modernStyles.statCard, ...(isDark ? modernStyles.statCardDark : {}) }}>
+              <Star size={32} color="#F59E0B" style={{ marginBottom: '16px' }} />
+              <div style={{ fontSize: '48px', fontWeight: 900, color: '#F59E0B', marginBottom: '8px' }}>4.9★</div>
+              <div style={{ fontSize: '16px', color: isDark ? '#a1a1aa' : '#64748B', fontWeight: 600 }}>{t('social_proof.rating')}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- TESTIMONIALS SECTION --- */}
+      <section style={{ padding: isMobile ? '60px 20px' : '100px 20px', background: isDark ? '#09090b' : '#fff' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 900, textAlign: 'center', marginBottom: '12px', ...(isDark ? { color: '#fff' } : {}) }}>
+            {t('testimonials.title')}
+          </h2>
+          <div style={{ ...modernStyles.testimonialsGrid, ...(isMobile ? modernStyles.testimonialsGridMobile : {}) }}>
+            <MotionCard className="lp-bento-card" style={{ ...modernStyles.testimonialCard, ...(isDark ? modernStyles.testimonialCardDark : {}) }}>
+              <Quote size={32} color="#10B981" style={{ marginBottom: '20px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', color: isDark ? '#d4d4d8' : '#4B5563', lineHeight: 1.7, marginBottom: '24px' }}>
+                {t('testimonials.quote1')}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 700 }}>
+                  SJ
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, ...(isDark ? { color: '#fff' } : {}) }}>{t('testimonials.name1')}</div>
+                  <div style={{ fontSize: '14px', color: isDark ? '#a1a1aa' : '#64748B' }}>{t('testimonials.role1')}</div>
+                </div>
+              </div>
+            </MotionCard>
+            <MotionCard className="lp-bento-card" style={{ ...modernStyles.testimonialCard, ...(isDark ? modernStyles.testimonialCardDark : {}) }}>
+              <Quote size={32} color="#8B5CF6" style={{ marginBottom: '20px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', color: isDark ? '#d4d4d8' : '#4B5563', lineHeight: 1.7, marginBottom: '24px' }}>
+                {t('testimonials.quote2')}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 700 }}>
+                  MC
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, ...(isDark ? { color: '#fff' } : {}) }}>{t('testimonials.name2')}</div>
+                  <div style={{ fontSize: '14px', color: isDark ? '#a1a1aa' : '#64748B' }}>{t('testimonials.role2')}</div>
+                </div>
+              </div>
+            </MotionCard>
+            <MotionCard className="lp-bento-card" style={{ ...modernStyles.testimonialCard, ...(isDark ? modernStyles.testimonialCardDark : {}) }}>
+              <Quote size={32} color="#F59E0B" style={{ marginBottom: '20px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', color: isDark ? '#d4d4d8' : '#4B5563', lineHeight: 1.7, marginBottom: '24px' }}>
+                {t('testimonials.quote3')}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 700 }}>
+                  ER
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, ...(isDark ? { color: '#fff' } : {}) }}>{t('testimonials.name3')}</div>
+                  <div style={{ fontSize: '14px', color: isDark ? '#a1a1aa' : '#64748B' }}>{t('testimonials.role3')}</div>
+                </div>
+              </div>
+            </MotionCard>
+          </div>
+        </div>
+      </section>
 
         {/* Footer Links */}
         <div style={{ ...modernStyles.footer, ...(isDark ? modernStyles.footerDark : {}) }}>
@@ -1122,22 +1190,21 @@ export default function LandingPage({
               </button>
               <span style={modernStyles.footerSeparator}>|</span>
               <button
-                onClick={onShowAbout}
-                style={modernStyles.footerLink}
-              >
-                About Us
-              </button>
-              <span style={modernStyles.footerSeparator}>|</span>
-              <button
                 onClick={onShowFAQ}
                 style={modernStyles.footerLink}
               >
                 FAQ
               </button>
+              <span style={modernStyles.footerSeparator}>|</span>
+              <button
+                onClick={onShowAbout}
+                style={modernStyles.footerLink}
+              >
+                {t('footer.about')}
+              </button>
             </div>
           </div>
         </div>
-      </section>
 
       {/* --- MODAL SYSTEM --- */}
       {modalMode && (
@@ -1610,14 +1677,14 @@ export default function LandingPage({
           </div>
         </div>
       )}
-    </div>
-    <HelpChatBubble />
-    <DonateOverlay
-      showDonateOverlay={showDonateOverlay}
-      setShowDonateOverlay={setShowDonateOverlay}
-      isDark={isDark}
-      isMobile={isMobile}
-    />
+      <HelpChatBubble />
+      <DonateOverlay
+        showDonateOverlay={showDonateOverlay}
+        setShowDonateOverlay={setShowDonateOverlay}
+        isDark={isDark}
+        isMobile={isMobile}
+      />
+      </div>
     </>
   );
   }
@@ -2147,7 +2214,7 @@ export default function LandingPage({
                   Terms & Conditions
                 </button>
                 <button
-                  onClick={onShowAbout}
+                  onClick={onShowFAQ}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -2159,7 +2226,7 @@ export default function LandingPage({
                     ...(isDark ? { color: '#a1a1aa' } : {})
                   }}
                 >
-                  About Us
+                  FAQ
                 </button>
               </div>
             </div>
@@ -2345,6 +2412,20 @@ modernModalMobile: {
   featureCta: { color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', marginTop: 'auto' },
   featuresBottomCta: { marginTop: '80px', textAlign: 'center', padding: '60px', background: 'linear-gradient(135deg, #F0FDF4 0%, #DBEAFE 100%)', borderRadius: '32px', border: '1px solid rgba(0,0,0,0.05)' },
   featuresBottomCtaDark: { background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%)', border: '1px solid rgba(255,255,255,0.1)' },
+  // Social Proof Section
+  socialProofSection: { background: 'linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%)' },
+  socialProofSectionDark: { background: 'linear-gradient(135deg, rgba(22, 163, 74, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px', marginTop: '60px' },
+  statCard: { background: '#fff', padding: '40px 30px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 40px rgba(0,0,0,0.06)', transition: 'transform 0.3s ease' },
+  statCardDark: { background: '#18181b', boxShadow: '0 10px 40px rgba(0,0,0,0.3)' },
+  // Testimonials Section
+  testimonialsGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '30px' },
+  testimonialsGridMobile: { gridTemplateColumns: 'repeat(1, 1fr)' },
+  testimonialCard: { background: '#fff', padding: '32px', borderRadius: '24px', border: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', height: '100%' },
+  testimonialCardDark: { background: '#18181b', border: '1px solid rgba(255,255,255,0.1)' },
+  // FAQ Section
+  faqItem: { background: '#fff', padding: '24px 28px', borderRadius: '16px', border: '1px solid #E2E8F0', transition: 'box-shadow 0.2s ease' },
+  faqItemDark: { background: '#18181b', border: '1px solid rgba(255,255,255,0.1)' },
   footer: { padding: '40px 20px', marginTop: '60px', borderTop: '1px solid rgba(0,0,0,0.05)', background: '#fafafa' },
   footerDark: { borderTop: '1px solid rgba(255,255,255,0.1)', background: '#18181b' },
   footerContent: { maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' },

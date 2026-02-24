@@ -2,9 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
+import { useTranslation } from '../i18n';
 
 export default function TestimonialsSection({ isMobile = false }) {
   const { isDark } = useTheme();
+  const { t } = useTranslation();
 
   const testimonials = [
     {
@@ -69,7 +71,7 @@ export default function TestimonialsSection({ isMobile = false }) {
             margin: '0 0 16px',
             color: isDark ? '#f4f4f5' : '#1a1a1a'
           }}>
-            Loved by Teachers Worldwide
+            {t('testimonials.love_title')}
           </h2>
           <p style={{
             fontSize: isMobile ? '16px' : '18px',
@@ -78,7 +80,7 @@ export default function TestimonialsSection({ isMobile = false }) {
             margin: '0 auto',
             lineHeight: 1.6
           }}>
-            See what educators are saying about Klasiz.fun and how it's transforming their classrooms.
+            {t('testimonials.love_subtitle')}
           </p>
         </motion.div>
 
@@ -188,9 +190,9 @@ export default function TestimonialsSection({ isMobile = false }) {
           }}
         >
           {[
-            { number: '50K+', label: 'Students Engaged' },
-            { number: '500+', label: 'Active Classrooms' },
-            { number: '4.9★', label: 'Average Rating' }
+            { number: '50K+', label: t('testimonials.students_engaged') },
+            { number: '500+', label: t('testimonials.active_classrooms') },
+            { number: '4.9★', label: t('testimonials.avg_rating') }
           ].map((stat, index) => (
             <div
               key={index}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, HelpCircle, Mail } from 'lucide-react';
+import { ChevronDown, HelpCircle, Mail, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import { useTranslation } from '../i18n';
 
@@ -8,6 +8,18 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
   const { isDark: themeDark } = useTheme();
   const [expandedIndex, setExpandedIndex] = useState(null);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleBackToHome = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      window.location.href = '/';
+    }
+  };
 
   const faqs = [
     {
@@ -123,15 +135,49 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
     <div style={{
       minHeight: '100vh',
       background: currentDark ? '#09090b' : '#ffffff',
-      color: currentDark ? '#f4f4f5' : '#1a1a1a',
-      paddingTop: '60px'
+      color: currentDark ? '#f4f4f5' : '#1a1a1a'
     }}>
-      {/* Header */}
+      {/* Header with Back Button */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        padding: isMobile ? '16px' : '20px 32px',
+        background: currentDark ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        borderBottom: currentDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <motion.button
+          onClick={handleBackToHome}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          style={{
+            padding: '10px 16px',
+            background: currentDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.9)',
+            border: currentDark ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(0,0,0,0.1)',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '14px',
+            color: currentDark ? '#f4f4f5' : '#1a1a1a',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}
+        >
+          <ArrowLeft size={18} />
+          {t('ui.back_to_home')}
+        </motion.button>
+      </div>
+
+      {/* Hero Section */}
       <div style={{
         padding: isMobile ? '32px 16px' : '64px 32px',
-        textAlign: 'center',
-        background: currentDark ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        borderBottom: currentDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)'
+        textAlign: 'center'
       }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -160,7 +206,7 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text'
           }}>
-            Frequently Asked Questions
+            {t('faq.title')}
           </h1>
           <p style={{
             fontSize: isMobile ? '16px' : '18px',
@@ -169,7 +215,7 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
             margin: '0 auto',
             lineHeight: 1.6
           }}>
-            Find answers to common questions about Klasiz.fun, features, security, and more.
+            {t('faq.header_desc')}
           </p>
         </motion.div>
       </div>
@@ -307,7 +353,7 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
             marginBottom: '12px',
             color: currentDark ? '#f4f4f5' : '#1a1a1a'
           }}>
-            Didn't find what you're looking for?
+            {t('faq.not_found')}
           </h2>
           <p style={{
             fontSize: isMobile ? '16px' : '18px',
@@ -315,7 +361,7 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
             marginBottom: '24px',
             lineHeight: 1.6
           }}>
-            Our support team is here to help. Reach out to us anytime!
+            {t('faq.support_desc')}
           </p>
           <motion.a
             href="mailto:team@klasiz.fun"
@@ -337,7 +383,7 @@ export default function FAQPage({ isDark = false, isMobile = false, onBack }) {
             }}
           >
             <Mail size={18} />
-            Contact Support
+            {t('ui.contact_support')}
           </motion.a>
         </motion.div>
       </div>

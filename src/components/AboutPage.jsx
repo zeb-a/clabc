@@ -2,9 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Heart, Users, Zap, Target, ArrowRight, CheckCircle2, GraduationCap, Code, TrendingUp, Shield, Clock, BarChart3, Palette, Award } from 'lucide-react';
 import ClassABCLogo from './ClassABCLogo';
+import { useTranslation } from '../i18n';
 import './LandingPage.css';
 
 export default function AboutPage({ isDark, isMobile, onBack }) {
+  const { t } = useTranslation();
   return (
     <>
       {/* --- NAVBAR --- */}
@@ -45,7 +47,7 @@ export default function AboutPage({ isDark, isMobile, onBack }) {
           onMouseLeave={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'}
         >
           <ArrowRight size={16} />
-          {isMobile ? 'Back' : 'Back to Home'}
+          {isMobile ? t('ui.back') : t('ui.back_to_home')}
         </button>
       </nav>
 
@@ -91,7 +93,7 @@ export default function AboutPage({ isDark, isMobile, onBack }) {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              About Klasiz.fun
+              {t('about.title')}
             </h1>
             <p style={{
               fontSize: isMobile ? '16px' : '20px',
@@ -99,8 +101,8 @@ export default function AboutPage({ isDark, isMobile, onBack }) {
               maxWidth: '720px',
               margin: '0 auto',
               lineHeight: 1.7
-            }}>
-              Klasiz.fun is a modern classroom management platform that helps teachers run calmer, more joyful classes with <strong style={{ color: isDark ? '#f472b6' : '#db2777' }}>points, rewards, live dashboards, lesson planning tools, parent updates, and playful games</strong> — all in one place.
+            }}
+              dangerouslySetInnerHTML={{ __html: t('about.description') }}>
             </p>
           </motion.div>
 
