@@ -25,6 +25,7 @@ import TermsPage from './components/TermsPage';
 import { ToastProvider } from './components/Toast';
 import './components/ModalAnimations.css';
 import AboutPage from './components/AboutPage';
+import FAQPage from './components/FAQPage';
 import { useTheme } from './ThemeContext';
 // --- INITIAL DATA ---
 
@@ -120,6 +121,7 @@ function getPublicRoute() {
   if (typeof window === 'undefined') return 'home';
   const path = window.location.pathname || '/';
   if (path === '/about') return 'about';
+  if (path === '/faq') return 'faq';
   if (path === '/privacy') return 'privacy';
   if (path === '/terms') return 'terms';
   return 'home';
@@ -594,6 +596,18 @@ function App() {
       return (
         <ToastProvider>
           <AboutPage
+            isDark={isDark}
+            isMobile={isMobile}
+            onBack={() => navigatePublic('/')}
+          />
+        </ToastProvider>
+      );
+    }
+
+    if (publicRoute === 'faq') {
+      return (
+        <ToastProvider>
+          <FAQPage
             isDark={isDark}
             isMobile={isMobile}
             onBack={() => navigatePublic('/')}

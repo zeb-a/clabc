@@ -2,14 +2,18 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from '../i18n';
 
+import { useTheme } from '../ThemeContext';
+
 export default function PrivacyPolicyPage({ onClose }) {
     const { t } = useTranslation();
+    const { isDark } = useTheme();
 
     return (
         <div className="safe-area-top" style={{
             position: 'fixed',
             inset: 0,
-            background: '#fff',
+            background: isDark ? '#09090b' : '#fff',
+            color: isDark ? '#f4f4f5' : '#1a1a1a',
             zIndex: 9999,
             overflowY: 'auto',
             padding: '20px'
@@ -26,12 +30,12 @@ export default function PrivacyPolicyPage({ onClose }) {
                         top: '20px',
                         right: '20px',
                         padding: '10px 16px',
-                        border: '1px solid #e0e0e0',
-                        background: '#fff',
+                        border: isDark ? '1px solid rgba(255,255,255,0.2)' : '1px solid #e0e0e0',
+                        background: isDark ? 'rgba(255,255,255,0.05)' : '#fff',
                         borderRadius: '8px',
                         cursor: 'pointer',
                         fontWeight: '600',
-                        color: '#666',
+                        color: isDark ? '#f4f4f5' : '#666',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
@@ -46,12 +50,12 @@ export default function PrivacyPolicyPage({ onClose }) {
                     fontSize: '32px',
                     fontWeight: '900',
                     marginBottom: '10px',
-                    color: '#1a1a1a'
+                    color: isDark ? '#f4f4f5' : '#1a1a1a'
                 }}>
                     {t('privacy.title')}
                 </h1>
                 <p style={{
-                    color: '#888',
+                    color: isDark ? '#a1a1aa' : '#888',
                     marginBottom: '40px'
                 }}>
                     {t('privacy.last_updated')} {new Date().toLocaleDateString()}

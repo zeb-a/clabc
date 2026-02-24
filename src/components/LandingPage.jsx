@@ -2126,6 +2126,21 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   Terms & Conditions
                 </button>
+                <button
+                  onClick={onShowAbout}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748B',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '8px 12px',
+                    ...(isDark ? { color: '#a1a1aa' } : {})
+                  }}
+                >
+                  About Us
+                </button>
               </div>
             </div>
         </div>
