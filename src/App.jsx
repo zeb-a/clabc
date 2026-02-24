@@ -646,6 +646,7 @@ function App() {
           onShowPrivacy={() => navigatePublic('/privacy')}
           onShowTerms={() => navigatePublic('/terms')}
           onShowAbout={() => navigatePublic('/about')}
+          onShowFAQ={() => navigatePublic('/faq')}
         />
       </ToastProvider>
     );

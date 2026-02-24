@@ -151,10 +151,20 @@ function MotionButton({ children, className, style, ...props }) {
 }
 
 // Check if running in Capacitor (mobile app)
-const isCapacitorApp = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform?.();
+const isCapacitorApp = typeof window !== 'undefined' && window.Capacitor?.isNativePlatform;
 
-export default function LandingPage({ onLoginSuccess, classes, setClasses, refreshClasses, showSearchGuide, openModal, onShowPrivacy, onShowTerms, onShowAbout }) {
-
+export default function LandingPage({
+  onLoginSuccess,
+  classes,
+  setClasses,
+  refreshClasses,
+  showSearchGuide,
+  openModal,
+  onShowPrivacy,
+  onShowTerms,
+  onShowAbout,
+  onShowFAQ
+}) {
   // For Capacitor app, default to showing role selection modal
   const [modalMode, setModalMode] = useState(isCapacitorApp ? 'role' : null); // 'role', 'login', 'signup', 'student-login'
   const [modalHistory, setModalHistory] = useState([]); // Track navigation history for swipe-back
@@ -1116,6 +1126,13 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 style={modernStyles.footerLink}
               >
                 About Us
+              </button>
+              <span style={modernStyles.footerSeparator}>|</span>
+              <button
+                onClick={onShowFAQ}
+                style={modernStyles.footerLink}
+              >
+                FAQ
               </button>
             </div>
           </div>
