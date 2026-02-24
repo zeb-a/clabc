@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import {
-  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus
+  X, ArrowRight, ArrowLeft, GaugeCircle, Dices, BarChart3, Ghost, ClipboardList, QrCode, Timer, Bell, Layout, Settings, Heart, BookOpen, Star, GraduationCap, Users, MessageSquare, Trophy, MoreVertical, LogIn, UserPlus, Languages, Globe, Zap, Sparkles
 } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useTranslation } from '../i18n';
@@ -699,6 +699,30 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         <span>Donate</span>
                       </button>
                       <button
+                        onClick={() => { document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); setShowMobileMenu(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '12px 14px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          textAlign: 'left',
+                          color: isDark ? '#e5e5e5' : '#1A1A1A',
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                      >
+                        <GaugeCircle size={18} />
+                        <span>Features</span>
+                      </button>
+                      <button
                         onClick={() => { navigateModal('role'); setShowMobileMenu(false); }}
                         style={{
                           width: '100%',
@@ -726,24 +750,25 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                         onClick={() => { navigateModal('signup'); setShowMobileMenu(false); }}
                         style={{
                           width: '100%',
-                          padding: '12px 14px',
-                          borderRadius: '8px',
+                          padding: '14px 16px',
+                          borderRadius: '10px',
                           border: 'none',
-                          background: 'none',
+                          background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                          color: '#fff',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '10px',
                           textAlign: 'left',
-                          color: isDark ? '#e5e5e5' : '#1A1A1A',
-                          fontWeight: '600',
-                          fontSize: '14px',
-                          transition: 'background 0.2s'
+                          fontWeight: '700',
+                          fontSize: '15px',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                       >
-                        <UserPlus size={18} />
+                        <Sparkles size={18} />
                         <span>{t('nav.signup')}</span>
                       </button>
                     </div>
@@ -764,7 +789,10 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                 >
                   {isDark ? <Moon size={16} /> : <Sun size={16} />}
                 </button>
-                <LanguageSelector />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Globe size={14} style={{ color: isDark ? '#a1a1aa' : '#64748B' }} />
+                  <LanguageSelector />
+                </div>
                 <button
                   onClick={() => setShowDonateOverlay(true)}
                   style={{
@@ -786,8 +814,12 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
                   <Heart size={14} />
                   <span>Donate</span>
                 </button>
+                <button className="lp-nav-link" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>Features</button>
                 <button className="lp-nav-link" onClick={() => navigateModal('role')} style={{ ...modernStyles.loginLink, ...(isDark ? modernStyles.loginLinkDark : {}) }}>{t('nav.login')}</button>
-                <button className="lp-signup-btn" onClick={() => navigateModal('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>{t('nav.signup')}</button>
+                <button className="lp-signup-btn lp-signup-enhanced" onClick={() => navigateModal('signup')} style={{ ...modernStyles.signupBtn, ...(isDark ? modernStyles.signupBtnDark : {}) }}>
+                  <Sparkles size={14} style={{ marginRight: '4px' }} />
+                  {t('nav.signup')}
+                </button>
               </div>
             </>
           )}
@@ -825,8 +857,9 @@ export default function LandingPage({ onLoginSuccess, classes, setClasses, refre
             run quick games, track attendance and assignments, and share progress with families &mdash; without complicated school software.
           </p>
           <div style={modernStyles.heroBtnGroup}>
-            <MotionButton className="lp-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
-              {t('cta.create_class')} <ArrowRight size={18} />
+            <MotionButton className="lp-cta lp-hero-cta" onClick={() => navigateModal('signup')} style={{ ...modernStyles.mainCta, ...(isDark ? modernStyles.mainCtaDark : {}) }}>
+              <Sparkles size={18} style={{ marginRight: '8px' }} />
+              {t('cta.create_class')} <ArrowRight size={18} style={{ marginLeft: '6px' }} />
             </MotionButton>
           </div>
         </div>
@@ -2120,10 +2153,10 @@ const modernStyles = {
   navActions: { display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' },
   themeToggle: { background: 'none', border: 'none', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', color: '#64748B', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   themeToggleDark: { background: 'rgba(255,255,255,0.1)', color: '#f4f4f5' },
-  loginLink: { background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '16px', padding: '14px 26px', borderRadius: '10px' },
+  loginLink: { background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '15px', padding: '12px 18px', borderRadius: '10px' },
   loginLinkDark: { color: '#f4f4f5' },
-  signupBtn: { background: '#2D2D30', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' },
-  signupBtnDark: { background: '#fafafa', color: '#09090b' },
+  signupBtn: { background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#fff', border: 'none', padding: '12px 22px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', fontSize: '15px', display: 'flex', alignItems: 'center', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)' },
+  signupBtnDark: { background: 'linear-gradient(135deg, #34D399 0%, #10B981 100%)', boxShadow: '0 4px 16px rgba(52, 211, 153, 0.45)' },
   heroSection: { display: 'flex', alignItems: 'center', gap: '60px', padding: '38px 60px', maxWidth: '1400px', margin: '0 auto', minHeight: '520px' },
   heroContent: { flex: 1 },
   tagBadge: { display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#F0FDF4', color: '#15803D', padding: '8px 16px', borderRadius: '30px', fontSize: '13px', fontWeight: 700, marginBottom: '25px', boxShadow: '0 4px 10px rgba(76, 175, 80, 0.1)' },
@@ -2133,7 +2166,7 @@ const modernStyles = {
   gradientText: { background: 'linear-gradient(135deg, #16A34A 0%, #2563EB 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
   heroSubText: { fontSize: '18px', color: '#64748B', maxWidth: '520px', margin: '30px 0', lineHeight: 1.6 },
   heroSubTextDark: { color: '#a1a1aa' },
-  heroBtnGroup: { display: 'flex', gap: '15px' },
+  heroBtnGroup: { display: 'flex', gap: '15px', marginTop: '20px' },
   mockupWrapper: { flex: 1.2, position: 'relative', display: 'flex', justifyContent: 'center' },
   appWindow: { width: '100%', maxWidth: '650px', height: '400px', background: '#fff', borderRadius: '24px', boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)', display: 'flex', overflow: 'hidden', position: 'relative', zIndex: 10 },
   appWindowDark: { background: '#18181b', boxShadow: '0 40px 80px -20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' },

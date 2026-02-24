@@ -1,4 +1,12 @@
 {
+  "name": "Klasiz.fun - Modern Classroom Management",
+  "short_name": "Klasiz.fun",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#4CAF50",
+  "background_color": "#ffffff",
+  "description": "Klasiz.fun is a simple, powerful classroom management platform that helps teachers track behavior, reward students, plan lessons, and communicate with families.",
   "icons": [
     {
       "src": "../icons/icon-48.webp",

@@ -6,9 +6,11 @@ import {
   ArrowRight, Calendar, Star, Zap, Brain, Target
 } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
+import { useToast } from './Toast';
 
 export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
   const { isDark } = useTheme();
+  const { addToast } = useToast();
   const [title, setTitle] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
@@ -105,11 +107,14 @@ export default function AssignmentsPage({ activeClass, onBack, onPublish }) {
 
     if (emptyQuestionIds.length > 0) {
       setValidationErrors(emptyQuestionIds);
+      addToast('Please fill in all questions before publishing.', 'error');
       return;
     }
 
     // Clear errors
     setValidationErrors([]);
+
+    addToast('Assignment published successfully!', 'success');
 
     // Show the success message UI
     setShowSuccess(true);

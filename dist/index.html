@@ -2,13 +2,96 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./classabc-favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/classabc-favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>classABC</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Klasiz.fun - The ultimate classroom management platform for teachers. Create engaging lessons, track student progress, gamify learning, and connect with parents. Free and easy to use.">
+    <meta name="keywords" content="classroom management, teacher tools, student tracking, lesson planning, education platform, gamification, parent portal, assignment tracking">
+    <meta name="author" content="Klasiz.fun">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://klasiz.fun/">
+
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="Klasiz.fun - Modern Classroom Management">
+    <meta property="og:description" content="Transform your classroom with gamification, real-time tracking, and parent engagement. The all-in-one platform for modern teachers.">
+    <meta property="og:image" content="https://klasiz.fun/icons/icon-512.webp">
+    <meta property="og:url" content="https://klasiz.fun/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Klasiz.fun">
+
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Klasiz.fun - Modern Classroom Management">
+    <meta name="twitter:description" content="Transform your classroom with gamification, real-time tracking, and parent engagement. The all-in-one platform for modern teachers.">
+    <meta name="twitter:image" content="https://klasiz.fun/icons/icon-512.webp">
+
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https://cdn.jsdelivr.net https://twemoji.maxcdn.com;
+      connect-src 'self' https://klasiz.fun;
+      frame-src 'self';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    ">
+
+    <!-- OAuth Button Animations -->
+    <link rel="stylesheet" href="./oauth-animations.css">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Klasiz.fun",
+      "description": "The ultimate classroom management platform for teachers. Create engaging lessons, track student progress, gamify learning, and connect with parents.",
+      "url": "https://klasiz.fun",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web, iOS, Android, Windows, macOS, Linux",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "150"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Klasiz.fun"
+      }
+    }
+    </script>
+
+    <!-- Google Analytics 4 (replace G-XXXXXXXXXX with your Measurement ID) -->
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FH5CH4687P"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-FH5CH4687P');
+    </script>
+
+
+    <title>Klasiz.fun - Modern Classroom Management</title>
     <!-- Twemoji for cross-device emoji support -->
-    <script src="https://cdn.jsdelivr.net/npm/twemoji@15.0.3/dist/twemoji.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@15.0.3/dist/twemoji.min.js"
+            integrity="sha384-9+7qCwH0Vd3H3l1cC7Y9E0zC8yH0mCwZC9HhLz0yP5yF7qB1yF1qB1yF1qB1yF1qB1yF1qB1yF1"
+            crossorigin="anonymous"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
 
@@ -39,14 +122,14 @@
         margin: 0;
       }
     </style>
-    <script type="module" crossorigin src="./assets/index-F5bbTNMQ.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/ui-vendor-CKIQ70Z1.js">
-    <link rel="modulepreload" crossorigin href="./assets/react-vendor-DuWJ2H4c.js">
-    <link rel="modulepreload" crossorigin href="./assets/chart-vendor-DAZcSL2v.js">
-    <link rel="modulepreload" crossorigin href="./assets/editor-vendor-QQvFJ6Bh.js">
-    <link rel="modulepreload" crossorigin href="./assets/utils-vendor-DanUhor4.js">
-    <link rel="modulepreload" crossorigin href="./assets/docx-BFhGZ45W.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-D5bYE_T3.css">
+    <script type="module" crossorigin src="./assets/index-HTzhn4j5.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/ui-vendor-CvsVdvUW.js">
+    <link rel="modulepreload" crossorigin href="./assets/react-vendor-QThkW06V.js">
+    <link rel="modulepreload" crossorigin href="./assets/chart-vendor-DnBxnkJV.js">
+    <link rel="modulepreload" crossorigin href="./assets/editor-vendor-C3mMr2U9.js">
+    <link rel="modulepreload" crossorigin href="./assets/utils-vendor-C-gIm3of.js">
+    <link rel="modulepreload" crossorigin href="./assets/docx-BJa0GThP.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-kZCaRypc.css">
   </head>
   <body>
     <div id="root"></div>

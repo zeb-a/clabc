@@ -6,9 +6,11 @@ import SafeAvatar from './SafeAvatar';
 import { detectGender } from '../utils/gender';
 import { useModalKeyboard } from '../hooks/useKeyboardShortcuts';
 import { useTranslation } from '../i18n';
+import { useToast } from './Toast';
 
 export default function AddStudentModal({ onClose, onSave }) {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const [name, setName] = useState('');
   const [gender, setGender] = useState('boy');
   const [uploadedAvatar, setUploadedAvatar] = useState(null);
@@ -46,6 +48,7 @@ export default function AddStudentModal({ onClose, onSave }) {
   // Handle keyboard shortcuts
   const handleSave = () => {
     if (name.trim()) {
+      addToast('Student added successfully!', 'success');
       onSave({
         name: name.trim(),
         gender,

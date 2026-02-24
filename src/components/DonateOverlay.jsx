@@ -1,4 +1,4 @@
-import { Heart, X } from 'lucide-react';
+import { Heart, X, Download } from 'lucide-react';
 
 const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobile }) => {
   if (!showDonateOverlay) return null;
@@ -22,9 +22,11 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
           style={{
             background: isDark ? '#1f2937' : '#ffffff',
             borderRadius: '24px',
-            padding: '32px',
-            maxWidth: isMobile ? '420px' : '900px',
-            width: '90%',
+            padding: isMobile ? '20px 16px' : '32px',
+            maxWidth: isMobile ? 'calc(100vw - 32px)' : '900px',
+            width: isMobile ? 'auto' : '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             position: 'relative'
           }}
@@ -48,40 +50,40 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
             <X size={24} />
           </button>
 
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: isMobile ? '16px' : '24px' }}>
             <div style={{
-              width: '64px',
-              height: '64px',
+              width: isMobile ? '48px' : '64px',
+              height: isMobile ? '48px' : '64px',
               background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
               borderRadius: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 16px'
+              margin: '0 auto 12px'
             }}>
-              <Heart size={32} color="white" />
+              <Heart size={isMobile ? 24 : 32} color="white" />
             </div>
             <h2 style={{
               margin: 0,
-              fontSize: '24px',
+              fontSize: isMobile ? '20px' : '24px',
               fontWeight: '800',
               color: isDark ? '#f9fafb' : '#111827'
             }}>
               Support Klasiz.fun
             </h2>
             <p style={{
-              margin: '8px 0 0',
+              margin: '6px 0 0',
               color: isDark ? '#9ca3af' : '#6b7280',
-              fontSize: '14px'
+              fontSize: isMobile ? '13px' : '14px'
             }}>
               Your donation helps us keep the app free for everyone!
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '12px' : '16px' }}>
             {/* PayPal Option */}
             <a href="https://www.paypal.me/klasiz.fun" target="_blank" rel="noopener noreferrer" style={{
-              padding: '16px',
+              padding: isMobile ? '12px' : '16px',
               background: isDark ? '#374151' : '#f9fafb',
               borderRadius: '12px',
               border: `1px solid ${isDark ? '#4b5563' : '#e5e7eb'}`,
@@ -89,10 +91,10 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
               textDecoration: 'none',
               display: 'block'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', marginBottom: isMobile ? '8px' : '12px' }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
+                  width: isMobile ? '36px' : '40px',
+                  height: isMobile ? '36px' : '40px',
                   background: 'transparent',
                   borderRadius: '8px',
                   display: 'flex',
@@ -107,19 +109,19 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
                   </svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827' }}>PayPal</div>
-                  <div style={{ fontSize: '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Click to donate via PayPal</div>
+                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827', fontSize: isMobile ? '14px' : '16px' }}>PayPal</div>
+                  <div style={{ fontSize: isMobile ? '11px' : '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Click to donate via PayPal</div>
                 </div>
               </div>
               <div style={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '64px 16px 24px',
+                padding: isMobile ? '40px 12px 16px' : '64px 16px 24px',
                 background: 'white',
                 borderRadius: '8px'
               }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="186" height="50" viewBox="0 0 124 33">
+                <svg xmlns="http://www.w3.org/2000/svg" width={isMobile ? "140" : "186"} height={isMobile ? "38" : "50"} viewBox="0 0 124 33">
                   <path fill="#253B80" d="M46.211 6.749h-6.839a.95.95 0 0 0-.939.802l-2.766 17.537a.57.57 0 0 0 .564.658h3.265a.95.95 0 0 0 .939-.803l.746-4.73a.95.95 0 0 1 .938-.803h2.165c4.505 0 7.105-2.18 7.784-6.5.306-1.89.013-3.375-.872-4.415-.972-1.142-2.696-1.746-4.985-1.746zM47 13.154c-.374 2.454-2.249 2.454-4.062 2.454h-1.032l.724-4.583a.57.57 0 0 1 .563-.481h.473c1.235 0 2.4 0 3.002.704.359.42.469 1.044.332 1.906zM66.654 13.075h-3.275a.57.57 0 0 0-.563.481l-.145.916-.229-.332c-.709-1.029-2.29-1.373-3.868-1.373-3.619 0-6.71 2.741-7.312 6.586-.313 1.918.132 3.752 1.22 5.031.998 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .562.66h2.95a.95.95 0 0 0 .939-.803l1.77-11.209a.568.568 0 0 0-.561-.658zm-4.565 6.374c-.316 1.871-1.801 3.127-3.695 3.127-.951 0-1.711-.305-2.199-.883-.484-.574-.668-1.391-.514-2.301.295-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.499.589.697 1.411.554 2.317zM84.096 13.075h-3.291a.954.954 0 0 0-.787.417l-4.539 6.686-1.924-6.425a.953.953 0 0 0-.912-.678h-3.234a.57.57 0 0 0-.541.754l3.625 10.638-3.408 4.811a.57.57 0 0 0 .465.9h3.287a.949.949 0 0 0 .781-.408l10.946-15.8a.57.57 0 0 0-.468-.895z"/>
                   <path fill="#179BD7" d="M94.992 6.749h-6.84a.95.95 0 0 0-.938.802l-2.766 17.537a.569.569 0 0 0 .562.658h3.51a.665.665 0 0 0 .656-.562l.785-4.971a.95.95 0 0 1 .938-.803h2.164c4.506 0 7.105-2.18 7.785-6.5.307-1.89.012-3.375-.873-4.415-.971-1.142-2.694-1.746-4.983-1.746zm.789 6.405c-.373 2.454-2.248 2.454-4.062 2.454h-1.031l.725-4.583a.568.568 0 0 1 .562-.481h.473c1.234 0 2.4 0 3.002.704.359.42.468 1.044.331 1.906zM115.434 13.075h-3.273a.567.567 0 0 0-.562.481l-.145.916-.23-.332c-.709-1.029-2.289-1.373-3.867-1.373-3.619 0-6.709 2.741-7.311 6.586-.312 1.918.131 3.752 1.219 5.031 1 1.176 2.426 1.666 4.125 1.666 2.916 0 4.533-1.875 4.533-1.875l-.146.91a.57.57 0 0 0 .564.66h2.949a.95.95 0 0 0 .938-.803l1.771-11.209a.571.571 0 0 0-.565-.658zm-4.565 6.374c-.314 1.871-1.801 3.127-3.695 3.127-.949 0-1.711-.305-2.199-.883-.484-.574-.666-1.391-.514-2.301.297-1.855 1.805-3.152 3.67-3.152.93 0 1.686.309 2.184.892.501.589.699 1.411.554 2.317zM119.295 7.23l-2.807 17.858a.569.569 0 0 0 .562.658h2.822c.469 0 .867-.34.939-.803l2.768-17.536a.57.57 0 0 0-.562-.659h-3.16a.571.571 0 0 0-.562.482z"/>
                   <path fill="#253B80" d="M7.266 29.154l.523-3.322-1.165-.027H1.061L4.927 1.292a.316.316 0 0 1 .314-.268h9.38c3.114 0 5.263.648 6.385 1.927.526.6.861 1.227 1.023 1.917.17.724.173 1.589.007 2.644l-.012.077v.676l.526.298a3.69 3.69 0 0 1 1.065.812c.45.513.741 1.165.864 1.938.127.795.085 1.741-.123 2.812-.24 1.232-.628 2.305-1.152 3.183a6.547 6.547 0 0 1-1.825 2c-.696.494-1.523.869-2.458 1.109-.906.236-1.939.355-3.072.355h-.73c-.522 0-1.029.188-1.427.525a2.21 2.21 0 0 0-.744 1.328l-.055.299-.924 5.855-.042.215c-.011.068-.03.102-.058.125a.155.155 0 0 1-.096.035H7.266z"/>
@@ -132,33 +134,34 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
 
             {/* WeChat QR Code */}
             <div style={{
-              padding: '16px',
+              padding: isMobile ? '12px' : '16px',
               background: isDark ? '#374151' : '#f9fafb',
               borderRadius: '12px',
               border: `1px solid ${isDark ? '#4b5563' : '#e5e7eb'}`,
               flex: isMobile ? 'none' : 1
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', marginBottom: isMobile ? '8px' : '12px' }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
+                  width: isMobile ? '36px' : '40px',
+                  height: isMobile ? '36px' : '40px',
                   background: '#07c160',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>微</span>
+                  <span style={{ color: 'white', fontWeight: 'bold', fontSize: isMobile ? '14px' : '16px' }}>微</span>
                 </div>
                 <div>
-                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827' }}>WeChat Pay</div>
-                  <div style={{ fontSize: '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Scan QR code to donate</div>
+                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827', fontSize: isMobile ? '14px' : '16px' }}>WeChat Pay</div>
+                  <div style={{ fontSize: isMobile ? '11px' : '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Scan QR code to donate</div>
                 </div>
               </div>
               <div style={{
                 display: 'flex',
-                justifyContent: 'center',
-                padding: '16px',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: isMobile ? '12px' : '16px',
                 background: 'white',
                 borderRadius: '8px'
               }}>
@@ -167,45 +170,72 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
                   alt="WeChat Pay QR Code"
                   style={{
                     width: '100%',
-                    maxWidth: '180px',
+                    maxWidth: isMobile ? '140px' : '180px',
                     height: 'auto',
                     borderRadius: '6px',
                     objectFit: 'cover',
                     objectPosition: 'center 40%'
                   }}
                 />
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = '/Wechat.png';
+                    link.download = 'WeChat_Pay_QR.png';
+                    link.click();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    margin: '8px auto 0',
+                    padding: '6px 12px',
+                    background: '#07c160',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: isMobile ? '11px' : '12px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Download size={isMobile ? 12 : 14} />
+                  Save
+                </button>
               </div>
             </div>
 
             {/* Alipay QR Code */}
             <div style={{
-              padding: '16px',
+              padding: isMobile ? '12px' : '16px',
               background: isDark ? '#374151' : '#f9fafb',
               borderRadius: '12px',
               border: `1px solid ${isDark ? '#4b5563' : '#e5e7eb'}`,
               flex: isMobile ? 'none' : 1
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '12px', marginBottom: isMobile ? '8px' : '12px' }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
+                  width: isMobile ? '36px' : '40px',
+                  height: isMobile ? '36px' : '40px',
                   background: '#1677ff',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <span style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>支</span>
+                  <span style={{ color: 'white', fontWeight: 'bold', fontSize: isMobile ? '14px' : '16px' }}>支</span>
                 </div>
                 <div>
-                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827' }}>Alipay</div>
-                  <div style={{ fontSize: '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Scan QR code to donate</div>
+                  <div style={{ fontWeight: '600', color: isDark ? '#f9fafb' : '#111827', fontSize: isMobile ? '14px' : '16px' }}>Alipay</div>
+                  <div style={{ fontSize: isMobile ? '11px' : '12px', color: isDark ? '#9ca3af' : '#6b7280' }}>Scan QR code to donate</div>
                 </div>
               </div>
               <div style={{
                 display: 'flex',
-                justifyContent: 'center',
-                padding: '16px',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: isMobile ? '12px' : '16px',
                 background: 'white',
                 borderRadius: '8px'
               }}>
@@ -214,13 +244,39 @@ const DonateOverlay = ({ showDonateOverlay, setShowDonateOverlay, isDark, isMobi
                   alt="Alipay QR Code"
                   style={{
                     width: '100%',
-                    maxWidth: '180px',
+                    maxWidth: isMobile ? '140px' : '180px',
                     height: 'auto',
                     borderRadius: '6px',
                     objectFit: 'cover',
                     objectPosition: 'center 40%'
                   }}
                 />
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = '/Alipay.png';
+                    link.download = 'Alipay_QR.png';
+                    link.click();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    margin: '8px auto 0',
+                    padding: '6px 12px',
+                    background: '#1677ff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: isMobile ? '11px' : '12px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Download size={isMobile ? 12 : 14} />
+                  Save
+                </button>
               </div>
             </div>
           </div>
