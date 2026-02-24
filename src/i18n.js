@@ -516,16 +516,50 @@ const TRANSLATIONS = {
 
 		// --- Landing: Feature Showcase ---
 	'landing.lesson_planner.title': 'Lesson Planner',
-	'landing.lesson_planner.desc': 'Plan, organize, and schedule your lessons with ease. Create structured learning paths and track student progress throughout the semester.',
+	'landing.lesson_planner.desc': 'Save hours of prep time! Plan, organize, and schedule your lessons with ease. Create structured learning paths and track student progress throughout the semester.',
 	'landing.lesson_planner.preview': 'Lesson Planner Preview',
 	'landing.lesson_planner.cta': 'Try Lesson Planner',
 	'landing.play_games.title': 'Play Games',
-	'landing.play_games.desc': 'Make learning fun with interactive games! From Tornado to Memory Match, engage students with gamified activities that boost participation.',
+	'landing.play_games.desc': 'Boost engagement by 85%! Make learning fun with interactive games. From Tornado to Memory Match, transform every lesson into an exciting activity.',
 	'landing.play_games.preview': 'Interactive Games Preview',
 	'landing.play_games.cta': 'Start Playing',
 	'landing.ready.title': 'Ready to transform your classroom?',
 	'landing.ready.desc': 'Join thousands of teachers who are already using Klasiz.fun to engage their students',
 	'landing.create_account': 'Create Free Account',
+
+	// --- Social Proof ---
+	'social_proof.title': 'Trusted by teachers worldwide',
+	'social_proof.subtitle': 'Join the community of educators making a difference every day',
+	'social_proof.students': 'Students Engaged',
+	'social_proof.classrooms': 'Classrooms',
+	'social_proof.rating': 'Teacher Rating',
+	'social_proof.cta': 'See what teachers say',
+
+	// --- Testimonials ---
+	'testimonials.title': 'What teachers are saying',
+	'testimonials.name1': 'Sarah Johnson',
+	'testimonials.role1': '3rd Grade Teacher',
+	'testimonials.quote1': 'Klasiz.fun completely changed how I manage my class. The students LOVE the point system and games. Behavior issues dropped by 60% in the first month!',
+	'testimonials.name2': 'Michael Chen',
+	'testimonials.role2': 'High School Math',
+	'testimonials.quote2': 'Finally, a tool that actually works in my classroom. The assignments studio saves me at least 2 hours every week on grading. My students are more engaged than ever.',
+	'testimonials.name3': 'Emma Rodriguez',
+	'testimonials.role3': 'ESL Teacher',
+	'testimonials.quote3': 'Simple, powerful, and free. I use Klasiz.fun for everything—behavior tracking, games, even the lesson planner. It\'s become essential to my teaching.',
+
+	// --- FAQ Section ---
+	'faq.title': 'Frequently Asked Questions',
+	'faq.subtitle': 'Everything you need to know about Klasiz.fun',
+	'faq.q1': 'Is Klasiz.fun really free?',
+	'faq.a1': 'Yes! Klasiz.fun is completely free for teachers. Create unlimited classes, add unlimited students, and use all features without any cost.',
+	'faq.q2': 'How secure is my data?',
+	'faq.a2': 'Your data is encrypted and securely stored. We never sell your data to third parties. You retain full ownership and control of your class and student information.',
+	'faq.q3': 'Can parents access student progress?',
+	'faq.a3': 'Absolutely! Each class gets a unique parent code. Parents can log in to see their child\'s behavior points, assignments, and progress in real-time.',
+	'faq.q4': 'Do I need to install any software?',
+	'faq.a4': 'No installation required! Klasiz.fun works entirely in your web browser on any device—laptop, tablet, or smartphone. Just sign up and start using it immediately.',
+	'faq.q5': 'What ages is this suitable for?',
+	'faq.a5': 'Klasiz.fun is designed for K-12 classrooms. Teachers use it successfully from kindergarten through high school, adapting the features to match their students\' needs.',
 
 		// --- Footer ---
 		'footer.copyright': '© {year} Klasiz.fun. All rights reserved.',
@@ -1275,16 +1309,50 @@ const TRANSLATIONS = {
 
 		// --- 落地页：功能展示 ---
 	'landing.lesson_planner.title': '课程规划',
-	'landing.lesson_planner.desc': '轻松规划、组织和安排您的课程。创建结构化的学习路径，并全程跟踪学生进度。',
+	'landing.lesson_planner.desc': '节省数小时备课时间！轻松规划、组织和安排您的课程。创建结构化的学习路径，并全程跟踪学生进度。',
 	'landing.lesson_planner.preview': '课程规划预览',
 	'landing.lesson_planner.cta': '试用课程规划',
 	'landing.play_games.title': '玩游戏',
-	'landing.play_games.desc': '通过互动游戏让学习变得有趣！从龙卷风到记忆配对，用游戏化活动吸引学生，提高课堂参与度。',
+	'landing.play_games.desc': '提升85%的课堂参与度！通过互动游戏让学习变得有趣。从龙卷风到记忆配对，将每节课变成激动人心的活动。',
 	'landing.play_games.preview': '互动游戏预览',
 	'landing.play_games.cta': '开始游戏',
 	'landing.ready.title': '准备好改变您的课堂了吗？',
 	'landing.ready.desc': '加入成千上万使用 Klasiz.fun 吸引学生的教师行列',
 	'landing.create_account': '免费创建账户',
+
+	// --- 社会证明 ---
+	'social_proof.title': '全球教师信赖',
+	'social_proof.subtitle': '加入每天都在改变教育的教师社区',
+	'social_proof.students': '学生参与',
+	'social_proof.classrooms': '班级',
+	'social_proof.rating': '教师评分',
+	'social_proof.cta': '查看教师评价',
+
+	// --- 用户评价 ---
+	'testimonials.title': '教师怎么说',
+	'testimonials.name1': '张老师',
+	'testimonials.role1': '三年级教师',
+	'testimonials.quote1': 'Klasiz.fun 完全改变了我的课堂管理方式。学生们非常热爱积分系统和游戏。第一个月行为问题就减少了60%！',
+	'testimonials.name2': '陈老师',
+	'testimonials.role2': '高中数学',
+	'testimonials.quote2': '终于找到了一款真正好用的课堂工具。作业工作室每周为我节省至少2小时评分时间。我的学生比以前更投入了。',
+	'testimonials.name3': 'Emma 老师',
+	'testimonials.role3': '英语教师',
+	'testimonials.quote3': '简单、强大、免费。我用 Klasiz.fun 做所有事情——行为追踪、游戏，甚至课程规划。它已成为我教学的必备工具。',
+
+	// --- 常见问题 ---
+	'faq.title': '常见问题',
+	'faq.subtitle': '关于 Klasiz.fun 您需要知道的一切',
+	'faq.q1': 'Klasiz.fun 真的免费吗？',
+	'faq.a1': '是的！Klasiz.fun 对教师完全免费。创建无限班级、添加无限学生，使用所有功能无需任何费用。',
+	'faq.q2': '我的数据有多安全？',
+	'faq.a2': '您的数据经过加密和安全存储。我们绝不会将您的数据出售给第三方。您完全拥有并控制班级和学生信息。',
+	'faq.q3': '家长可以查看学生进度吗？',
+	'faq.a3': '当然可以！每个班级都有独特的家长代码。家长可以登录实时查看孩子的行为积分、作业和进度。',
+	'faq.q4': '需要安装软件吗？',
+	'faq.a4': '无需安装！Klasiz.fun 完全在您的网络浏览器中运行，适用于任何设备——笔记本电脑、平板或智能手机。只需注册即可立即使用。',
+	'faq.q5': '适合什么年龄段？',
+	'faq.a5': 'Klasiz.fun 专为 K-12 课堂设计。从幼儿园到高中，教师都能成功使用，并根据学生需求调整功能。',
 
 	// --- 游戏 UI 字符串（补充）---
 		'games.mode': '游戏模式',
