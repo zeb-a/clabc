@@ -572,6 +572,10 @@ export default function ClassDashboard({
   const viewModeRef = useRef('students');
   const { setPageId } = usePageHelp();
 
+    // Sync viewModeRef.current with viewMode whenever viewMode changes
+    useEffect(() => {
+      viewModeRef.current = viewMode;
+    }, [viewMode]);
   // Sync dashboard sub-view to help bubble (page-relevant help)
   useEffect(() => {
     const map = {
@@ -1498,8 +1502,9 @@ export default function ClassDashboard({
                   onBack={() => setViewMode('students')}
                 />
               ) : viewMode === 'settings' ? (
-                <div key="settings" className="page-animate-in" style={{ height: '100%' }}>
+                <div key={`settings-${activeClass.id}`} className="page-animate-in" style={{ height: '100%' }}>
                   <SettingsPage
+                    key={`settings-page-${activeClass.id}`}
                     activeClass={activeClass}
 
                     behaviors={activeClass.behaviors || behaviors}

@@ -292,6 +292,30 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
     };
   }, [isVisible, isPositive, points]);
 
+  // Helper to convert a twemoji/image URL back to an emoji character (if possible)
+  const urlToEmoji = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    try {
+      const name = url.split('/').pop().split('.')[0];
+      if (!name) return null;
+      const parts = name.split('-').map(p => parseInt(p, 16));
+      if (parts.some(isNaN)) return null;
+      return String.fromCodePoint(...parts);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const renderBehaviorEmoji = (beh) => {
+    if (!beh) return '⭐';
+    if (typeof beh === 'string' && /^https?:\/\//.test(beh)) {
+      const em = urlToEmoji(beh);
+      if (em) return em;
+      return <img src={beh} alt="" style={{ width: '1em', height: '1em', objectFit: 'contain' }} />;
+    }
+    return beh;
+  };
+
   const backgroundColor = isPositive 
     ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' 
     : 'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)';
@@ -487,7 +511,11 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
                   willChange: performanceConfig.willChange
                 }}
               >
-                {behaviorEmoji}
+                {typeof renderBehaviorEmoji(behaviorEmoji) === 'string' ? (
+                  renderBehaviorEmoji(behaviorEmoji)
+                ) : (
+                  <span style={{ display: 'inline-flex', width: '1em', height: '1em' }}>{renderBehaviorEmoji(behaviorEmoji)}</span>
+                )}
               </motion.span>
 
               {/* Animated Points (optimized) */}

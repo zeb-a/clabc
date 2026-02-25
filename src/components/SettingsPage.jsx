@@ -112,18 +112,179 @@ const STICKER_OPTIONS = [
   { id: 'clock', emoji: '⏰', name: 'Time' },
 ];
 
+// Helper: Convert old Twemoji URLs back to emoji
+function urlToEmoji(iconValue) {
+  if (!iconValue) return '⭐';
+  
+  // If it's already an emoji (not a URL), return as-is
+  if (!iconValue.includes('/') && !iconValue.includes('http')) {
+    return iconValue;
+  }
+  
+  // Map common hex codes back to emoji
+  const urlToEmojiMap = {
+    '1f52c': '🔬', // microscope
+    '1f44d': '👍', // thumbs up
+    '1f44f': '👏', // clapping hands
+    '1f60a': '😊', // smiling face
+    '1f60d': '😍', // heart eyes
+    '1f973': '🥳', // partying face
+    '1f4a5': '💥', // explosion
+    '1f525': '🔥', // fire
+    '1f680': '🚀', // rocket
+    '1f3c6': '🏆', // trophy
+    '1f3af': '🎯', // bullseye
+    '1f32e': '🌮', // taco
+    '2b50': '⭐', // star
+  };
+  
+  // Extract hex code from URL like "...1f52c.png"
+  const match = iconValue.match(/\/([a-f0-9-]+)\.(?:png|svg)/i);
+  if (match) {
+    const hex = match[1].replace(/-/g, '-'); // Keep as-is for now
+    return urlToEmojiMap[hex] || '⭐';
+  }
+  
+  return '⭐'; // Default fallback
+}
+
 export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateBehaviors }) {
+    // Inject instant hover highlight CSS for emoji picker buttons
+    React.useEffect(() => {
+      if (typeof document !== 'undefined' && !document.getElementById('emoji-picker-btn-style')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'emoji-picker-btn-style';
+        styleSheet.innerHTML = `
+          .emoji-picker-btn {
+            transition: none !important;
+          }
+          .emoji-picker-btn:hover, .emoji-picker-btn:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+            background: #F0FDF4 !important;
+          }
+        `;
+        document.head.appendChild(styleSheet);
+      }
+    }, []);
   const [activeTab] = useState('cards'); // 'cards' | 'students' | 'general'
-  const [cards, setCards] = useState(Array.isArray(behaviors) ? behaviors : []);
+  const [cards, setCards] = useState(() => {
+    const behaviorList = Array.isArray(behaviors) ? behaviors : [];
+    // Convert old URL-based icons to emoji
+    return behaviorList.map(card => ({
+      ...card,
+      icon: urlToEmoji(card.icon)
+    }));
+  });
   const [, setSidebarCollapsed] = useState(false);
   const [editingCardId, setEditingCardId] = useState(null);
   const [editingCard, setEditingCard] = useState({ label: '', pts: 0, icon: '⭐', type: 'wow' });
   const [openEmojiFor, setOpenEmojiFor] = useState(null);
-      const [showAddCardModal, setShowAddCardModal] = useState(false);
+  const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [addCardModalData, setAddCardModalData] = useState({ label: 'New Card', pts: 1, icon: '⭐' });
   const [showEmojiPickerForModal, setShowEmojiPickerForModal] = useState(false);
 
-  React.useEffect(() => setCards(Array.isArray(behaviors) ? behaviors : []), [behaviors]);
+  // Ref for emoji picker grid
+  const emojiPickerRef = React.useRef(null);
+
+  // Close emoji picker when clicking outside
+  React.useEffect(() => {
+    if (openEmojiFor !== null) {
+      const handleClickOutside = (e) => {
+        if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) {
+          setOpenEmojiFor(null);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [openEmojiFor]);
+
+  // Fast sticker button with tooltip, only re-renders when props change
+  const FastStickerButton = React.memo(
+    function StickerButton({ sticker, onClick }) {
+      const [showTooltip, setShowTooltip] = React.useState(false);
+      return (
+        <span style={{ position: 'relative', display: 'inline-block' }}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
+        >
+          <button
+            onClick={onClick}
+            style={{ ...styles.stickerBtn, padding: 12, fontSize: 32 }}
+            className="emoji-picker-btn"
+            tabIndex={0}
+            aria-label={sticker.name}
+          >
+            {sticker.emoji}
+          </button>
+          {showTooltip && (
+            <span style={{
+              position: 'absolute',
+              left: '50%',
+              top: '100%',
+              transform: 'translateX(-50%)',
+              background: '#333',
+              color: '#fff',
+              padding: '6px 12px',
+              borderRadius: 8,
+              fontSize: 14,
+              whiteSpace: 'nowrap',
+              marginTop: 8,
+              zIndex: 9999,
+              pointerEvents: 'none',
+            }}>{sticker.name}</span>
+          )}
+        </span>
+      );
+    },
+    (prevProps, nextProps) => prevProps.sticker.id === nextProps.sticker.id && prevProps.onClick === nextProps.onClick
+  );
+
+  // Pure HTML/CSS emoji picker grid for instant hover and tooltip
+  function EmojiPickerGrid({ stickers, editingCard, setEditingCard, persistBehaviors, setOpenEmojiFor }) {
+    // Restore React-based grid with FastStickerButton and tooltip
+    return (
+      <div style={styles.centerStickerGrid}>
+        {stickers.map(sticker => (
+          <Tooltip key={sticker.id} text={sticker.name}>
+            <button
+              style={styles.stickerBtn}
+              onClick={() => {
+                setEditingCard(prev => ({ ...prev, icon: sticker.emoji }));
+                if (persistBehaviors) persistBehaviors([{ ...editingCard, icon: sticker.emoji }]);
+                setOpenEmojiFor(null);
+              }}
+              aria-label={sticker.name}
+            >
+              {sticker.emoji}
+            </button>
+          </Tooltip>
+        ))}
+      </div>
+    );
+  }
+  // Force cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      setEditingCardId(null);
+      setEditingCard({ label: '', pts: 0, icon: '⭐', type: 'wow' });
+      setOpenEmojiFor(null);
+      setShowAddCardModal(false);
+      setShowEmojiPickerForModal(false);
+    };
+  }, []);
+
+  React.useEffect(() => {
+    // Convert old URL-based icons to emoji when behaviors change
+    const convertedCards = (Array.isArray(behaviors) ? behaviors : []).map(card => ({
+      ...card,
+      icon: urlToEmoji(card.icon)
+    }));
+    setCards(convertedCards);
+  }, [behaviors]);
 
   // Auto-collapse sidebar on small screens
   React.useEffect(() => {
@@ -233,44 +394,33 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
     }
   }, []);
 
-  // Parse emojis with Twemoji when emoji picker opens or cards render
-  React.useEffect(() => {
-    const parseEmojis = () => {
-      if (typeof window !== 'undefined' && window.twemoji) {
-        // Skip parsing emoji picker - causes severe lag on hover
-        // Only parse card icons
-        const cardIcons = document.querySelectorAll('[style*="width: 44px"][style*="height: 44px"]');
-        cardIcons.forEach(icon => {
-          if (icon.textContent && /[\u{1F000}-\u{1F9FF}]/u.test(icon.textContent)) {
-            window.twemoji.parse(icon, {
-              folder: 'svg',
-              ext: '.svg',
-              className: 'emoji'
-            });
-          }
-        });
-      }
-    };
-
-    // Only parse on initial mount
-    if (openEmojiFor === null && cards.length > 0) {
-      parseEmojis();
-    }
-  }, []);
+  // Note: We no longer convert emoji to twemoji images via window.twemoji.parse()
+  // to avoid displaying URLs as overlays. Native emoji rendering is cleaner and faster.
 
   // SettingsPage.jsx
 // Optimistic close: close UI immediately, save in background
 const handleBackClick = () => {
   try {
+    // Reset all editing state before closing
+    setEditingCardId(null);
+    setEditingCard({ label: '', pts: 0, icon: '⭐', type: 'wow' });
+    setOpenEmojiFor(null);
+    setShowAddCardModal(false);
+    setShowEmojiPickerForModal(false);
+    
     // Close the settings UI immediately for a snappy experience
-    onBack();
+    if (typeof onBack === 'function') {
+      onBack();
+    } else {
+    }
+    
     // Persist changes in the background. Log failures but do not block UI.
     api.saveBehaviors(cards).catch(err => {
-      console.error('Failed to persist behavior cards (background):', err);
     });
   } catch (err) {
-    console.error('Error closing settings:', err);
-    onBack();
+    if (typeof onBack === 'function') {
+      onBack();
+    }
   }
 };
   const handleSaveCard = (id) => {
@@ -453,23 +603,36 @@ const handleBackClick = () => {
                         </button>
                         </Tooltip>
                         {openEmojiFor === card.id && (
-                          <div style={styles.centerEmojiModal} onClick={e => e.stopPropagation()} className="modal-overlay-in">
-                            <div style={styles.centerStickerGrid} className="animated-modal-content modal-animate-scale">
-                              {STICKER_OPTIONS.map(sticker => (
-                                <Tooltip key={sticker.id} text={sticker.name}>
-                                <button onClick={() => {
-                                  if (editingCardId === card.id) {
-                                    setEditingCard(prev => ({ ...prev, icon: sticker.emoji }));
-                                  } else {
-                                    const updated = cards.map(c => c.id === card.id ? { ...c, icon: sticker.emoji } : c);
-                                    persistBehaviors(updated);
-                                  }
-                                  setOpenEmojiFor(null);
-                                }} style={{ ...styles.stickerBtn, padding: 12, fontSize: 32 }}>
-                                  {sticker.emoji}
-                                </button>
-                                </Tooltip>
-                              ))}
+                          <div style={styles.centerEmojiModal} className="modal-overlay-in">
+                            <div ref={emojiPickerRef} style={{ position: 'relative', ...styles.centerStickerGrid }} className="animated-modal-content modal-animate-scale">
+                              {/* X close button, small and transparent at far top right */}
+                              <button
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10000,
+                                  background: 'rgba(255,255,255,0.1)',
+                                  border: 'none',
+                                  color: '#888',
+                                  fontSize: 18,
+                                  cursor: 'pointer',
+                                  padding: 4,
+                                  borderRadius: '0 8px 0 0',
+                                  transition: 'background 0.2s',
+                                }}
+                                aria-label="Close emoji picker"
+                                onClick={() => setOpenEmojiFor(null)}
+                              >
+                                <X size={18} />
+                              </button>
+                              <EmojiPickerGrid
+                                stickers={STICKER_OPTIONS}
+                                editingCard={editingCard}
+                                setEditingCard={setEditingCard}
+                                persistBehaviors={editingCardId === card.id ? null : persistBehaviors}
+                                setOpenEmojiFor={setOpenEmojiFor}
+                              />
                             </div>
                           </div>
                         )}
@@ -785,7 +948,6 @@ const styles = {
     padding: '12px',
     cursor: 'pointer',
     background: 'white',
-    transition: 'all 0.2s',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

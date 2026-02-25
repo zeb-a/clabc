@@ -35,11 +35,13 @@
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://unpkg.com;
+      script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://unpkg.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: https://cdn.jsdelivr.net https://twemoji.maxcdn.com;
-      connect-src 'self' https://klasiz.fun;
+      img-src 'self' data: https://cdn.jsdelivr.net https://twemoji.maxcdn.com https://www.googletagmanager.com;
+      media-src 'self' https://ssl.gstatic.com;
+      connect-src 'self' https://klasiz.fun https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com;
       frame-src 'self';
       object-src 'none';
       base-uri 'self';
@@ -88,10 +90,8 @@
 
 
     <title>Klasiz.fun - Modern Classroom Management</title>
-    <!-- Twemoji for cross-device emoji support -->
-    <script src="https://cdn.jsdelivr.net/npm/twemoji@15.0.3/dist/twemoji.min.js"
-            integrity="sha384-9+7qCwH0Vd3H3l1cC7Y9E0zC8yH0mCwZC9HhLz0yP5yF7qB1yF1qB1yF1qB1yF1qB1yF1qB1yF1"
-            crossorigin="anonymous"></script>
+    <!-- Twemoji for cross-device emoji support (use MaxCDN to ensure correct MIME) -->
+    <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap');
 
