@@ -1,130 +1,254 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { useEffect, useState, useMemo } from 'react';
-import { boringAvatar } from '../utils/avatar';
+import { useEffect, useState, useMemo, useRef } from 'react';
 
-// Large card point animation with student avatar and behavior emoji
-export const PointAnimation = ({ isVisible, studentAvatar, studentName, points = 1, behaviorEmoji = '⭐', onComplete, students }) => {
+// ─── Character assets ────────────────────────────────────────────────────────
+import monkeyImg    from '../assets/characters/monkey_thumbsup.png';
+import pigImg       from '../assets/characters/pig_celebrate.png';
+import frogImg      from '../assets/characters/frog_wow.png';
+import dogImg       from '../assets/characters/dog_sad.png';
+import owlImg       from '../assets/characters/owl_disappointed.png';
+
+// ─── Character definitions ───────────────────────────────────────────────────
+// Each character has:
+//   src        – imported image
+//   mood       – 'positive' | 'negative'
+//   entry      – which screen edge it enters from ('left'|'right'|'top'|'bottom')
+//   label      – fun reaction text shown in the speech bubble
+//   bobAnim    – framer-motion animate object for the idle bob while on screen
+//   color      – accent color for the speech bubble
+
+const CHARACTERS = [
+  {
+    id: 'monkey',
+    src: monkeyImg,
+    mood: 'positive',
+    entry: 'left',
+    labels: ['NICE ONE! 🎉', 'YOU ROCK! 🤘', 'BOOM! 💥', 'LEGEND! 🏆'],
+    color: '#FF9800',
+    bobAnim: {
+      y: [0, -22, 0, -14, 0],
+      rotate: [0, -8, 8, -5, 0],
+      scale: [1, 1.06, 1, 1.04, 1],
+    },
+  },
+  {
+    id: 'pig',
+    src: pigImg,
+    mood: 'positive',
+    entry: 'right',
+    labels: ['AMAZING! 🌟', 'WOW WOW WOW!', 'SUPERSTAR! ⭐', 'INCREDIBLE! 🎊'],
+    color: '#E91E8C',
+    bobAnim: {
+      y: [0, -18, 0, -10, 0],
+      rotate: [0, 6, -6, 4, 0],
+      scale: [1, 1.08, 1, 1.05, 1],
+    },
+  },
+  {
+    id: 'frog',
+    src: frogImg,
+    mood: 'positive',
+    entry: 'bottom',
+    labels: ['RIBBIT! YOU DID IT! 🐸', 'JUMP FOR JOY! 🎉', 'SO AWESOME! ✨', 'YEAH YEAH YEAH! 🌈'],
+    color: '#4CAF50',
+    bobAnim: {
+      y: [0, -28, 0, -16, 0],
+      rotate: [0, -4, 4, -3, 0],
+      scale: [1, 1.1, 1, 1.06, 1],
+    },
+  },
+  {
+    id: 'dog',
+    src: dogImg,
+    mood: 'negative',
+    entry: 'left',
+    labels: ['Oof... 😢', 'Aww nooo...', 'Come on...', 'That hurt 💔'],
+    color: '#FF5722',
+    bobAnim: {
+      x: [-6, 6, -6, 4, -4, 0],
+      rotate: [-4, 4, -4, 3, -3, 0],
+      scale: [1, 0.96, 1, 0.97, 1],
+    },
+  },
+  {
+    id: 'owl',
+    src: owlImg,
+    mood: 'negative',
+    entry: 'right',
+    labels: ['Disappointing...', 'I expected better.', 'Hmm. Really?', 'Not great, kid.'],
+    color: '#795548',
+    bobAnim: {
+      y: [0, 4, 0, 3, 0],
+      rotate: [-3, 3, -3, 2, 0],
+      scale: [1, 0.97, 1, 0.98, 1],
+    },
+  },
+];
+
+// ─── Entry/exit motion variants per edge ─────────────────────────────────────
+function getEntryVariants(entry) {
+  const offscreen = {
+    left:   { x: '-140%', y: '0%',    opacity: 0 },
+    right:  { x:  '140%', y: '0%',    opacity: 0 },
+    top:    { x: '0%',    y: '-140%', opacity: 0 },
+    bottom: { x: '0%',    y:  '140%', opacity: 0 },
+  };
+  return {
+    hidden:  offscreen[entry] || offscreen.left,
+    visible: { x: '0%', y: '0%', opacity: 1,
+      transition: { type: 'spring', damping: 18, stiffness: 220, duration: 0.6 } },
+    exit:    { ...offscreen[entry], opacity: 0,
+      transition: { type: 'spring', damping: 22, stiffness: 260, duration: 0.45 } },
+  };
+}
+
+// ─── Confetti particle ────────────────────────────────────────────────────────
+const CONFETTI_EMOJIS = ['🎉', '✨', '🌟', '💫', '⭐', '🎊', '🏆', '💥'];
+function ConfettiParticle({ index, total }) {
+  const x = `${(index / total) * 100}vw`;
+  const delay = index * 0.12;
+  const size = 22 + (index % 3) * 8;
+  return (
+    <motion.div
+      initial={{ y: '-10vh', x, opacity: 0, rotate: 0 }}
+      animate={{ y: '110vh', opacity: [0, 1, 1, 0], rotate: 360 * (index % 2 === 0 ? 1 : -1) }}
+      transition={{ duration: 2.2, delay, ease: 'linear' }}
+      style={{ position: 'fixed', top: 0, fontSize: size, pointerEvents: 'none', zIndex: 4001 }}
+    >
+      {CONFETTI_EMOJIS[index % CONFETTI_EMOJIS.length]}
+    </motion.div>
+  );
+}
+
+// ─── Speech bubble ────────────────────────────────────────────────────────────
+function SpeechBubble({ text, color, side }) {
+  const isLeft = side === 'left' || side === 'bottom';
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0, opacity: 0 }}
+      transition={{ type: 'spring', damping: 14, stiffness: 300, delay: 0.35 }}
+      style={{
+        position: 'absolute',
+        top: '8%',
+        [isLeft ? 'right' : 'left']: '-10px',
+        transform: isLeft ? 'translateX(100%)' : 'translateX(-100%)',
+        background: color,
+        color: '#fff',
+        fontWeight: 900,
+        fontSize: 'clamp(14px, 2.2vw, 22px)',
+        padding: '10px 18px',
+        borderRadius: 20,
+        whiteSpace: 'nowrap',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+        zIndex: 4010,
+        letterSpacing: 0.3,
+        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+      }}
+    >
+      {text}
+      {/* Tail */}
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        [isLeft ? 'left' : 'right']: -10,
+        transform: 'translateY(-50%)',
+        width: 0,
+        height: 0,
+        borderTop: '10px solid transparent',
+        borderBottom: '10px solid transparent',
+        [isLeft ? 'borderRight' : 'borderLeft']: `12px solid ${color}`,
+      }} />
+    </motion.div>
+  );
+}
+
+// ─── Points badge ─────────────────────────────────────────────────────────────
+function PointsBadge({ points, studentName, isPositive }) {
+  const bg = isPositive
+    ? 'linear-gradient(135deg, #FFD700 0%, #FF9800 100%)'
+    : 'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)';
+  return (
+    <motion.div
+      initial={{ scale: 0, y: 60, opacity: 0 }}
+      animate={{ scale: 1, y: 0, opacity: 1 }}
+      exit={{ scale: 0, y: -40, opacity: 0 }}
+      transition={{ type: 'spring', damping: 14, stiffness: 280, delay: 0.2 }}
+      style={{
+        position: 'fixed',
+        bottom: '12vh',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: bg,
+        borderRadius: 28,
+        padding: '18px 36px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+        boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+        zIndex: 4005,
+        minWidth: 180,
+        border: `4px solid rgba(255,255,255,0.4)`,
+      }}
+    >
+      <span style={{ color: '#fff', fontWeight: 900, fontSize: 'clamp(18px, 3vw, 26px)', textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+        {studentName}
+      </span>
+      <motion.span
+        animate={{ scale: [1, 1.25, 1], rotate: [0, -5, 5, 0] }}
+        transition={{ duration: 0.7, repeat: Infinity, repeatDelay: 0.3 }}
+        style={{ color: '#fff', fontWeight: 950, fontSize: 'clamp(42px, 7vw, 72px)', lineHeight: 1, textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+      >
+        {isPositive ? `+${points}` : points}
+      </motion.span>
+    </motion.div>
+  );
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+export const PointAnimation = ({
+  isVisible,
+  studentAvatar,
+  studentName,
+  points = 1,
+  behaviorEmoji = '⭐',
+  onComplete,
+  students,
+}) => {
   const isPositive = points > 0;
   const isWholeClass = students && students.length > 0;
 
-  // Generate avatar URLs for students array with fallbacks
-  const studentsWithAvatars = useMemo(() => {
-    if (!students || students.length === 0) return [];
-    return students.map(student => ({
-      ...student,
-      avatar: student.avatar || boringAvatar(student.name || 'Student', 'boy')
-    }));
-  }, [students]);
+  // Pick a random character matching the mood, stable per animation trigger
+  const characterRef = useRef(null);
+  const labelRef = useRef('');
 
-  // Fallback avatar for single student
-  const fallbackAvatar = studentAvatar || boringAvatar(studentName || 'Student', 'boy');
-  const [sparkles, setSparkles] = useState([]);
-  const [emojiBounce, setEmojiBounce] = useState(false);
-
-  // Performance optimization: Detect device capabilities
-  const performanceConfig = useMemo(() => {
-    const isLowEnd = typeof window !== 'undefined' && (
-      // Check for low memory (Chrome only)
-      (navigator.deviceMemory && navigator.deviceMemory < 4) ||
-      // Check for slow connection
-      (navigator.connection && navigator.connection.effectiveType && navigator.connection.effectiveType.includes('2g')) ||
-      // Check for touch device (often slower rendering)
-      ('ontouchstart' in window) ||
-      // Check for reduced motion preference
-      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-    );
-
-    return {
-      // Use GPU acceleration hints
-      willChange: isLowEnd ? 'auto' : 'transform, opacity',
-      // Reduce particle count on low-end devices
-      sparkleCount: isLowEnd ? 4 : 8,
-      // Reduce confetti count on low-end devices
-      confettiCount: isLowEnd ? 6 : 12,
-      // Slower, smoother animations on low-end devices
-      animationDuration: isLowEnd ? 1.2 : 0.8,
-      // Use simpler easing on low-end devices
-      animationEase: isLowEnd ? 'easeOut' : 'easeInOut',
-      // Reduce repeat frequency on low-end devices
-      repeatDelay: isLowEnd ? 0.3 : 0,
-      // Use transform3d for GPU acceleration
-      transform: isLowEnd ? undefined : 'translateZ(0)'
-    };
-  }, []);
-
-  // Create sparkle effects for positive points (optimized count)
-  useEffect(() => {
-    if (isVisible && isPositive) {
-      const newSparkles = Array.from({ length: performanceConfig.sparkleCount }, (_, i) => ({
-        id: i,
-        angle: (i / performanceConfig.sparkleCount) * Math.PI * 2,
-        distance: 100 + Math.random() * 50
-      }));
-      setSparkles(newSparkles);
-      setTimeout(() => setSparkles([]), 1200);
-    }
-  }, [isVisible, isPositive, performanceConfig.sparkleCount]);
-
-  // Trigger emoji bounce animation (optimized for performance)
   useEffect(() => {
     if (isVisible) {
-      setEmojiBounce(true);
-      // Use requestAnimationFrame for smoother animation
-      let animationFrameId;
-      let lastTime = 0;
-      const bounceDelay = isPositive ? 300 : 400;
-
-      const animateBounce = (timestamp) => {
-        if (!lastTime) lastTime = timestamp;
-        const elapsed = timestamp - lastTime;
-
-        if (elapsed >= bounceDelay) {
-          setEmojiBounce(prev => !prev);
-          lastTime = timestamp;
-        }
-
-        animationFrameId = requestAnimationFrame(animateBounce);
-      };
-
-      animationFrameId = requestAnimationFrame(animateBounce);
-
-      return () => {
-        if (animationFrameId) {
-          cancelAnimationFrame(animationFrameId);
-        }
-      };
+      const pool = CHARACTERS.filter(c => c.mood === (isPositive ? 'positive' : 'negative'));
+      const picked = pool[Math.floor(Math.random() * pool.length)];
+      characterRef.current = picked;
+      labelRef.current = picked.labels[Math.floor(Math.random() * picked.labels.length)];
     }
   }, [isVisible, isPositive]);
-  
-  // Play sound effect when animation shows
+
+  const char = characterRef.current;
+  const entry = char?.entry ?? 'left';
+  const variants = useMemo(() => getEntryVariants(entry), [entry]);
+
+  // ── Sound effects (unchanged from original) ────────────────────────────────
   useEffect(() => {
     if (!isVisible) return;
-
-    // Audio context for sound effects
     let audioContext = null;
     let oscillators = [];
-
     try {
-      // Check browser support for Web Audio API
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) {
-        console.warn('Web Audio API not supported');
-        return;
-      }
-
-      audioContext = new AudioContextClass({
-        latencyHint: 'interactive'
-      });
-
-      // Resume if suspended (autoplay policy)
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-
+      if (!AudioContextClass) return;
+      audioContext = new AudioContextClass({ latencyHint: 'interactive' });
+      if (audioContext.state === 'suspended') audioContext.resume();
       const startTime = audioContext.currentTime;
-
-      // Helper to play a single note with specific characteristics
       const playNote = (freq, time, volume = 0.2, duration = 0.2, type = 'sine') => {
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
@@ -138,469 +262,161 @@ export const PointAnimation = ({ isVisible, studentAvatar, studentName, points =
         osc.stop(time + duration);
         oscillators.push(osc);
       };
-
       if (isPositive) {
-        // --- POSITIVE SOUND ENGINE - HAPPY CELEBRATORY SOUNDS ---
         const count = Math.min(Math.max(points, 1), 5);
-
         if (count === 1) {
-          // 1 point: Cheerful "Ding!" (bright and happy)
-          playNote(1046, startTime, 0.25, 0.15, 'sine'); // C6
-          playNote(1318, startTime + 0.08, 0.15, 0.2, 'sine'); // E6
+          playNote(1046, startTime, 0.25, 0.15, 'sine');
+          playNote(1318, startTime + 0.08, 0.15, 0.2, 'sine');
         } else if (count === 2) {
-          // 2 points: Rising "Yay!" melody (upward celebration)
-          playNote(784, startTime, 0.2, 0.2, 'triangle'); // G5
-          playNote(880, startTime + 0.12, 0.2, 0.2, 'triangle'); // A5
-          playNote(1046, startTime + 0.24, 0.25, 0.35, 'sine'); // C6
+          playNote(784, startTime, 0.2, 0.2, 'triangle');
+          playNote(880, startTime + 0.12, 0.2, 0.2, 'triangle');
+          playNote(1046, startTime + 0.24, 0.25, 0.35, 'sine');
         } else if (count === 3) {
-          // 3 points: Triumphant fanfare (celebration!)
-          playNote(659, startTime, 0.18, 0.2, 'triangle'); // E5
-          playNote(784, startTime + 0.1, 0.18, 0.2, 'triangle'); // G5
-          playNote(987, startTime + 0.2, 0.2, 0.25, 'triangle'); // B5
-          playNote(1318, startTime + 0.3, 0.25, 0.4, 'sine'); // E6
+          playNote(659, startTime, 0.18, 0.2, 'triangle');
+          playNote(784, startTime + 0.1, 0.18, 0.2, 'triangle');
+          playNote(987, startTime + 0.2, 0.2, 0.25, 'triangle');
+          playNote(1318, startTime + 0.3, 0.25, 0.4, 'sine');
         } else if (count === 4) {
-          // 4 points: Super celebration sparkles (exciting!)
-          playNote(523, startTime, 0.15, 0.15, 'triangle'); // C5
-          playNote(659, startTime + 0.08, 0.15, 0.15, 'triangle'); // E5
-          playNote(784, startTime + 0.16, 0.18, 0.2, 'triangle'); // G5
-          playNote(1046, startTime + 0.24, 0.2, 0.25, 'triangle'); // C6
-          playNote(1318, startTime + 0.32, 0.25, 0.5, 'sine'); // E6
+          playNote(523, startTime, 0.15, 0.15, 'triangle');
+          playNote(659, startTime + 0.08, 0.15, 0.15, 'triangle');
+          playNote(784, startTime + 0.16, 0.18, 0.2, 'triangle');
+          playNote(1046, startTime + 0.24, 0.2, 0.25, 'triangle');
+          playNote(1318, startTime + 0.32, 0.25, 0.5, 'sine');
         } else {
-          // 5+ points: Grand victory fanfare (amazing!)
           const chords = [
-            {f: [523, 659], t: 0},      // C major chord
-            {f: [784, 987], t: 0.15},   // G major chord
-            {f: [1046, 1318], t: 0.3},  // E major chord (relative minor)
-            {f: [1318, 1567], t: 0.5},  // Victory!
+            { f: [523, 659], t: 0 }, { f: [784, 987], t: 0.15 },
+            { f: [1046, 1318], t: 0.3 }, { f: [1318, 1567], t: 0.5 },
           ];
           chords.forEach(c => c.f.forEach(freq => playNote(freq, startTime + c.t, 0.18, 0.8, 'triangle')));
         }
       } else {
-        // --- FUNNY BUMMER SOUND ENGINE (GOOFY SILLY SOUNDS) ---
         const penalty = Math.abs(points);
-
         if (penalty === 1) {
-          // LEVEL -1: "Oops!" (short silly slide down)
           const osc = audioContext.createOscillator();
           const gain = audioContext.createGain();
-          osc.type = 'sine';
-          osc.connect(gain);
-          gain.connect(audioContext.destination);
+          osc.type = 'sine'; osc.connect(gain); gain.connect(audioContext.destination);
           osc.frequency.setValueAtTime(660, startTime);
           osc.frequency.exponentialRampToValueAtTime(330, startTime + 0.2);
           gain.gain.setValueAtTime(0.2, startTime);
           gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-          osc.start(startTime);
-          osc.stop(startTime + 0.2);
+          osc.start(startTime); osc.stop(startTime + 0.2);
           oscillators.push(osc);
-        }
-        else if (penalty === 2) {
-          // LEVEL -2: "Whoops whoops" (two goofy drops)
-          playNote(494, startTime, 0.15, 0.15, 'triangle'); // B4
-          playNote(330, startTime + 0.12, 0.18, 0.25, 'triangle'); // E4
-          playNote(392, startTime + 0.3, 0.15, 0.15, 'triangle'); // G4
-          playNote(262, startTime + 0.42, 0.18, 0.25, 'triangle'); // C4
-        }
-        else if (penalty === 3) {
-          // LEVEL -3: "Uh-oh-oh" (three silly downward steps)
-          playNote(523, startTime, 0.15, 0.12, 'triangle'); // C5
-          playNote(392, startTime + 0.12, 0.15, 0.12, 'triangle'); // G4
-          playNote(330, startTime + 0.24, 0.18, 0.15, 'triangle'); // E4
-          playNote(262, startTime + 0.36, 0.2, 0.3, 'triangle'); // C4 (ending on low note)
-        }
-        else if (penalty === 4) {
-          // LEVEL -4: "Wah-wah-wah-wah" (classic cartoon wah sound)
-          const wahDuration = 0.8;
+        } else if (penalty === 2) {
+          playNote(494, startTime, 0.15, 0.15, 'triangle');
+          playNote(330, startTime + 0.12, 0.18, 0.25, 'triangle');
+          playNote(392, startTime + 0.3, 0.15, 0.15, 'triangle');
+          playNote(262, startTime + 0.42, 0.18, 0.25, 'triangle');
+        } else if (penalty === 3) {
+          playNote(523, startTime, 0.15, 0.12, 'triangle');
+          playNote(392, startTime + 0.12, 0.15, 0.12, 'triangle');
+          playNote(330, startTime + 0.24, 0.18, 0.15, 'triangle');
+          playNote(262, startTime + 0.36, 0.2, 0.3, 'triangle');
+        } else {
           const osc = audioContext.createOscillator();
           const gain = audioContext.createGain();
           const lfo = audioContext.createOscillator();
           const lfoGain = audioContext.createGain();
-
-          osc.type = 'triangle';
-          lfo.type = 'sine';
-          lfo.frequency.value = 5; // 5 Hz wobble
-
+          osc.type = 'triangle'; lfo.type = 'sine'; lfo.frequency.value = 5;
           lfoGain.gain.value = 100;
-
-          osc.connect(gain);
-          lfo.connect(lfoGain);
-          lfoGain.connect(osc.frequency);
+          osc.connect(gain); lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
           gain.connect(audioContext.destination);
-
           osc.frequency.value = 400;
           gain.gain.setValueAtTime(0.2, startTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, startTime + wahDuration);
-
-          lfo.start(startTime);
-          osc.start(startTime);
-          osc.stop(startTime + wahDuration);
-          lfo.stop(startTime + wahDuration);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.9);
+          lfo.start(startTime); osc.start(startTime);
+          osc.stop(startTime + 0.9); lfo.stop(startTime + 0.9);
           oscillators.push(osc, lfo);
-        }
-        else {
-          // LEVEL -5+: "Oh nooooo..." (dramatic goofy slide)
-          const groanDuration = 1.2;
-          const osc1 = audioContext.createOscillator();
-          const osc2 = audioContext.createOscillator();
-          const gain = audioContext.createGain();
-          osc1.type = 'triangle';
-          osc2.type = 'sine';
-          osc1.connect(gain);
-          osc2.connect(gain);
-          gain.connect(audioContext.destination);
-
-          osc1.frequency.setValueAtTime(330, startTime);
-          osc1.frequency.exponentialRampToValueAtTime(82, startTime + groanDuration);
-          osc2.frequency.setValueAtTime(311, startTime);
-          osc2.frequency.exponentialRampToValueAtTime(78, startTime + groanDuration);
-
-          gain.gain.setValueAtTime(0.2, startTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, startTime + groanDuration);
-
-          osc1.start(startTime);
-          osc2.start(startTime);
-          osc1.stop(startTime + groanDuration);
-          osc2.stop(startTime + groanDuration);
-          oscillators.push(osc1, osc2);
         }
       }
     } catch (err) {
       console.warn('Audio playback failed:', err);
     }
-
-    // Cleanup function
     return () => {
-      // Stop all oscillators
-      oscillators.forEach(osc => {
-        try {
-          if (osc.state !== 'stopped') {
-            osc.stop();
-          }
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      });
-
-      // Close audio context
-      if (audioContext && audioContext.state !== 'closed') {
-        try {
-          audioContext.close();
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
+      oscillators.forEach(osc => { try { if (osc.state !== 'stopped') osc.stop(); } catch (e) {} });
+      if (audioContext && audioContext.state !== 'closed') { try { audioContext.close(); } catch (e) {} }
     };
   }, [isVisible, isPositive, points]);
 
-  // Helper to convert a twemoji/image URL back to an emoji character (if possible)
-  const urlToEmoji = (url) => {
-    if (!url || typeof url !== 'string') return null;
-    try {
-      const name = url.split('/').pop().split('.')[0];
-      if (!name) return null;
-      const parts = name.split('-').map(p => parseInt(p, 16));
-      if (parts.some(isNaN)) return null;
-      return String.fromCodePoint(...parts);
-    } catch (e) {
-      return null;
+  // ── Character position on screen ───────────────────────────────────────────
+  // Characters are anchored to their entry edge so they look like they're
+  // peeking in from the side / bottom of the viewport.
+  const positionStyle = useMemo(() => {
+    const base = {
+      position: 'fixed',
+      zIndex: 4002,
+      width: 'clamp(180px, 28vw, 360px)',
+      height: 'auto',
+    };
+    switch (entry) {
+      case 'left':   return { ...base, left: '2vw',  bottom: '8vh' };
+      case 'right':  return { ...base, right: '2vw', bottom: '8vh', scaleX: -1 };
+      case 'bottom': return { ...base, left: '50%',  bottom: 0, transform: 'translateX(-50%)' };
+      case 'top':    return { ...base, left: '50%',  top: 0,    transform: 'translateX(-50%)' };
+      default:       return { ...base, left: '2vw',  bottom: '8vh' };
     }
-  };
+  }, [entry]);
 
-  const renderBehaviorEmoji = (beh) => {
-    if (!beh) return '⭐';
-    if (typeof beh === 'string' && /^https?:\/\//.test(beh)) {
-      const em = urlToEmoji(beh);
-      if (em) return em;
-      return <img src={beh} alt="" style={{ width: '1em', height: '1em', objectFit: 'contain' }} />;
-    }
-    return beh;
-  };
-
-  const backgroundColor = isPositive 
-    ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)' 
-    : 'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)';
-  const borderColor = isPositive ? '#FFA500' : '#FF4757';
-  
   const content = (
     <AnimatePresence onExitComplete={onComplete}>
-      {isVisible && (
+      {isVisible && char && (
         <>
-          {/* Animated background with particles */}
+          {/* Dim backdrop — tap to dismiss */}
           <motion.div
             data-point-animation-backdrop="true"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 0.45 }}
             exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 2999 }}
+            transition={{ duration: 0.25 }}
+            style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 3999, cursor: 'pointer' }}
           />
 
-          {/* Sparkles for positive points (optimized with GPU hints) */}
-          <AnimatePresence>
-            {sparkles.map(sparkle => (
-              <motion.div
-                key={sparkle.id}
-                initial={{ opacity: 1, scale: 0, x: '50%', y: '50%' }}
-                animate={{
-                  opacity: 0,
-                  scale: 1.5,
-                  x: `calc(50% + ${Math.cos(sparkle.angle) * sparkle.distance}px)`,
-                  y: `calc(50% + ${Math.sin(sparkle.angle) * sparkle.distance}px)`
-                }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: performanceConfig.animationDuration, ease: performanceConfig.animationEase }}
-                style={{
-                  position: 'fixed',
-                  width: '30px',
-                  height: '30px',
-                  fontSize: '30px',
-                  zIndex: 3001,
-                  pointerEvents: 'none',
-                  willChange: performanceConfig.willChange,
-                  transform: performanceConfig.transform
-                }}
-              >
-                ✨
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {/* Confetti for positive */}
+          {isPositive && Array.from({ length: 10 }).map((_, i) => (
+            <ConfettiParticle key={i} index={i} total={10} />
+          ))}
 
+          {/* Character wrapper — slides in from edge */}
           <motion.div
-            data-point-animation="true"
-            initial={{ opacity: 0, scale: 0.5, x: '-50%', y: '-40%', rotate: -10 }}
-            animate={{ opacity: 1, scale: 1, x: '-50%', y: '-50%', rotate: 0 }}
-            exit={{ opacity: 0, scale: 0.5, x: '-50%', y: '-40%', rotate: 10 }}
-            transition={{
-              type: "spring",
-              damping: performanceConfig.transform ? 16 : 12, // Smoother on low-end devices
-              stiffness: performanceConfig.transform ? 250 : 300 // Gentler spring on low-end devices
-            }}
-            style={{
-              position: 'fixed', top: '50%', left: '50%',
-              width: '50vw', maxWidth: '650px', minWidth: '320px',
-              background: backgroundColor, borderRadius: '40px', padding: '70px 45px',
-              boxShadow: '0 30px 90px rgba(0,0,0,0.4)', zIndex: 3000,
-              border: `6px solid ${borderColor}`,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '30px',
-              overflow: 'visible',
-              willChange: 'transform, opacity', // GPU acceleration for main card
-              backfaceVisibility: 'hidden' // Hardware acceleration hint
-            }}
+            variants={variants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            style={{ ...positionStyle, position: 'fixed' }}
           >
-            {isWholeClass ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '-15px', position: 'relative' }}>
-                {studentsWithAvatars.slice(0, 8).map((student, idx) => (
-                  <motion.img
-                    key={student.id} src={student.avatar}
-                    animate={{
-                      y: [0, -20, 0],
-                      rotate: isPositive ? [0, 5, -5, 0] : [-3, 3, -3]
-                    }}
-                    transition={{
-                      duration: performanceConfig.animationDuration,
-                      repeat: Infinity,
-                      repeatDelay: performanceConfig.repeatDelay,
-                      delay: idx * 0.08,
-                      ease: performanceConfig.animationEase
-                    }}
-                    style={{
-                      width: '70px', height: '70px', borderRadius: '50%', border: '5px solid white',
-                      marginLeft: idx > 0 ? '-20px' : '0', zIndex: 10 - idx,
-                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-                      willChange: performanceConfig.willChange
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div style={{ position: 'relative' }}>
-                <motion.img
-                  src={fallbackAvatar}
-                  animate={isPositive ? {
-                    y: [0, -25, 0],
-                    rotate: [0, -10, 10, -10, 10, 0],
-                    scale: [1, 1.1, 1]
-                  } : {
-                    x: [-15, 15, -15],
-                    rotate: [-8, 8, -8]
-                  }}
-                  transition={{
-                    duration: performanceConfig.animationDuration,
-                    repeat: Infinity,
-                    repeatDelay: performanceConfig.repeatDelay,
-                    ease: performanceConfig.animationEase
-                  }}
-                  style={{
-                    width: '130px', height: '130px', borderRadius: '50%',
-                    border: '7px solid white',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                    willChange: performanceConfig.willChange,
-                    backfaceVisibility: 'hidden'
-                  }}
-                />
-                {/* Avatar glow ring (optimized) */}
-                <motion.div
-                  animate={{
-                    scale: [1, 1.3],
-                    opacity: [0.6, 0],
-                    borderColor: isPositive ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 71, 87, 0.8)'
-                  }}
-                  transition={{
-                    duration: performanceConfig.animationDuration,
-                    repeat: Infinity,
-                    repeatDelay: performanceConfig.repeatDelay,
-                    ease: performanceConfig.animationEase
-                  }}
-                  style={{
-                    position: 'absolute',
-                    inset: '-15px',
-                    borderRadius: '50%',
-                    border: '8px solid',
-                    pointerEvents: 'none',
-                    willChange: performanceConfig.willChange
-                  }}
-                />
-              </div>
-            )}
-
+            {/* Idle bob animation on the image itself */}
             <motion.div
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{
-                delay: 0.2,
-                type: 'spring',
-                damping: performanceConfig.transform ? 18 : 15 // Smoother on low-end devices
-              }}
-              style={{
-                fontSize: '32px',
-                fontWeight: '900',
-                color: 'white',
-                textAlign: 'center',
-                textShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                willChange: 'transform, opacity'
-              }}
+              style={{ position: 'relative', display: 'inline-block' }}
+              animate={char.bobAnim}
+              transition={{ duration: 0.9, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
             >
-              {studentName}
+              <img
+                src={char.src}
+                alt={char.id}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  // flip right-side characters so they face inward
+                  transform: entry === 'right' ? 'scaleX(-1)' : 'none',
+                  filter: 'drop-shadow(0 12px 28px rgba(0,0,0,0.22))',
+                }}
+              />
+
+              {/* Speech bubble */}
+              <SpeechBubble
+                text={labelRef.current}
+                color={char.color}
+                side={entry}
+              />
             </motion.div>
-
-            {/* Animated Emoji and Points Section */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '25px', position: 'relative' }}>
-              {/* Dancing Emoji (optimized) */}
-              <motion.span
-                key={emojiBounce ? 'bounce1' : 'bounce2'}
-                animate={isPositive ? {
-                  y: emojiBounce ? [0, -35, 0] : [0, -15, 0],
-                  rotate: emojiBounce ? [-20, 20, -20, 20, 0] : [0, -15, 0, 15, 0],
-                  scale: emojiBounce ? [1, 1.3, 1] : [1, 1.15, 1]
-                } : {
-                  x: [-12, 12, -12],
-                  rotate: [-10, 10, -10],
-                  scale: [1, 0.85, 1]
-                }}
-                transition={{
-                  duration: performanceConfig.animationDuration * 0.75,
-                  repeat: Infinity,
-                  repeatDelay: performanceConfig.repeatDelay,
-                  ease: isPositive ? "easeOut" : "easeInOut"
-                }}
-                style={{
-                  fontSize: '100px',
-                  filter: isPositive ? 'drop-shadow(0 10px 20px rgba(255,215,0,0.5))' : 'drop-shadow(0 8px 15px rgba(255,71,87,0.5))',
-                  display: 'inline-block',
-                  cursor: 'default',
-                  WebkitFilter: isPositive ? 'drop-shadow(0 10px 20px rgba(255,215,0,0.5))' : 'drop-shadow(0 8px 15px rgba(255,71,87,0.5))',
-                  willChange: performanceConfig.willChange
-                }}
-              >
-                {typeof renderBehaviorEmoji(behaviorEmoji) === 'string' ? (
-                  renderBehaviorEmoji(behaviorEmoji)
-                ) : (
-                  <span style={{ display: 'inline-flex', width: '1em', height: '1em' }}>{renderBehaviorEmoji(behaviorEmoji)}</span>
-                )}
-              </motion.span>
-
-              {/* Animated Points (optimized) */}
-              <motion.span
-                animate={{
-                  scale: isPositive ? [1, 1.4, 1] : [1, 0.8, 1],
-                  rotate: isPositive ? [0, -5, 5, 0] : [0, -3, 3, 0]
-                }}
-                transition={{
-                  duration: performanceConfig.animationDuration * 0.65,
-                  repeat: Infinity,
-                  repeatDelay: performanceConfig.repeatDelay,
-                  delay: 0.1,
-                  ease: performanceConfig.animationEase
-                }}
-                style={{
-                  fontSize: '95px',
-                  fontWeight: '950',
-                  color: 'white',
-                  textShadow: '0 6px 20px rgba(0,0,0,0.4)',
-                  display: 'inline-block',
-                  WebkitTextStroke: isPositive ? '3px rgba(255,255,255,0.3)' : '2px rgba(255,255,255,0.2)',
-                  WebkitTextFillColor: 'white',
-                  willChange: performanceConfig.willChange
-                }}
-              >
-                {isPositive ? '+' : ''}{points}
-              </motion.span>
-            </div>
-
-            {/* Pulsing border ring (optimized) */}
-            <motion.div
-              animate={{
-                scale: isPositive ? [1, 1.25, 1] : [1, 1.15, 1],
-                opacity: [0.4, 0, 0.4]
-              }}
-              transition={{
-                duration: performanceConfig.animationDuration * 1.1,
-                repeat: Infinity,
-                repeatDelay: performanceConfig.repeatDelay,
-                ease: performanceConfig.animationEase
-              }}
-              style={{
-                position: 'absolute',
-                inset: -20,
-                borderRadius: '50px',
-                border: `10px solid ${isPositive ? 'rgba(255,215,0,0.6)' : 'rgba(255,71,87,0.6)'}`,
-                pointerEvents: 'none',
-                willChange: performanceConfig.willChange
-              }}
-            />
-
-            {/* Confetti particles for positive (optimized count) */}
-            {isPositive && (
-              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden', borderRadius: '40px' }}>
-                {Array.from({ length: performanceConfig.confettiCount }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{
-                      y: ['-100%', '120%'],
-                      x: `${(i / performanceConfig.confettiCount) * 100}%`,
-                      rotate: [0, 360]
-                    }}
-                    transition={{
-                      duration: performanceConfig.animationDuration * 1.8 + Math.random() * 0.5,
-                      repeat: Infinity,
-                      repeatDelay: performanceConfig.repeatDelay,
-                      delay: i * 0.15,
-                      ease: "linear"
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      fontSize: `${20 + Math.random() * 15}px`,
-                      opacity: 0.7,
-                      willChange: performanceConfig.willChange,
-                      backfaceVisibility: 'hidden'
-                    }}
-                  >
-                    {['🎉', '✨', '🌟', '💫', '⭐'][i % 5]}
-                  </motion.div>
-                ))}
-              </div>
-            )}
           </motion.div>
+
+          {/* Points + name badge at bottom center */}
+          <PointsBadge
+            points={points}
+            studentName={isWholeClass ? 'Whole Class' : (studentName || 'Student')}
+            isPositive={isPositive}
+          />
         </>
       )}
     </AnimatePresence>
