@@ -887,7 +887,6 @@ export default function ClassDashboard({
       return;
     }
     setShowPoint({ visible: true, student: selectedStudent, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
-    setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
     updateClasses((prev) =>
       prev.map((c) =>
         c.id === activeClass.id
@@ -922,7 +921,6 @@ export default function ClassDashboard({
     const presentStudents = activeClass.students.filter(s => !absentStudents.has(s.id));
 
     setShowPoint({ visible: true, student: { name: t('dashboard.whole_class'), students: presentStudents }, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
-    setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
     updateClasses((prev) =>
       prev.map((c) =>
         c.id === activeClass.id
@@ -963,8 +961,6 @@ export default function ClassDashboard({
       points: behavior.pts,
       behaviorEmoji: behavior.icon || '⭐'
     });
-
-    setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
 
     // 2. Update only the selected students
     updateClasses((prev) =>
@@ -1013,8 +1009,6 @@ export default function ClassDashboard({
       points: points,
       behaviorEmoji: '🎉'
     });
-
-    setTimeout(() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' }), 2000);
 
     // 2. Update all selected students in the database/state at once
     updateClasses((prev) =>
@@ -2561,7 +2555,7 @@ export default function ClassDashboard({
           />
         )}
 
-        <PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} onComplete={() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' })} />
+        <PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} onComplete={() => setShowPoint({ visible: false, student: null, points: 0, behaviorEmoji: '⭐' })} />
       </div>
 
     </>
