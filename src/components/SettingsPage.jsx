@@ -123,58 +123,152 @@ function urlToEmoji(iconValue) {
   
   // Map common hex codes back to emoji
   const urlToEmojiMap = {
-    '1f52c': '🔬', // microscope
-    '1f44d': '👍', // thumbs up
-    '1f44f': '👏', // clapping hands
-    '1f60a': '😊', // smiling face
-    '1f60d': '😍', // heart eyes
-    '1f973': '🥳', // partying face
-    '1f4a5': '💥', // explosion
-    '1f525': '🔥', // fire
-    '1f680': '🚀', // rocket
-    '1f3c6': '🏆', // trophy
-    '1f3af': '🎯', // bullseye
-    '1f32e': '🌮', // taco
-    '2b50': '⭐', // star
+    '1f52c': '🔬',
+    '1f44d': '👍',
+    '1f44f': '👏',
+    '1f60a': '😊',
+    '1f60d': '😍',
+    '1f973': '🥳',
+    '1f4a5': '💥',
+    '1f525': '🔥',
+    '1f680': '🚀',
+    '1f3c6': '🏆',
+    '1f3af': '🎯',
+    '1f32e': '🌮',
+    '2b50': '⭐',
   };
   
-  // Extract hex code from URL like "...1f52c.png"
   const match = iconValue.match(/\/([a-f0-9-]+)\.(?:png|svg)/i);
   if (match) {
-    const hex = match[1].replace(/-/g, '-'); // Keep as-is for now
+    const hex = match[1].replace(/-/g, '-');
     return urlToEmojiMap[hex] || '⭐';
   }
   
-  return '⭐'; // Default fallback
+  return '⭐';
+}
+
+// ─── Pure CSS tooltip wrapper ─────────────────────────────────────────────────
+// Uses data-tooltip + ::after pseudo-element — zero JS, zero re-renders.
+// The CSS is injected once at module level so it is never recreated.
+if (typeof document !== 'undefined' && !document.getElementById('abc-tooltip-style')) {
+  const s = document.createElement('style');
+  s.id = 'abc-tooltip-style';
+  s.innerHTML = `
+    .abc-tip { position: relative; display: inline-block; }
+    .abc-tip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 8px);
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      white-space: nowrap;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .abc-tip:hover::after { opacity: 1; }
+  `;
+  document.head.appendChild(s);
+}
+
+// ─── Emoji picker CSS injected once at module level ──────────────────────────
+if (typeof document !== 'undefined' && !document.getElementById('emoji-picker-styles')) {
+  const s = document.createElement('style');
+  s.id = 'emoji-picker-styles';
+  s.innerHTML = `
+    .ep-btn {
+      font-size: 32px;
+      border: 2px solid #E6EEF8;
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: border-color 0.1s, background 0.1s, transform 0.1s;
+    }
+    .ep-btn:hover {
+      border-color: #6366f1;
+      background: #F0FDF4;
+      transform: scale(1.12);
+    }
+    @media (max-width: 720px) {
+      .hide-on-mobile { display: none !important; }
+    }
+    @keyframes pulse-border {
+      0%   { box-shadow: 0 0 0 0   rgba(76,175,80,0.4); }
+      70%  { box-shadow: 0 0 0 10px rgba(76,175,80,0);   }
+      100% { box-shadow: 0 0 0 0   rgba(76,175,80,0);   }
+    }
+    .add-card-hover:hover {
+      background-color: #F0FDF4 !important;
+      border-color: #4CAF50 !important;
+      color: #4CAF50 !important;
+      animation: pulse-border 2s infinite;
+    }
+  `;
+  document.head.appendChild(s);
+}
+
+// ─── EmojiPickerGrid — defined OUTSIDE SettingsPage so it is never recreated ──
+// Each button uses a plain .ep-btn class for hover effects (pure CSS, no state).
+// The tooltip is a CSS ::after via data-tooltip — no React state per item.
+const EmojiPickerGrid = React.memo(function EmojiPickerGrid({ stickers, onSelect }) {
+  return (
+    <div style={gridStyle}>
+      {stickers.map(sticker => (
+        <button
+          key={sticker.id}
+          className="ep-btn abc-tip"
+          data-tooltip={sticker.name}
+          onClick={() => onSelect(sticker.emoji)}
+          aria-label={sticker.name}
+        >
+          {sticker.emoji}
+        </button>
+      ))}
+    </div>
+  );
+});
+
+// Static style object — defined outside component so it is never recreated
+const gridStyle = {
+  width: '100%',
+  background: '#fff',
+  padding: 16,
+  borderRadius: 16,
+  boxShadow: '0 20px 60px rgba(2,6,23,0.12)',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(56px, 1fr))',
+  gap: 12,
+  justifyItems: 'center',
+  alignItems: 'center',
+  maxHeight: '70vh',
+  overflowY: 'auto',
+};
+
+// ─── Tooltip — pure CSS version, no state ────────────────────────────────────
+function Tooltip({ children, text }) {
+  return (
+    <span className="abc-tip" data-tooltip={text} style={{ display: 'inline-block' }}>
+      {children}
+    </span>
+  );
 }
 
 export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateBehaviors }) {
-    // Inject instant hover highlight CSS for emoji picker buttons
-    React.useEffect(() => {
-      if (typeof document !== 'undefined' && !document.getElementById('emoji-picker-btn-style')) {
-        const styleSheet = document.createElement('style');
-        styleSheet.id = 'emoji-picker-btn-style';
-        styleSheet.innerHTML = `
-          .emoji-picker-btn {
-            transition: none !important;
-          }
-          .emoji-picker-btn:hover, .emoji-picker-btn:focus {
-            border-color: #6366f1 !important;
-            box-shadow: 0 6px 20px rgba(99,102,241,0.3);
-            background: #F0FDF4 !important;
-          }
-        `;
-        document.head.appendChild(styleSheet);
-      }
-    }, []);
-  const [activeTab] = useState('cards'); // 'cards' | 'students' | 'general'
+  const [activeTab] = useState('cards');
   const [cards, setCards] = useState(() => {
     const behaviorList = Array.isArray(behaviors) ? behaviors : [];
-    // Convert old URL-based icons to emoji
-    return behaviorList.map(card => ({
-      ...card,
-      icon: urlToEmoji(card.icon)
-    }));
+    return behaviorList.map(card => ({ ...card, icon: urlToEmoji(card.icon) }));
   });
   const [, setSidebarCollapsed] = useState(false);
   const [editingCardId, setEditingCardId] = useState(null);
@@ -184,7 +278,6 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
   const [addCardModalData, setAddCardModalData] = useState({ label: 'New Card', pts: 1, icon: '⭐' });
   const [showEmojiPickerForModal, setShowEmojiPickerForModal] = useState(false);
 
-  // Ref for emoji picker grid
   const emojiPickerRef = React.useRef(null);
 
   // Close emoji picker when clicking outside
@@ -200,72 +293,6 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
     }
   }, [openEmojiFor]);
 
-  // Fast sticker button with tooltip, only re-renders when props change
-  const FastStickerButton = React.memo(
-    function StickerButton({ sticker, onClick }) {
-      const [showTooltip, setShowTooltip] = React.useState(false);
-      return (
-        <span style={{ position: 'relative', display: 'inline-block' }}
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onFocus={() => setShowTooltip(true)}
-          onBlur={() => setShowTooltip(false)}
-        >
-          <button
-            onClick={onClick}
-            style={{ ...styles.stickerBtn, padding: 12, fontSize: 32 }}
-            className="emoji-picker-btn"
-            tabIndex={0}
-            aria-label={sticker.name}
-          >
-            {sticker.emoji}
-          </button>
-          {showTooltip && (
-            <span style={{
-              position: 'absolute',
-              left: '50%',
-              top: '100%',
-              transform: 'translateX(-50%)',
-              background: '#333',
-              color: '#fff',
-              padding: '6px 12px',
-              borderRadius: 8,
-              fontSize: 14,
-              whiteSpace: 'nowrap',
-              marginTop: 8,
-              zIndex: 9999,
-              pointerEvents: 'none',
-            }}>{sticker.name}</span>
-          )}
-        </span>
-      );
-    },
-    (prevProps, nextProps) => prevProps.sticker.id === nextProps.sticker.id && prevProps.onClick === nextProps.onClick
-  );
-
-  // Pure HTML/CSS emoji picker grid for instant hover and tooltip
-  function EmojiPickerGrid({ stickers, editingCard, setEditingCard, persistBehaviors, setOpenEmojiFor }) {
-    // Restore React-based grid with FastStickerButton and tooltip
-    return (
-      <div style={styles.centerStickerGrid}>
-        {stickers.map(sticker => (
-          <Tooltip key={sticker.id} text={sticker.name}>
-            <button
-              style={styles.stickerBtn}
-              onClick={() => {
-                setEditingCard(prev => ({ ...prev, icon: sticker.emoji }));
-                if (persistBehaviors) persistBehaviors([{ ...editingCard, icon: sticker.emoji }]);
-                setOpenEmojiFor(null);
-              }}
-              aria-label={sticker.name}
-            >
-              {sticker.emoji}
-            </button>
-          </Tooltip>
-        ))}
-      </div>
-    );
-  }
   // Force cleanup on unmount
   React.useEffect(() => {
     return () => {
@@ -278,7 +305,6 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
   }, []);
 
   React.useEffect(() => {
-    // Convert old URL-based icons to emoji when behaviors change
     const convertedCards = (Array.isArray(behaviors) ? behaviors : []).map(card => ({
       ...card,
       icon: urlToEmoji(card.icon)
@@ -288,15 +314,12 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
 
   // Auto-collapse sidebar on small screens
   React.useEffect(() => {
-    const handleResize = () => {
-      setSidebarCollapsed(window.innerWidth < 720);
-    };
+    const handleResize = () => setSidebarCollapsed(window.innerWidth < 720);
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Helper to reload behaviors from backend
   const reloadBehaviors = async () => {
     try {
       const latest = await api.getBehaviors();
@@ -312,131 +335,33 @@ export default function SettingsPage({ activeClass, behaviors, onBack, onUpdateB
     try { await api.saveBehaviors(updated); } catch (e) { console.warn('saveBehaviors failed', e.message); }
   };
 
-  // Inject mobile-friendly overrides for Settings page
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.id = 'settings-mobile-styles';
-    style.innerHTML = `@media (max-width:720px){ .settings-page-root header { padding: 0 16px !important; } .settings-page-root main { padding: 16px !important; } .settings-page-root aside { display: none !important; } .settings-page-root .sidebar-collapsed { display: flex !important; width: 64px !important; } }
-    .settings-header-actions [data-tooltip]:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 50%;
-      top: calc(100% + 8px);
-      transform: translateX(-50%);
-      background: #333;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      white-space: nowrap;
-      z-index: 9999;
-      opacity: 1;
-      pointer-events: none;
+  const handleBackClick = () => {
+    try {
+      setEditingCardId(null);
+      setEditingCard({ label: '', pts: 0, icon: '⭐', type: 'wow' });
+      setOpenEmojiFor(null);
+      setShowAddCardModal(false);
+      setShowEmojiPickerForModal(false);
+      if (typeof onBack === 'function') onBack();
+      api.saveBehaviors(cards).catch(() => {});
+    } catch (err) {
+      if (typeof onBack === 'function') onBack();
     }
-    /* Sticker button hover effects */
-    button[class*="sticker"] {
-      transition: all 0.2s ease;
-    }
-    button[class*="sticker"]:hover {
-      transform: scale(1.15);
-      border-color: #6366f1 !important;
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
-    }
-    /* Add card hover effect */
-    @keyframes pulse-border {
-      0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-    }
-    .add-card-hover:hover {
-      background-color: #F0FDF4 !important;
-      border-color: #4CAF50 !important;
-      color: #4CAF50 !important;
-      animation: pulse-border 2s infinite;
-    }
-    /* Optimize emoji picker grid for Chrome */
-    .centerStickerGrid {
-      transform: translateZ(0);
-      backface-visibility: hidden;
-      -webkit-font-smoothing: subpixel-antialiased;
-    }
-    .centerStickerGrid button {
-      will-change: transform;
-    }`;
-    document.head.appendChild(style);
-    return () => { const el = document.getElementById('settings-mobile-styles'); if (el) el.remove(); };
-  }, []);
+  };
 
-  React.useEffect(() => {
-    // Inject global tooltip CSS
-    if (!document.getElementById('abc-tooltip-style')) {
-      const style = document.createElement('style');
-      style.id = 'abc-tooltip-style';
-      style.innerHTML = `
-        .abc-tooltip[data-tooltip]:hover::after {
-          content: attr(data-tooltip);
-          position: absolute;
-          left: 50%;
-          top: calc(100% + 8px);
-          transform: translateX(-50%);
-          background: #333;
-          color: #fff;
-          padding: 6px 12px;
-          border-radius: 8px;
-          font-size: 14px;
-          white-space: nowrap;
-          z-index: 9999;
-          opacity: 1;
-          pointer-events: none;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, []);
-
-  // Note: We no longer convert emoji to twemoji images via window.twemoji.parse()
-  // to avoid displaying URLs as overlays. Native emoji rendering is cleaner and faster.
-
-  // SettingsPage.jsx
-// Optimistic close: close UI immediately, save in background
-const handleBackClick = () => {
-  try {
-    // Reset all editing state before closing
-    setEditingCardId(null);
-    setEditingCard({ label: '', pts: 0, icon: '⭐', type: 'wow' });
-    setOpenEmojiFor(null);
-    setShowAddCardModal(false);
-    setShowEmojiPickerForModal(false);
-    
-    // Close the settings UI immediately for a snappy experience
-    if (typeof onBack === 'function') {
-      onBack();
-    } else {
-    }
-    
-    // Persist changes in the background. Log failures but do not block UI.
-    api.saveBehaviors(cards).catch(err => {
-    });
-  } catch (err) {
-    if (typeof onBack === 'function') {
-      onBack();
-    }
-  }
-};
   const handleSaveCard = (id) => {
     const pts = Number(editingCard.pts);
     const type = pts > 0 ? 'wow' : 'nono';
-    const updated = cards.map(c => c.id === id ? { 
-      ...c, 
-      label: editingCard.label, 
-      pts: pts,
+    const updated = cards.map(c => c.id === id ? {
+      ...c,
+      label: editingCard.label,
+      pts,
       icon: editingCard.icon,
-      type: type
+      type,
     } : c);
     setCards(updated);
     setEditingCardId(null);
     if (onUpdateBehaviors) onUpdateBehaviors(updated);
-    // Save to backend (behaviors are global, not per-class)
     api.saveBehaviors(updated).then(reloadBehaviors);
   };
 
@@ -444,7 +369,6 @@ const handleBackClick = () => {
     const updated = cards.filter(c => c.id !== id);
     setCards(updated);
     if (onUpdateBehaviors) onUpdateBehaviors(updated);
-    // Save to backend (behaviors are global, not per-class)
     api.saveBehaviors(updated).then(reloadBehaviors);
   };
 
@@ -460,103 +384,70 @@ const handleBackClick = () => {
     api.saveBehaviors(updated).then(reloadBehaviors);
     setShowAddCardModal(false);
   };
-        // Add global CSS for mobile hiding
-        if (typeof document !== 'undefined' && !document.getElementById('settings-hide-on-mobile-style')) {
-          const style = document.createElement('style');
-          style.id = 'settings-hide-on-mobile-style';
-          style.innerHTML = `
-            @media (max-width: 720px) {
-              .hide-on-mobile { display: none !important; }
-            }
-          `;
-          document.head.appendChild(style);
-        }
+
+  // Stable onSelect callbacks — memoised so EmojiPickerGrid never re-renders
+  const handleEmojiSelectForCard = React.useCallback((emoji) => {
+    setEditingCard(prev => ({ ...prev, icon: emoji }));
+    setOpenEmojiFor(null);
+  }, []);
+
+  const handleEmojiSelectForModal = React.useCallback((emoji) => {
+    setAddCardModalData(prev => ({ ...prev, icon: emoji }));
+    setShowEmojiPickerForModal(false);
+  }, []);
+
   return (
-    <div className="settings-page-root safe-area-top" style={{ ...styles.pageContainer }}>
+    <div className="settings-page-root safe-area-top" style={styles.pageContainer}>
       {/* Top Navigation Bar */}
       <header style={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-        </div>
-        {/* Centered header text for large screens only */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }} />
         <div className="edit-point-cards-header-text hide-on-mobile" style={styles.headerCenterText}>
-          <span className="edit-point-cards-header-label" style={{ display: 'inline-block', width: '100%' }}>Edit point cards</span>
+          <span style={{ display: 'inline-block', width: '100%' }}>Edit point cards</span>
         </div>
-        
         <div className="settings-header-actions" style={{ ...styles.headerActions, flexDirection: 'row' }}>
-          <div className="header-action-group" style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
             <Tooltip text="Reset all behavior cards to default">
-            <button
-              aria-label="Reset behaviors"
-              style={styles.headerIconBtn}
-              onClick={async () => {
-                const INITIAL_BEHAVIORS = [
-                  { id: 1, label: 'Team Player', pts: 1, type: 'wow', icon: '🤝' },
-                  { id: 2, label: 'Super Star!', pts: 3, type: 'wow', icon: '🏆' },
-                  { id: 3, label: 'Creative', pts: 2, type: 'wow', icon: '🎨' },
-                  { id: 4, label: 'Brain Power', pts: 2, type: 'wow', icon: '🧠' },
-                  { id: 5, label: 'On Fire!', pts: 3, type: 'wow', icon: '🔥' },
-                  { id: 6, label: 'Kind Heart', pts: 1, type: 'wow', icon: '❤️' },
-                  { id: 7, label: 'Active', pts: 1, type: 'wow', icon: '⚽' },
-                  { id: 8, label: 'Rocket', pts: 2, type: 'wow', icon: '🚀' },
-                  { id: 9, label: 'Too Loud', pts: -1, type: 'nono', icon: '🔔' },
-                  { id: 10, label: 'Distracted', pts: -2, type: 'nono', icon: '😐' }
-                ];
-                try {
-                  await api.deleteNewCards();
-                } catch (e) {
-                  console.warn('Failed to delete "New Card" entries:', e.message);
-                }
-                setCards(INITIAL_BEHAVIORS);
-                onUpdateBehaviors && onUpdateBehaviors(INITIAL_BEHAVIORS);
-                setEditingCardId(null);
-              }}
-            >
-              <RefreshCw size={22} style={{ marginRight: 8 }} />
-              <span className="header-icon-label" style={{...styles.headerIconLabel, fontSize: 14}}>Reset</span>
-            </button>
+              <button
+                aria-label="Reset behaviors"
+                style={styles.headerIconBtn}
+                onClick={async () => {
+                  const INITIAL_BEHAVIORS = [
+                    { id: 1, label: 'Team Player', pts: 1, type: 'wow', icon: '🤝' },
+                    { id: 2, label: 'Super Star!', pts: 3, type: 'wow', icon: '🏆' },
+                    { id: 3, label: 'Creative', pts: 2, type: 'wow', icon: '🎨' },
+                    { id: 4, label: 'Brain Power', pts: 2, type: 'wow', icon: '🧠' },
+                    { id: 5, label: 'On Fire!', pts: 3, type: 'wow', icon: '🔥' },
+                    { id: 6, label: 'Kind Heart', pts: 1, type: 'wow', icon: '❤️' },
+                    { id: 7, label: 'Active', pts: 1, type: 'wow', icon: '⚽' },
+                    { id: 8, label: 'Rocket', pts: 2, type: 'wow', icon: '🚀' },
+                    { id: 9, label: 'Too Loud', pts: -1, type: 'nono', icon: '🔔' },
+                    { id: 10, label: 'Distracted', pts: -2, type: 'nono', icon: '😐' }
+                  ];
+                  try { await api.deleteNewCards(); } catch (e) { console.warn('Failed to delete "New Card" entries:', e.message); }
+                  setCards(INITIAL_BEHAVIORS);
+                  onUpdateBehaviors && onUpdateBehaviors(INITIAL_BEHAVIORS);
+                  setEditingCardId(null);
+                }}
+              >
+                <RefreshCw size={22} style={{ marginRight: 8 }} />
+                <span style={{ ...styles.headerIconLabel, fontSize: 14 }}>Reset</span>
+              </button>
             </Tooltip>
             <Tooltip text="Done and close settings">
-            <button
-              aria-label="Done"
-              style={styles.headerIconBtn}
-              onClick={handleBackClick}
-            >
-              <X size={22} />
-            </button>
+              <button aria-label="Done" style={styles.headerIconBtn} onClick={handleBackClick}>
+                <X size={22} />
+              </button>
             </Tooltip>
           </div>
         </div>
       </header>
 
       <div style={styles.mainLayout}>
-        {/* Settings Sidebar */}
-        {/* <aside style={{ ...styles.sidebar, width: sidebarCollapsed ? '84px' : styles.sidebar.width }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <strong style={{ display: sidebarCollapsed ? 'none' : 'block' }}>{activeClass?.name}</strong>
-            </div>
-            <button onClick={() => setSidebarCollapsed(s => !s)} style={styles.iconBtn} title={sidebarCollapsed ? 'Expand' : 'Collapse'}>
-              {sidebarCollapsed ? <ChevronLeft size={18} /> : <LayoutGrid size={16} />}
-            </button>
-          </div>
-          <button 
-            onClick={() => setActiveTab('cards')} 
-            style={activeTab === 'cards' ? styles.tabActive : styles.tab}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <LayoutGrid size={20} />
-              {!sidebarCollapsed && <span>Behavior Cards</span>}
-            </div>
-          </button>
-        </aside> */}
-
-        {/* Dynamic Content Area */}
         <main style={styles.content}>
-          {activeTab === 'cards' ? (
+          {activeTab === 'cards' && (
             <section>
-         
               <div style={styles.cardList}>
-                {/* --- ADD CARD CARD --- */}
+                {/* ADD CARD */}
                 <div
                   className="add-card-hover"
                   title="Add a new behavior card"
@@ -584,28 +475,27 @@ const handleBackClick = () => {
                   </div>
                   <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>Add Card</span>
                 </div>
+
                 {cards.map(card => (
                   <div key={card.id} style={styles.settingItem}>
                     <div style={styles.itemInfo}>
                       <div style={{ position: 'relative' }}>
-                        {/* Only allow opening emoji picker when editing this card */}
                         <Tooltip text="Change/choose avatar sticker">
-                        <button
-                          onClick={() => {
-                            if (editingCardId === card.id) {
-                              setOpenEmojiFor(openEmojiFor === card.id ? null : card.id);
-                            }
-                          }}
-                          style={{ ...styles.stickerBtn, width: 56, height: 56, fontSize: 32 }}
-                          aria-label="Pick sticker"
-                        >
-                          {editingCardId === card.id ? (editingCard.icon) : (card.icon)}
-                        </button>
+                          <button
+                            onClick={() => {
+                              if (editingCardId === card.id) {
+                                setOpenEmojiFor(openEmojiFor === card.id ? null : card.id);
+                              }
+                            }}
+                            style={{ ...styles.stickerBtn, width: 56, height: 56, fontSize: 32 }}
+                            aria-label="Pick sticker"
+                          >
+                            {editingCardId === card.id ? editingCard.icon : card.icon}
+                          </button>
                         </Tooltip>
                         {openEmojiFor === card.id && (
                           <div style={styles.centerEmojiModal} className="modal-overlay-in">
-                            <div ref={emojiPickerRef} style={{ position: 'relative', ...styles.centerStickerGrid }} className="animated-modal-content modal-animate-scale">
-                              {/* X close button, small and transparent at far top right */}
+                            <div ref={emojiPickerRef} style={{ position: 'relative', ...gridStyle }} className="animated-modal-content modal-animate-scale">
                               <button
                                 style={{
                                   position: 'absolute',
@@ -619,7 +509,6 @@ const handleBackClick = () => {
                                   cursor: 'pointer',
                                   padding: 4,
                                   borderRadius: '0 8px 0 0',
-                                  transition: 'background 0.2s',
                                 }}
                                 aria-label="Close emoji picker"
                                 onClick={() => setOpenEmojiFor(null)}
@@ -628,17 +517,14 @@ const handleBackClick = () => {
                               </button>
                               <EmojiPickerGrid
                                 stickers={STICKER_OPTIONS}
-                                editingCard={editingCard}
-                                setEditingCard={setEditingCard}
-                                persistBehaviors={editingCardId === card.id ? null : persistBehaviors}
-                                setOpenEmojiFor={setOpenEmojiFor}
+                                onSelect={handleEmojiSelectForCard}
                               />
                             </div>
                           </div>
                         )}
                       </div>
                       <div>
-                          {editingCardId === card.id ? (
+                        {editingCardId === card.id ? (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                             <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                               <input
@@ -681,19 +567,19 @@ const handleBackClick = () => {
                       {editingCardId === card.id ? (
                         <div style={styles.verticalActionStack}>
                           <Tooltip text="Save changes">
-                          <button onClick={() => handleSaveCard(card.id)} style={styles.saveIconBtn} aria-label="Save"><Save size={22} /></button>
+                            <button onClick={() => handleSaveCard(card.id)} style={styles.saveIconBtn} aria-label="Save"><Save size={22} /></button>
                           </Tooltip>
                           <Tooltip text="Cancel editing">
-                          <button onClick={() => setEditingCardId(null)} style={styles.cancelIconBtn} aria-label="Cancel"><X size={22} /></button>
+                            <button onClick={() => setEditingCardId(null)} style={styles.cancelIconBtn} aria-label="Cancel"><X size={22} /></button>
                           </Tooltip>
                         </div>
                       ) : (
                         <>
                           <Tooltip text="Edit card">
-                          <button onClick={() => { setEditingCardId(card.id); setEditingCard({ label: card.label, pts: card.pts, icon: card.icon, type: card.type }); }} style={styles.iconOnlyBtn} aria-label="Edit"><Edit2 size={20} /></button>
+                            <button onClick={() => { setEditingCardId(card.id); setEditingCard({ label: card.label, pts: card.pts, icon: card.icon, type: card.type }); }} style={styles.iconOnlyBtn} aria-label="Edit"><Edit2 size={20} /></button>
                           </Tooltip>
                           <Tooltip text="Delete card">
-                          <button onClick={() => handleDeleteCard(card.id)} style={styles.iconOnlyBtn} aria-label="Delete"><Trash2 size={20} /></button>
+                            <button onClick={() => handleDeleteCard(card.id)} style={styles.iconOnlyBtn} aria-label="Delete"><Trash2 size={20} /></button>
                           </Tooltip>
                         </>
                       )}
@@ -702,11 +588,11 @@ const handleBackClick = () => {
                 ))}
               </div>
             </section>
-          ) : null}
+          )}
         </main>
       </div>
 
-      {/* --- ADD CARD MODAL --- */}
+      {/* ADD CARD MODAL */}
       {showAddCardModal && (
         <div style={styles.modalOverlay} className="modal-overlay-in">
           <div style={styles.modal} className="animated-modal-content modal-animate-center">
@@ -715,7 +601,6 @@ const handleBackClick = () => {
               <button style={styles.closeBtn} onClick={() => setShowAddCardModal(false)}><X size={20} /></button>
             </div>
 
-            {/* Sticker/Icon Selection */}
             <div style={styles.modalSection}>
               <label style={styles.modalLabel}>Choose Icon</label>
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, marginTop: 12 }}>
@@ -733,23 +618,16 @@ const handleBackClick = () => {
               </div>
               {showEmojiPickerForModal && (
                 <div style={styles.centerEmojiModal} onClick={e => e.stopPropagation()} className="modal-overlay-in">
-                  <div style={styles.centerStickerGrid} className="animated-modal-content modal-animate-scale">
-                    {STICKER_OPTIONS.map(sticker => (
-                      <Tooltip key={sticker.id} text={sticker.name}>
-                        <button onClick={() => {
-                          setAddCardModalData(prev => ({ ...prev, icon: sticker.emoji }));
-                          setShowEmojiPickerForModal(false);
-                        }} style={{ ...styles.stickerBtn, padding: 12, fontSize: 32 }}>
-                          {sticker.emoji}
-                        </button>
-                      </Tooltip>
-                    ))}
+                  <div style={gridStyle} className="animated-modal-content modal-animate-scale">
+                    <EmojiPickerGrid
+                      stickers={STICKER_OPTIONS}
+                      onSelect={handleEmojiSelectForModal}
+                    />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Card Label */}
             <div style={styles.modalSection}>
               <label style={styles.modalLabel}>Card Name</label>
               <input
@@ -761,21 +639,14 @@ const handleBackClick = () => {
               />
             </div>
 
-            {/* Points */}
             <div style={styles.modalSection}>
               <label style={styles.modalLabel}>Points</label>
               <div style={styles.pointsControl}>
-                <button
-                  onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts - 1 }))}
-                  style={styles.pointsBtn}
-                >
+                <button onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts - 1 }))} style={styles.pointsBtn}>
                   <Minus size={20} />
                 </button>
                 <div style={styles.pointsValue}>{addCardModalData.pts > 0 ? `+${addCardModalData.pts}` : addCardModalData.pts}</div>
-                <button
-                  onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts + 1 }))}
-                  style={styles.pointsBtn}
-                >
+                <button onClick={() => setAddCardModalData(prev => ({ ...prev, pts: prev.pts + 1 }))} style={styles.pointsBtn}>
                   <Plus size={20} />
                 </button>
               </div>
@@ -788,7 +659,6 @@ const handleBackClick = () => {
               </div>
             </div>
 
-            {/* Footer Buttons */}
             <div style={styles.modalFooter}>
               <button style={styles.modalCancelBtn} onClick={() => setShowAddCardModal(false)}>Cancel</button>
               <button
@@ -862,53 +732,11 @@ const styles = {
     minWidth: 180,
     zIndex: 1,
   },
-  // Tooltip styling
-  '@global .settings-header-actions [data-tooltip]::after': {
-    content: 'attr(data-tooltip)',
-    position: 'absolute',
-    left: '50%',
-    top: '100%',
-    transform: 'translateX(-50%)',
-    background: '#333',
-    color: '#fff',
-    padding: '6px 12px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    whiteSpace: 'nowrap',
-    marginTop: '6px',
-    zIndex: 9999,
-    opacity: 1,
-    pointerEvents: 'none',
-  },
-  '@media (max-width: 720px)': {
-    headerActions: {
-      gap: 4,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      padding: '0 2px',
-    },
-    headerIconBtn: {
-      padding: '8px 8px',
-      fontSize: 15,
-      minWidth: 0,
-      gap: 4,
-    },
-    headerIconLabel: {
-      fontSize: 15,
-      marginLeft: 1,
-    },
-    headerCenterText: {
-      display: 'none',
-    },
-  },
   mainLayout: { flex: 1, display: 'flex', overflow: 'hidden' },
   sidebar: { width: '260px', background: '#fff', borderRight: '1px solid #E2E8F0', padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' },
   tab: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: 'none', background: 'transparent', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', color: '#64748B' },
   tabActive: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: 'none', background: '#E8F5E9', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', color: '#2E7D32', fontWeight: 'bold' },
   content: { flex: 1, padding: '40px', overflowY: 'auto' },
-  sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
-  addBtn: { background: '#f0f0f0', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
-  addBtnModern: { background: 'linear-gradient(90deg,#4CAF50,#2E7D32)', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 10px 30px rgba(46,125,50,0.12)', fontWeight: 800 },
   cardList: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
@@ -952,12 +780,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))',
+    // NOTE: filter: drop-shadow removed — it caused expensive repaints on hover
   },
   emojiPickerBtn: { background: '#fff', border: '1px solid #E6EEF8', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px' },
   emojiGrid: { display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '6px', marginTop: 8, padding: '10px', background: 'rgba(255,255,255,0.9)', borderRadius: '12px', boxShadow: '0 8px 30px rgba(2,6,23,0.08)' },
   emojiBtn: { fontSize: '20px', border: 'none', borderRadius: '8px', padding: '8px', cursor: 'pointer', background: 'transparent' },
-  // compact grid picker that appears in a centered top overlay
   verticalEmojiGrid: { position: 'absolute', left: -140, top: 0, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, padding: 8, background: '#fff', borderRadius: 8, boxShadow: '0 8px 24px rgba(2,6,23,0.12)', zIndex: 2500 },
   centerEmojiModal: { position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)', zIndex: 3500, display: 'flex', justifyContent: 'center', width: 'min(900px, 95%)', pointerEvents: 'auto' },
   centerStickerGrid: {
@@ -976,7 +803,6 @@ const styles = {
   },
   verticalActionStack: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' },
   hoverIcons: { position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 },
-  // small circular icon button used in the modern controls
   iconBtn: { background: 'white', border: '1px solid #EEF2FF', borderRadius: 8, padding: '6px 8px', cursor: 'pointer', color: '#2563EB', fontWeight: 700 },
   compactBtn: { padding: 8, borderRadius: 8, border: '1px solid #E6EEF8', background: 'white', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
   compactDelete: { padding: 8, borderRadius: 8, border: '1px solid #ffd6d6', background: 'white', color: '#FF6B6B', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
@@ -985,7 +811,7 @@ const styles = {
   saveActionBtn: { padding: '8px 12px', borderRadius: '10px', background: '#2E7D32', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' },
   cancelActionBtn: { padding: '8px 12px', borderRadius: '10px', background: 'transparent', color: '#333', border: '1px solid #E6EEF8', fontWeight: 700, cursor: 'pointer', marginLeft: 8 },
   saveIconBtn: { width: 44, height: 44, padding: 8, borderRadius: 12, background: '#2E7D32', color: 'white', border: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
-  cancelIconBtn: { width: 44, height: 44, padding: 8, borderRadius: 12, background: 'transparent', color: '#333', border: '1px solid #E6EEF8', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' , marginLeft: 0 },
+  cancelIconBtn: { width: 44, height: 44, padding: 8, borderRadius: 12, background: 'transparent', color: '#333', border: '1px solid #E6EEF8', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: 0 },
   editOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 },
   editModal: { background: 'white', padding: '30px', borderRadius: '24px', width: '450px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
   editModalHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' },
@@ -993,7 +819,6 @@ const styles = {
   saveBtn: { width: '100%', padding: '15px', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
   cancelBtn: { padding: '15px', background: '#f0f0f0', color: '#333', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
   deleteConfirmBtn: { padding: '15px', background: '#FF6B6B', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
-  // Add Card Modal Styles
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 },
   modal: { background: 'white', padding: '30px', borderRadius: '24px', width: '450px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', zIndex: 10000 },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
@@ -1007,37 +832,5 @@ const styles = {
   typeBadge: { textAlign: 'center', padding: '8px 16px', borderRadius: '20px', fontWeight: 700, fontSize: '14px', textTransform: 'uppercase' },
   modalFooter: { display: 'flex', gap: '10px', marginTop: '10px' },
   modalSaveBtn: { padding: '12px 20px', borderRadius: '12px', border: 'none', background: '#4CAF50', color: 'white', fontWeight: 600, fontSize: '14px', cursor: 'pointer', flex: 1 },
-  modalCancelBtn: { padding: '12px 20px', borderRadius: '12px', border: 'none', background: '#F1F5F9', color: '#64748B', fontWeight: 600, fontSize: '14px', cursor: 'pointer', flex: 1 }
+  modalCancelBtn: { padding: '12px 20px', borderRadius: '12px', border: 'none', background: '#F1F5F9', color: '#64748B', fontWeight: 600, fontSize: '14px', cursor: 'pointer', flex: 1 },
 };
-
-// Minimal Tooltip component
-function Tooltip({ children, text }) {
-  const [show, setShow] = React.useState(false);
-  return (
-    <span style={{ position: 'relative', display: 'inline-block' }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-      onFocus={() => setShow(true)}
-      onBlur={() => setShow(false)}
-    >
-      {children}
-      {show && (
-        <span style={{
-          position: 'absolute',
-          left: '50%',
-          top: '100%',
-          transform: 'translateX(-50%)',
-          background: '#333',
-          color: '#fff',
-          padding: '6px 12px',
-          borderRadius: 8,
-          fontSize: 14,
-          whiteSpace: 'nowrap',
-          marginTop: 8,
-          zIndex: 9999,
-          pointerEvents: 'none',
-        }}>{text}</span>
-      )}
-    </span>
-  );
-}
