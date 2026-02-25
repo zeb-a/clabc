@@ -28,6 +28,30 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
   const [loadingSource, setLoadingSource] = useState(false);
   const [toImport, setToImport] = useState([]);
 
+  // Helper: convert twemoji CDN filename (e.g. '1f600' or '1f1e8-1f1f3') to unicode emoji
+  const urlToEmoji = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    try {
+      const parts = url.split('/').pop().split('.')[0];
+      if (!parts) return null;
+      const codes = parts.split('-').map(p => parseInt(p, 16));
+      if (codes.some(isNaN)) return null;
+      return String.fromCodePoint(...codes);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const renderIcon = (icon, size = '1.8rem') => {
+    if (!icon) return '⭐';
+    if (typeof icon === 'string' && /^https?:\/\//.test(icon)) {
+      const emoji = urlToEmoji(icon);
+      if (emoji) return <span style={{ fontSize: size }}>{emoji}</span>;
+      return <img src={icon} alt="" style={{ width: size, height: size, objectFit: 'contain' }} />;
+    }
+    return <span style={{ fontSize: size }}>{icon}</span>;
+  };
+
   // Handle keyboard shortcuts (Escape to close)
   useModalKeyboard(null, onClose, activeTab !== 'import');
   useEffect(() => {
@@ -136,7 +160,7 @@ export default function BehaviorModal({ student, behaviors, onClose, onGivePoint
                       console.error('onGivePoint failed', e);
                     }
                   }} style={activeTab === 'wow' ? styles.cardButton : { ...styles.cardButton, borderLeft: '4px solid #F44336' }}>
-                    <div style={{fontSize: '1.8rem', marginBottom: '4px', '@media (max-width: 640px)': { fontSize: '1.5rem', marginBottom: '3px' } }}>{card.icon}</div>
+                    <div style={{fontSize: '1.8rem', marginBottom: '4px', '@media (max-width: 640px)': { fontSize: '1.5rem', marginBottom: '3px' } }}>{renderIcon(card.icon)}</div>
                     <div style={{fontWeight: 'bold', fontSize: '0.85rem', '@media (max-width: 640px)': { fontSize: '0.75rem' } }}>{card.label}</div>
                     <div style={{color: activeTab === 'wow' ? '#4CAF50' : '#F44336', fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', '@media (max-width: 640px)': { fontSize: '0.6rem' } }}>{activeTab === 'wow' ? 'WOW' : 'NO NO'}</div>
                     <div style={{color: activeTab === 'wow' ? '#4CAF50' : '#F44336', fontWeight: '900', fontSize: '1rem', '@media (max-width: 640px)': { fontSize: '0.9rem' } }}>{activeTab === 'wow' ? `+${card.pts}` : card.pts}</div>
