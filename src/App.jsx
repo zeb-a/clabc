@@ -27,6 +27,7 @@ import './components/ModalAnimations.css';
 import AboutPage from './components/AboutPage';
 import FAQPage from './components/FAQPage';
 import { useTheme } from './ThemeContext';
+import { PandaStage } from './components/PointAnimation';
 // --- INITIAL DATA ---
 
 import { fallbackInitialsDataUrl } from './utils/avatar';
@@ -88,6 +89,8 @@ function LoggedInLayout({ view, children }) {
         <PageHelpViewSyncer view={view} />
         {children}
         <HelpChatBubble />
+        {/* 3-D Panda mascot — mounted once, never re-created per page */}
+        <PandaStage />
       </ToastProvider>
     </PageHelpProvider>
   );
