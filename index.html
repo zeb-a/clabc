@@ -39,9 +39,10 @@
       script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://unpkg.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: https://cdn.jsdelivr.net https://twemoji.maxcdn.com https://www.googletagmanager.com;
+      img-src 'self' data: blob: https://cdn.jsdelivr.net https://twemoji.maxcdn.com https://www.googletagmanager.com;
       media-src 'self' https://ssl.gstatic.com;
-      connect-src 'self' https://klasiz.fun https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com;
+      connect-src 'self' blob: https://klasiz.fun https://www.gstatic.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com;
+      worker-src 'self' blob:;
       frame-src 'self';
       object-src 'none';
       base-uri 'self';
