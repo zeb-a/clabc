@@ -51,7 +51,6 @@ import {
   useGLTF,
   useAnimations,
   ContactShadows,
-  Environment,
 } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -343,11 +342,12 @@ export function PandaStage() {
       >
         <CameraRig />
 
-        {/* Warm key light + cool fill for depth */}
-        <ambientLight intensity={0.52} color="#fff8f0" />
+        {/* Warm key light + cool fill for depth — no HDR/network required */}
+        <hemisphereLight skyColor="#fff8f0" groundColor="#b0c8e8" intensity={0.7} />
+        <ambientLight intensity={0.35} color="#fff8f0" />
         <directionalLight
           position={[4, 8, 5]}
-          intensity={1.45}
+          intensity={1.35}
           castShadow
           shadow-mapSize={[1024, 1024]}
           shadow-camera-near={0.5}
@@ -360,9 +360,6 @@ export function PandaStage() {
         />
         <directionalLight position={[-3, 2, -3]} intensity={0.28} color="#c0d8ff" />
         <pointLight position={[0, 4, 2]} intensity={0.38} color="#ffe0b0" />
-
-        {/* PBR environment reflections */}
-        <Environment preset="city" />
 
         {/* Soft contact shadow plane */}
         <ContactShadows
