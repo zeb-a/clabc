@@ -419,7 +419,7 @@ export default function ClassDashboard({
     }, dur);
   };
   const [showGridMenu, setShowGridMenu] = useState(false);
-  const [showPoint, setShowPoint] = useState({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' });
+  const [showPoint, setShowPoint] = useState({ visible: false, student: null, points: 1, behaviorEmoji: '⭐', pointName: '' });
   const [isAttendanceMode, setIsAttendanceMode] = useState(false);
   const today = new Date().toISOString().split('T')[0];
   const [absentStudents, setAbsentStudents] = useState(new Set());
@@ -886,7 +886,7 @@ export default function ClassDashboard({
     if (selectedStudent.attendance === 'absent' && selectedStudent.attendanceDate === today) {
       return;
     }
-    setShowPoint({ visible: true, student: selectedStudent, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
+    setShowPoint({ visible: true, student: selectedStudent, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐', pointName: behavior.label });
     updateClasses((prev) =>
       prev.map((c) =>
         c.id === activeClass.id
@@ -920,7 +920,7 @@ export default function ClassDashboard({
   const handleGivePointsToClass = (behavior) => {
     const presentStudents = activeClass.students.filter(s => !absentStudents.has(s.id));
 
-    setShowPoint({ visible: true, student: { name: t('dashboard.whole_class'), students: presentStudents }, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐' });
+    setShowPoint({ visible: true, student: { name: t('dashboard.whole_class'), students: presentStudents }, points: behavior.pts, behaviorEmoji: behavior.icon || '⭐', pointName: behavior.label });
     updateClasses((prev) =>
       prev.map((c) =>
         c.id === activeClass.id
@@ -959,7 +959,8 @@ export default function ClassDashboard({
       visible: true,
       student: { name: `${selectedStudentsArray.length} Selected`, students: selectedStudentsArray },
       points: behavior.pts,
-      behaviorEmoji: behavior.icon || '⭐'
+      behaviorEmoji: behavior.icon || '⭐',
+      pointName: behavior.label
     });
 
     // 2. Update only the selected students
@@ -2090,7 +2091,8 @@ export default function ClassDashboard({
                     width: '100%',
                     maxWidth: '100%',
                     boxSizing: 'border-box',
-                    overflowX: 'hidden'
+                    overflowX: 'hidden',
+                   
                   }}>
                     {/* Whole Class Card - Same structure as StudentCard */}
                     <div
@@ -2555,8 +2557,8 @@ export default function ClassDashboard({
           />
         )}
 
-        <PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} onComplete={() => setShowPoint({ visible: false, student: null, points: 0, behaviorEmoji: '⭐' })} />
-      </div>
+<PointAnimation isVisible={showPoint.visible} studentAvatar={showPoint.student?.avatar} studentName={showPoint.student?.name} students={showPoint.student?.students} points={showPoint.points} behaviorEmoji={showPoint.behaviorEmoji} pointName={showPoint.pointName} onComplete={() => setShowPoint({ visible: false, student: null, points: 1, behaviorEmoji: '⭐' })} />
+</div>
 
     </>
   );
